@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/sources
  * 获取所有来源平台列表

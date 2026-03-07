@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, Article } from '@/lib/supabase';
 
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/articles
  * 获取文章列表，支持分页和筛选
