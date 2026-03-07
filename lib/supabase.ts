@@ -1,28 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 延迟初始化，避免构建时错误
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+// 只在运行时初始化
+export function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // 构建时返回 mock client
+    if (process.env.NODE_ENV === 'production' && !supabaseUrl) {
+      return null as any;
     }
-
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    throw new Error('Missing Supabase environment variables');
   }
-  return supabaseClient;
+
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
 
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get(target, prop) {
-    const client = getSupabaseClient();
-    return (client as any)[prop];
-  }
-});
+// 兼容旧的导出方式
+export const supabase = getSupabaseClient();
 
 // Type definitions
 export interface Article {
