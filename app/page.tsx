@@ -18,31 +18,37 @@ export default function Home() {
     x: 0,
     reddit: 0,
   });
+  const [hotspotsCount, setHotspotsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 获取各平台文章数量
-    const fetchStats = async () => {
-      try {
-        const platforms = ['xiaohongshu', 'zhihu', 'wechat', 'x', 'reddit'];
-        const statsData: any = {};
-
-        for (const platform of platforms) {
-          const res = await fetch(`/api/articles?platform=${platform}&limit=1`);
-          const data = await res.json();
-          statsData[platform] = data.pagination?.total || 0;
-        }
-
-        setStats(statsData);
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      // 获取各平台文章数量
+      const platforms = ['xiaohongshu', 'zhihu', 'wechat', 'x', 'reddit'];
+      const statsData: any = {};
+
+      for (const platform of platforms) {
+        const res = await fetch(`/api/articles?platform=${platform}&limit=1`);
+        const data = await res.json();
+        statsData[platform] = data.pagination?.total || 0;
+      }
+
+      setStats(statsData);
+
+      // 获取热点资讯数量
+      const hotspotsRes = await fetch('/api/hotspots?limit=1');
+      const hotspotsData = await hotspotsRes.json();
+      setHotspotsCount(hotspotsData.pagination?.total || 0);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totalArticles = Object.values(stats).reduce((a, b) => a + b, 0);
 
@@ -50,42 +56,85 @@ export default function Home() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">运营内容管理平台</h1>
-        <p className="text-gray-600">聚合多平台热点内容，一站式管理</p>
+        <p className="text-gray-600">聚合多平台热点内容，统一管理</p>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">加载中...</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StatCard title="小红书" count={stats.xiaohongshu} icon="📕" color="bg-red-50" />
-            <StatCard title="知乎" count={stats.zhihu} icon="💡" color="bg-blue-50" />
-            <StatCard title="微信公众号" count={stats.wechat} icon="📱" color="bg-green-50" />
-            <StatCard title="X (Twitter)" count={stats.x} icon="🐦" color="bg-sky-50" />
-            <StatCard title="Reddit" count={stats.reddit} icon="🤖" color="bg-orange-50" />
-          </div>
+          {/* 总览卡片 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">📰</span>
+                <span className="text-4xl font-bold text-blue-600">{hotspotsCount}</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">热点资讯</h3>
+              <p className="text-sm text-gray-600 mt-1">小经理采集</p>
+            </div>
 
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">数据概览</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-3xl font-bold text-blue-600">{totalArticles}</div>
-                <div className="text-sm text-gray-600 mt-1">总文章数</div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">📝</span>
+                <span className="text-4xl font-bold text-green-600">{totalArticles}</span>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-3xl font-bold text-green-600">5</div>
-                <div className="text-sm text-gray-600 mt-1">接入平台</div>
+              <h3 className="text-lg font-semibold text-gray-800">文章总数</h3>
+              <p className="text-sm text-gray-600 mt-1">5个平台</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-3xl">🤖</span>
+                <span className="text-4xl font-bold text-purple-600">6</span>
               </div>
+              <h3 className="text-lg font-semibold text-gray-800">运营Agents</h3>
+              <p className="text-sm text-gray-600 mt-1">自动化产出</p>
             </div>
           </div>
 
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
+          {/* 平台统计 */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">各平台文章数量</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <StatCard title="小红书" count={stats.xiaohongshu} icon="📕" color="bg-red-50" />
+              <StatCard title="知乎" count={stats.zhihu} icon="💡" color="bg-blue-50" />
+              <StatCard title="微信公众号" count={stats.wechat} icon="📱" color="bg-green-50" />
+              <StatCard title="X (Twitter)" count={stats.x} icon="🐦" color="bg-sky-50" />
+              <StatCard title="Reddit" count={stats.reddit} icon="🤖" color="bg-orange-50" />
+            </div>
+          </div>
+
+          {/* 快速开始 */}
+          <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">快速开始</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li>• 点击侧边栏"热点资讯"查看最新内容</li>
-              <li>• 使用"文章管理"进行内容管理</li>
-              <li>• 多平台聚合，统一浏览</li>
-            </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <a
+                href="/hotspots"
+                className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📰</span>
+                  <h3 className="font-semibold text-gray-900">热点资讯</h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  查看小经理采集的 {hotspotsCount} 条热点资讯
+                </p>
+              </a>
+
+              <a
+                href="/articles"
+                className="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📝</span>
+                  <h3 className="font-semibold text-gray-900">文章管理</h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  浏览 {totalArticles} 篇运营文章
+                </p>
+              </a>
+            </div>
           </div>
         </>
       )}
@@ -95,7 +144,7 @@ export default function Home() {
 
 function StatCard({ title, count, icon, color }: { title: string; count: number; icon: string; color: string }) {
   return (
-    <div className={`${color} rounded-lg p-6 border border-gray-200`}>
+    <div className={`${color} rounded-lg p-5 border border-gray-200`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{icon}</span>
         <span className="text-3xl font-bold text-gray-900">{count}</span>

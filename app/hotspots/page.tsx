@@ -1,154 +1,169 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 
-interface Article {
+interface Hotspot {
   id: string;
   title: string;
-  content: string;
-  source_platform: string;
-  author: string;
-  published_at: string;
-  tags: string[];
-  热度: number;
+  category: string;
+  source: string;
+  summary: string;
+  url: string;
+  热度: string;
+  collected_date: string;
+  collected_time: string;
 }
 
-const platformNames: Record<string, string> = {
-  xiaohongshu: '小红书',
-  zhihu: '知乎',
-  wechat: '微信',
-  x: 'X',
-  reddit: 'Reddit',
-};
-
-const platformColors: Record<string, string> = {
-  xiaohongshu: 'bg-red-100 text-red-700',
-  zhihu: 'bg-blue-100 text-blue-700',
-  wechat: 'bg-green-100 text-green-700',
-  x: 'bg-sky-100 text-sky-700',
-  reddit: 'bg-orange-100 text-orange-700',
-};
-
 export default function HotspotsPage() {
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
   useEffect(() => {
-    fetchArticles();
-  }, [selectedPlatform]);
+    fetchHotspots();
+    fetchCategories();
+  }, [selectedCategory]);
 
-  const fetchArticles = async () => {
+  const fetchHotspots = async () => {
     setLoading(true);
     try {
-      const url = selectedPlatform
-        ? `/api/articles?platform=${selectedPlatform}&sort=热度&limit=20`
-        : `/api/articles?sort=热度&limit=20`;
+      const url = selectedCategory
+        ? `/api/hotspots?category=${encodeURIComponent(selectedCategory)}&limit=50`
+        : `/api/hotspots?limit=50`;
       
       const res = await fetch(url);
       const data = await res.json();
-      setArticles(data.data || []);
+      setHotspots(data.data || []);
     } catch (error) {
-      console.error('Failed to fetch articles:', error);
+      console.error('Failed to fetch hotspots:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    // 从现有数据中提取所有分类
+    const res = await fetch('/api/hotspots?limit=1000');
+    const data = await res.json();
+    const cats = new Set<string>();
+    data.data?.forEach((h: Hotspot) => {
+      if (h.category) cats.add(h.category);
+    });
+    setCategories(Array.from(cats).sort());
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+  };
+
+  const getHeatColor = (heat: string) => {
+    switch (heat) {
+      case '极高':
+        return 'text-red-600 bg-red-50';
+      case '高':
+        return 'text-orange-600 bg-orange-50';
+      case '中':
+        return 'text-yellow-600 bg-yellow-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
     }
   };
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">热点资讯</h1>
-        <p className="text-gray-600">按热度排序，实时追踪各平台热门内容</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">📰 热点资讯</h1>
+        <p className="text-gray-600">小经理每日采集的科技、AI、产品热点</p>
       </div>
 
-      {/* 平台筛选 */}
-      <div className="mb-6 flex gap-2 flex-wrap">
-        <button
-          onClick={() => setSelectedPlatform('')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            selectedPlatform === ''
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          全部平台
-        </button>
-        {Object.entries(platformNames).map(([key, name]) => (
+      {/* 分类筛选 */}
+      <div className="mb-6">
+        <div className="flex gap-2 flex-wrap">
           <button
-            key={key}
-            onClick={() => setSelectedPlatform(key)}
+            onClick={() => setSelectedCategory('')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedPlatform === key
+              selectedCategory === ''
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {name}
+            全部
           </button>
-        ))}
+          {categories.slice(0, 15).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedCategory === cat
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 文章列表 */}
+      {/* 热点列表 */}
       {loading ? (
         <div className="text-center py-12 text-gray-500">加载中...</div>
-      ) : articles.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          暂无数据
-        </div>
+      ) : hotspots.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">暂无数据</div>
       ) : (
         <div className="space-y-4">
-          {articles.map((article, index) => (
+          {hotspots.map((hotspot) => (
             <div
-              key={article.id}
+              key={hotspot.id}
               className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl font-bold text-red-500">#{index + 1}</span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        platformColors[article.source_platform]
-                      }`}
-                    >
-                      {platformNames[article.source_platform]}
-                    </span>
-                    <span className="flex items-center text-sm text-gray-500">
-                      🔥 {article.热度.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {article.title}
-                  </h3>
-                  
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {article.content}
-                  </p>
-                  
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    {article.author && (
-                      <span>👤 {article.author}</span>
-                    )}
-                    {article.published_at && (
-                      <span>
-                        📅 {new Date(article.published_at).toLocaleDateString('zh-CN')}
+                    {hotspot.热度 && (
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${getHeatColor(
+                          hotspot.热度
+                        )}`}
+                      >
+                        🔥 {hotspot.热度}
                       </span>
                     )}
+                    {hotspot.category && (
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                        {hotspot.category}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-500">
+                      📅 {formatDate(hotspot.collected_date)}
+                      {hotspot.collected_time && ` ${hotspot.collected_time}`}
+                    </span>
                   </div>
 
-                  {article.tags && article.tags.length > 0 && (
-                    <div className="flex gap-2 mt-3">
-                      {article.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {hotspot.url ? (
+                      <a
+                        href={hotspot.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-600 transition-colors"
+                      >
+                        {hotspot.title}
+                      </a>
+                    ) : (
+                      hotspot.title
+                    )}
+                  </h3>
+
+                  {hotspot.summary && (
+                    <p className="text-gray-600 text-sm mb-3">{hotspot.summary}</p>
+                  )}
+
+                  {hotspot.source && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span>📰 来源: {hotspot.source}</span>
                     </div>
                   )}
                 </div>
