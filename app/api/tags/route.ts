@@ -1,33 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// 强制动态渲染
 export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/tags
- * 获取所有标签列表
- * 
- * Query参数:
- * - limit: 返回数量 (默认50)
- * - sort: 排序方式 (count|name, 默认count)
+ * 获取所有标签及其使用次数
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const sort = searchParams.get('sort') || 'count';
-
-    let query = supabase.from('tags').select('*');
-
-    // 排序
-    if (sort === 'name') {
-      query = query.order('name');
-    } else {
-      query = query.order('count', { ascending: false });
-    }
-
-    query = query.limit(limit);
-
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
+      .order('count', { ascending: false });
 
     if (error) {
       console.error('Supabase error:', error);
