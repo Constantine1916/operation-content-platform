@@ -1,23 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 只在运行时初始化
-export function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// 使用 fallback 值避免构建错误
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // 构建时返回 mock client
-    if (process.env.NODE_ENV === 'production' && !supabaseUrl) {
-      return null as any;
-    }
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey);
-}
-
-// 兼容旧的导出方式
-export const supabase = getSupabaseClient();
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Type definitions
 export interface Article {
