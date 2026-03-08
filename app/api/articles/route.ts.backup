@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-// 获取 Supabase 配置
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const API_SECRET = process.env.API_SECRET_TOKEN;
-
-// 两个客户端：只读用 anon key，写入用 service role key
-const supabaseRead = createClient(supabaseUrl, supabaseAnonKey);
-const supabaseWrite = createClient(supabaseUrl, supabaseServiceKey);
-
 /**
  * GET /api/articles
- * 获取文章列表（公开访问）
+ * 获取文章列表，支持分页和筛选
  * 
  * Query参数:
  * - platform: 平台筛选 (xiaohongshu|zhihu|wechat|x|reddit)
@@ -30,10 +20,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // 构建查询
-    let query = supabaseRead.from('articles').select('*', { count: 'exact' });
+    let query = supabase.from('articles').select('*', { count: 'exact' });
 
     // 平台筛选
-    if (platform && platform !== 'all') {
+    if (platform) {
       query = query.eq('platform', platform);
     }
 
@@ -76,44 +66,21 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/articles
- * 创建新文章（需要 API token 认证）
- * 
- * Headers:
- * - x-api-token: API 密钥（来自环境变量 API_SECRET_TOKEN）
- * 
- * Body:
- * - platform: 平台（必填，xiaohongshu|zhihu|wechat|x|reddit）
- * - title: 标题（必填）
- * - content: 内容
- * - filename: 文件名
- * - published_to_feishu: 是否已发布到飞书
- * - published_to_telegram: 是否已发布到 Telegram
- * - metadata: 元数据对象
+ * 创建新文章（供agents调用）
  */
 export async function POST(request: NextRequest) {
   try {
-    // API Token 验证（仅当配置了 API_SECRET 时启用）
-    if (API_SECRET) {
-      const token = request.headers.get('x-api-token');
-      if (token !== API_SECRET) {
-        return NextResponse.json(
-          { error: 'Unauthorized - Invalid API token' },
-          { status: 401 }
-        );
-      }
-    }
-
     const body = await request.json();
 
     // 验证必填字段
-    if (!body.platform || !body.title) {
+    if (!body.title || !body.platform) {
       return NextResponse.json(
-        { error: 'Missing required fields: platform and title' },
+        { error: 'Missing required fields: title and platform' },
         { status: 400 }
       );
     }
 
-    // 验证平台枚举值
+    // 验证平台
     const validPlatforms = ['xiaohongshu', 'zhihu', 'wechat', 'x', 'reddit'];
     if (!validPlatforms.includes(body.platform)) {
       return NextResponse.json(
@@ -132,8 +99,7 @@ export async function POST(request: NextRequest) {
       metadata: body.metadata || {},
     };
 
-    // 使用 service role key 进行写操作
-    const { data, error } = await supabaseWrite
+    const { data, error } = await supabase
       .from('articles')
       .insert(article)
       .select()
@@ -147,13 +113,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data,
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({
+      success: true,
+      data,
+    }, { status: 201 });
   } catch (error: any) {
     console.error('API error:', error);
     return NextResponse.json(
