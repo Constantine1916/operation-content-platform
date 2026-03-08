@@ -28,7 +28,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         </svg>
       ),
       href: '/hotspots',
-      badge: '新',
     },
     {
       title: '文章管理',
