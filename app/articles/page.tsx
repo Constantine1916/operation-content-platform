@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface Article {
   id: string;
@@ -27,32 +27,87 @@ const platformEmojis: Record<string, string> = {
   reddit: '🤖',
 };
 
+const PAGE_SIZE = 30;
+
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // 重置状态并加载第一页
   useEffect(() => {
-    fetchArticles();
+    setArticles([]);
+    setPage(0);
+    setHasMore(true);
+    fetchArticles(0, true);
   }, [selectedPlatform]);
 
-  const fetchArticles = async () => {
-    setLoading(true);
+  // 设置滚动加载观察器
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1,
+    };
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+        loadMore();
+      }
+    }, options);
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loading, loadingMore, page]);
+
+  const fetchArticles = async (pageNum: number, isFirstLoad = false) => {
+    if (isFirstLoad) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
+      const apiPage = pageNum + 1; // API uses 1-based page numbers
       const url = selectedPlatform
-        ? `/api/articles?platform=${selectedPlatform}&limit=100`
-        : `/api/articles?limit=100`;
+        ? `/api/articles?platform=${selectedPlatform}&limit=${PAGE_SIZE}&page=${apiPage}`
+        : `/api/articles?limit=${PAGE_SIZE}&page=${apiPage}`;
       
       const res = await fetch(url);
-      const data = await res.json();
-      setArticles(data.data || []);
+      const result = await res.json();
+      const newArticles = result.data || [];
+
+      if (newArticles.length < PAGE_SIZE) {
+        setHasMore(false);
+      }
+
+      setArticles(prev => pageNum === 0 ? newArticles : [...prev, ...newArticles]);
     } catch (error) {
       console.error('Failed to fetch articles:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  const loadMore = useCallback(() => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchArticles(nextPage, false);
+  }, [page, selectedPlatform]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -106,34 +161,51 @@ export default function ArticlesPage() {
       ) : articles.length === 0 ? (
         <div className="text-center py-12 text-gray-500">暂无数据</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {articles.map((article) => (
-            <div
-              key={article.id}
-              className="bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedArticle(article)}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">{platformEmojis[article.platform]}</span>
-                <span className="text-xs font-medium text-gray-500">
-                  {platformNames[article.platform]}
-                </span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {articles.map((article) => (
+              <div
+                key={article.id}
+                className="bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedArticle(article)}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">{platformEmojis[article.platform]}</span>
+                  <span className="text-xs font-medium text-gray-500">
+                    {platformNames[article.platform]}
+                  </span>
+                </div>
+
+                <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+                  {article.title}
+                </h3>
+
+                <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                  {article.content.substring(0, 100)}...
+                </p>
+
+                <div className="text-xs text-gray-500">
+                  📅 {formatDate(article.created_at)}
+                </div>
               </div>
+            ))}
+          </div>
 
-              <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
-                {article.title}
-              </h3>
-
-              <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                {article.content.substring(0, 100)}...
-              </p>
-
-              <div className="text-xs text-gray-500">
-                📅 {formatDate(article.created_at)}
+          {/* 滚动加载触发器 */}
+          <div ref={loadMoreRef} className="mt-8">
+            {loadingMore && (
+              <div className="text-center py-4 text-gray-500">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2">加载更多...</p>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+            {!hasMore && articles.length > 0 && (
+              <div className="text-center py-4 text-gray-400 text-sm">
+                已加载全部 {articles.length} 篇文章
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* 文章详情弹窗 */}
