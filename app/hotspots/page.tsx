@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface Hotspot {
   id: string;
@@ -14,33 +14,92 @@ interface Hotspot {
   collected_time: string;
 }
 
+const PAGE_SIZE = 30;
+
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // 重置状态并加载第一页
   useEffect(() => {
-    fetchHotspots();
-    fetchCategories();
+    setHotspots([]);
+    setPage(0);
+    setHasMore(true);
+    fetchHotspots(0, true);
   }, [selectedCategory]);
 
-  const fetchHotspots = async () => {
-    setLoading(true);
+  // 设置滚动加载观察器
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1,
+    };
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+        loadMore();
+      }
+    }, options);
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loading, loadingMore, page]);
+
+  // 获取分类列表（只在初始化时调用一次）
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchHotspots = async (pageNum: number, isFirstLoad = false) => {
+    if (isFirstLoad) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
+      const apiPage = pageNum + 1;
       const url = selectedCategory
-        ? `/api/hotspots?category=${encodeURIComponent(selectedCategory)}&limit=50`
-        : `/api/hotspots?limit=50`;
+        ? `/api/hotspots?category=${encodeURIComponent(selectedCategory)}&limit=${PAGE_SIZE}&page=${apiPage}`
+        : `/api/hotspots?limit=${PAGE_SIZE}&page=${apiPage}`;
       
       const res = await fetch(url);
-      const data = await res.json();
-      setHotspots(data.data || []);
+      const result = await res.json();
+      const newHotspots = result.data || [];
+
+      if (newHotspots.length < PAGE_SIZE) {
+        setHasMore(false);
+      }
+
+      setHotspots(prev => pageNum === 0 ? newHotspots : [...prev, ...newHotspots]);
     } catch (error) {
       console.error('Failed to fetch hotspots:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  const loadMore = useCallback(() => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchHotspots(nextPage, false);
+  }, [page, selectedCategory]);
 
   const fetchCategories = async () => {
     // 从现有数据中提取所有分类
@@ -113,64 +172,81 @@ export default function HotspotsPage() {
       ) : hotspots.length === 0 ? (
         <div className="text-center py-12 text-gray-500">暂无数据</div>
       ) : (
-        <div className="space-y-4">
-          {hotspots.map((hotspot) => (
-            <div
-              key={hotspot.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    {hotspot.热度 && (
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-semibold ${getHeatColor(
-                          hotspot.热度
-                        )}`}
-                      >
-                        🔥 {hotspot.热度}
+        <>
+          <div className="space-y-4">
+            {hotspots.map((hotspot) => (
+              <div
+                key={hotspot.id}
+                className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {hotspot.热度 && (
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-semibold ${getHeatColor(
+                            hotspot.热度
+                          )}`}
+                        >
+                          🔥 {hotspot.热度}
+                        </span>
+                      )}
+                      {hotspot.category && (
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                          {hotspot.category}
+                        </span>
+                      )}
+                      <span className="text-sm text-gray-500">
+                        📅 {formatDate(hotspot.collected_date)}
+                        {hotspot.collected_time && ` ${hotspot.collected_time}`}
                       </span>
-                    )}
-                    {hotspot.category && (
-                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                        {hotspot.category}
-                      </span>
-                    )}
-                    <span className="text-sm text-gray-500">
-                      📅 {formatDate(hotspot.collected_date)}
-                      {hotspot.collected_time && ` ${hotspot.collected_time}`}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {hotspot.url ? (
-                      <a
-                        href={hotspot.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-blue-600 transition-colors"
-                      >
-                        {hotspot.title}
-                      </a>
-                    ) : (
-                      hotspot.title
-                    )}
-                  </h3>
-
-                  {hotspot.summary && (
-                    <p className="text-gray-600 text-sm mb-3">{hotspot.summary}</p>
-                  )}
-
-                  {hotspot.source && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span>📰 来源: {hotspot.source}</span>
                     </div>
-                  )}
+
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {hotspot.url ? (
+                        <a
+                          href={hotspot.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-blue-600 transition-colors"
+                        >
+                          {hotspot.title}
+                        </a>
+                      ) : (
+                        hotspot.title
+                      )}
+                    </h3>
+
+                    {hotspot.summary && (
+                      <p className="text-gray-600 text-sm mb-3">{hotspot.summary}</p>
+                    )}
+
+                    {hotspot.source && (
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span>📰 来源: {hotspot.source}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* 滚动加载触发器 */}
+          <div ref={loadMoreRef} className="mt-8">
+            {loadingMore && (
+              <div className="text-center py-4 text-gray-500">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2">加载更多...</p>
+              </div>
+            )}
+            {!hasMore && hotspots.length > 0 && (
+              <div className="text-center py-4 text-gray-400 text-sm">
+                已加载全部 {hotspots.length} 条热点
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
