@@ -19,6 +19,7 @@ const supabaseWrite = createClient(supabaseUrl, supabaseServiceKey);
  * 
  * Query参数:
  * - platform: 平台筛选 (xiaohongshu|zhihu|wechat|x|reddit)
+ * - author: 作者筛选 (xiaohongshu-1|xiaohongshu-2|zhihu-1|...)
  * - page: 页码 (默认1)
  * - limit: 每页数量 (默认20)
  */
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const platform = searchParams.get('platform');
+    const author = searchParams.get('author');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -35,6 +37,11 @@ export async function GET(request: NextRequest) {
     // 平台筛选
     if (platform && platform !== 'all') {
       query = query.eq('platform', platform);
+    }
+
+    // 作者筛选
+    if (author && author !== 'all') {
+      query = query.eq('author', author);
     }
 
     // 排序：按创建时间倒序
@@ -83,6 +90,7 @@ export async function GET(request: NextRequest) {
  * 
  * Body:
  * - platform: 平台（必填，xiaohongshu|zhihu|wechat|x|reddit）
+ * - author: 作者（可选，xiaohongshu-1|xiaohongshu-2|zhihu-1|...）
  * - title: 标题（必填）
  * - content: 内容
  * - filename: 文件名
@@ -124,6 +132,7 @@ export async function POST(request: NextRequest) {
 
     const article = {
       platform: body.platform,
+      author: body.author || null,  // 新增：作者字段
       title: body.title,
       content: body.content || '',
       filename: body.filename,

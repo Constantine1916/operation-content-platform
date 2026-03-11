@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 interface Article {
   id: string;
   platform: string;
+  author: string | null;
   title: string;
   content: string;
   filename: string;
@@ -27,18 +28,45 @@ const platformEmojis: Record<string, string> = {
   reddit: '🤖',
 };
 
+// 作者名称映射
+const authorNames: Record<string, string> = {
+  'xiaohongshu-1': '小红',
+  'xiaohongshu-2': '小红2',
+  'zhihu-1': '小知',
+  'wechat-1': '小微',
+  'x-1': '小X',
+  'reddit-1': '小Reddit',
+};
+
+const authorEmojis: Record<string, string> = {
+  'xiaohongshu-1': '📕',
+  'xiaohongshu-2': '📕',
+  'zhihu-1': '💡',
+  'wechat-1': '📱',
+  'x-1': '🐦',
+  'reddit-1': '🤖',
+};
+
 const PAGE_SIZE = 30;
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [authors, setAuthors] = useState<string[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // 提取所有唯一的作者
+  useEffect(() => {
+    const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
+    setAuthors(uniqueAuthors);
+  }, [articles]);
 
   // 重置状态并加载第一页
   useEffect(() => {
@@ -46,7 +74,7 @@ export default function ArticlesPage() {
     setPage(0);
     setHasMore(true);
     fetchArticles(0, true);
-  }, [selectedPlatform]);
+  }, [selectedPlatform, selectedAuthor]);
 
   // 设置滚动加载观察器
   useEffect(() => {
@@ -82,9 +110,13 @@ export default function ArticlesPage() {
 
     try {
       const apiPage = pageNum + 1; // API uses 1-based page numbers
-      const url = selectedPlatform
-        ? `/api/articles?platform=${selectedPlatform}&limit=${PAGE_SIZE}&page=${apiPage}`
-        : `/api/articles?limit=${PAGE_SIZE}&page=${apiPage}`;
+      let url = `/api/articles?limit=${PAGE_SIZE}&page=${apiPage}`;
+      if (selectedPlatform) {
+        url += `&platform=${selectedPlatform}`;
+      }
+      if (selectedAuthor) {
+        url += `&author=${selectedAuthor}`;
+      }
       
       const res = await fetch(url);
       const result = await res.json();
@@ -128,7 +160,7 @@ export default function ArticlesPage() {
       </div>
 
       {/* 平台切换 */}
-      <div className="mb-6 flex gap-2 flex-wrap">
+      <div className="mb-4 flex gap-2 flex-wrap">
         <button
           onClick={() => setSelectedPlatform('')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -155,6 +187,36 @@ export default function ArticlesPage() {
         ))}
       </div>
 
+      {/* 作者筛选 */}
+      {authors.length > 0 && (
+        <div className="mb-6 flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedAuthor('')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedAuthor === ''
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            全部作者
+          </button>
+          {authors.map((author) => (
+            <button
+              key={author}
+              onClick={() => setSelectedAuthor(author)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                selectedAuthor === author
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span>{authorEmojis[author] || '👤'}</span>
+              <span>{authorNames[author] || author}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* 文章列表 */}
       {loading ? (
         <div className="text-center py-12 text-gray-500">加载中...</div>
@@ -174,6 +236,14 @@ export default function ArticlesPage() {
                   <span className="text-xs font-medium text-gray-500">
                     {platformNames[article.platform]}
                   </span>
+                  {article.author && (
+                    <>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-xs font-medium text-purple-500">
+                        {authorEmojis[article.author] || '👤'} {authorNames[article.author] || article.author}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
@@ -226,7 +296,11 @@ export default function ArticlesPage() {
                     {selectedArticle.title}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    {platformNames[selectedArticle.platform]} • {formatDate(selectedArticle.created_at)}
+                    {platformNames[selectedArticle.platform]}
+                    {selectedArticle.author && (
+                      <> • {authorEmojis[selectedArticle.author] || '👤'} {authorNames[selectedArticle.author] || selectedArticle.author}</>
+                    )}
+                     • {formatDate(selectedArticle.created_at)}
                   </p>
                 </div>
               </div>
