@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     // 转换为 articles 格式（匹配 Supabase 实际表结构）
     const articles = Array.from(uniqueNotes.values()).map(n => ({
       platform: 'xiaohongshu',
+      title: n.title || '无标题',
       filename: n.title || '无标题',
       content: n.body || '',
       metadata: {
