@@ -55,25 +55,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 转换为 articles 格式
+    // 转换为 articles 格式（匹配 database-schema.sql）
     const articles = Array.from(uniqueNotes.values()).map(n => ({
-      platform: 'xiaohongshu',
+      source_platform: 'xiaohongshu',
       title: n.title || '无标题',
       content: n.body || '',
-      metadata: {
-        note_id: n.note_id,
-        source_url: n.url || `https://www.xiaohongshu.com/explore/${n.note_id}`,
-        author: n.nickname,
-        user_id: n.user_id,
-        cover_url: n.cover_url,
-        likes: n.likes,
-        collects: n.collects,
-        comments: n.comments,
-        shares: n.shares,
-        hashtags: n.hashtags,
-        keyword: n.keyword,
-        imported_at: new Date().toISOString(),
-      },
+      author: n.nickname || null,
+      source_url: n.url || `https://www.xiaohongshu.com/explore/${n.note_id}`,
+      published_at: n.published_at || null,
+      tags: n.hashtags || [],
+      热度: (n.likes || 0) + (n.collects || 0) + (n.comments || 0),
     }));
 
     // 批量插入
