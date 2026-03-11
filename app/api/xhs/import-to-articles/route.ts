@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { noteIds } = body; // string[]
+    const { noteIds, author = 'xiaohongshu-1' } = body; // string[], string
 
     if (!noteIds || !Array.isArray(noteIds) || noteIds.length === 0) {
       return NextResponse.json({ error: 'noteIds array is required' }, { status: 400 });
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     // 转换为 articles 格式（匹配 Supabase 实际表结构）
     const articles = Array.from(uniqueNotes.values()).map(n => ({
       platform: 'xiaohongshu',
+      author: author,  // 传入的作者标识 (xiaohongshu-1 或 xiaohongshu-2)
       title: n.title || '无标题',
       filename: n.title || '无标题',
       content: n.body || '',
