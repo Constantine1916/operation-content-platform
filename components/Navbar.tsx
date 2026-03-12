@@ -20,27 +20,8 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - User Menu only */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              href="/hotspots" 
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              热点资讯
-            </Link>
-            <Link 
-              href="/articles" 
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              文章管理
-            </Link>
-            <Link 
-              href="/tags" 
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              标签管理
-            </Link>
-            
             {/* User Menu */}
             <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200">
               <button className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors">
@@ -72,28 +53,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - User Menu only */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              href="/hotspots"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              热点资讯
-            </Link>
-            <Link
-              href="/articles"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              文章管理
-            </Link>
-            <Link
-              href="/tags"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              标签管理
-            </Link>
+            <div className="flex items-center px-3 py-2">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                <span className="text-sm font-medium text-gray-700">管</span>
+              </div>
+              <span className="text-base font-medium text-gray-700">管理员</span>
+            </div>
           </div>
         </div>
       )}
