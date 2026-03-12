@@ -27,10 +27,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </button>
             
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-lg">运</span>
               </div>
-              <span className="text-xl font-semibold text-gray-900">内容运营平台</span>
+              <span className="text-lg sm:text-xl font-semibold text-gray-900 truncate">内容运营平台</span>
             </Link>
           </div>
 
