@@ -27,7 +27,6 @@ export default function Home() {
 
   const fetchStats = async () => {
     try {
-      // 获取各平台文章数量
       const platforms = ['xiaohongshu', 'zhihu', 'wechat', 'x', 'reddit'];
       const statsData: any = {};
 
@@ -39,7 +38,6 @@ export default function Home() {
 
       setStats(statsData);
 
-      // 获取热点资讯数量
       const hotspotsRes = await fetch('/api/hotspots?limit=1');
       const hotspotsData = await hotspotsRes.json();
       setHotspotsCount(hotspotsData.pagination?.total || 0);
@@ -52,105 +50,113 @@ export default function Home() {
 
   const totalArticles = Object.values(stats).reduce((a, b) => a + b, 0);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-8 bg-gray-200 rounded-full mb-3"></div>
+          <div className="h-3 w-24 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">运营内容管理平台</h1>
-        <p className="text-gray-600">聚合多平台热点内容，统一管理</p>
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">内容运营平台</h1>
+        <p className="text-sm text-gray-500">聚合多平台内容，统一管理</p>
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">加载中...</div>
-      ) : (
-        <>
-          {/* 总览卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-3xl">📰</span>
-                <span className="text-4xl font-bold text-blue-600">{hotspotsCount}</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">热点资讯</h3>
-              <p className="text-sm text-gray-600 mt-1">小经理采集</p>
-            </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <StatCard 
+          title="热点资讯" 
+          count={hotspotsCount} 
+          icon="📰" 
+          bgColor="bg-amber-50"
+          iconBg="bg-amber-100"
+        />
+        <StatCard 
+          title="文章总数" 
+          count={totalArticles} 
+          icon="📝" 
+          bgColor="bg-emerald-50"
+          iconBg="bg-emerald-100"
+        />
+        <StatCard 
+          title="运营Agents" 
+          count={6} 
+          icon="🤖" 
+          bgColor="bg-violet-50"
+          iconBg="bg-violet-100"
+        />
+      </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-3xl">📝</span>
-                <span className="text-4xl font-bold text-green-600">{totalArticles}</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">文章总数</h3>
-              <p className="text-sm text-gray-600 mt-1">5个平台</p>
-            </div>
+      {/* Platform Stats */}
+      <div className="mb-8">
+        <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">平台分布</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" color="text-red-600" bgColor="bg-red-50" />
+          <PlatformCard title="知乎" count={stats.zhihu} icon="💡" color="text-blue-600" bgColor="bg-blue-50" />
+          <PlatformCard title="微信" count={stats.wechat} icon="💬" color="text-green-600" bgColor="bg-green-50" />
+          <PlatformCard title="X" count={stats.x} icon="🐦" color="text-sky-600" bgColor="bg-sky-50" />
+          <PlatformCard title="Reddit" count={stats.reddit} icon="🟠" color="text-orange-600" bgColor="bg-orange-50" />
+        </div>
+      </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-3xl">🤖</span>
-                <span className="text-4xl font-bold text-purple-600">6</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">运营Agents</h3>
-              <p className="text-sm text-gray-600 mt-1">自动化产出</p>
-            </div>
-          </div>
-
-          {/* 平台统计 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">各平台文章数量</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <StatCard title="小红书" count={stats.xiaohongshu} icon="📕" color="bg-red-50" />
-              <StatCard title="知乎" count={stats.zhihu} icon="💡" color="bg-blue-50" />
-              <StatCard title="微信公众号" count={stats.wechat} icon="📱" color="bg-green-50" />
-              <StatCard title="X (Twitter)" count={stats.x} icon="🐦" color="bg-sky-50" />
-              <StatCard title="Reddit" count={stats.reddit} icon="🤖" color="bg-orange-50" />
-            </div>
-          </div>
-
-          {/* 快速开始 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">快速开始</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <a
-                href="/hotspots"
-                className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">📰</span>
-                  <h3 className="font-semibold text-gray-900">热点资讯</h3>
-                </div>
-                <p className="text-sm text-gray-600">
-                  查看小经理采集的 {hotspotsCount} 条热点资讯
-                </p>
-              </a>
-
-              <a
-                href="/articles"
-                className="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">📝</span>
-                  <h3 className="font-semibold text-gray-900">文章管理</h3>
-                </div>
-                <p className="text-sm text-gray-600">
-                  浏览 {totalArticles} 篇运营文章
-                </p>
-              </a>
-            </div>
-          </div>
-        </>
-      )}
+      {/* Quick Links */}
+      <div>
+        <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">快捷访问</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
+          <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
+          <QuickLink href="/tags" icon="🏷️" title="标签管理" desc="内容标签" />
+          <QuickLink href="/xhs" icon="📕" title="小红书研究" desc="热门笔记分析" />
+        </div>
+      </div>
     </div>
   );
 }
 
-function StatCard({ title, count, icon, color }: { title: string; count: number; icon: string; color: string }) {
+function StatCard({ title, count, icon, bgColor, iconBg }: { title: string; count: number; icon: string; bgColor: string; iconBg: string }) {
   return (
-    <div className={`${color} rounded-lg p-5 border border-gray-200`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl">{icon}</span>
-        <span className="text-3xl font-bold text-gray-900">{count}</span>
+    <div className={`${bgColor} rounded-xl p-5`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`${iconBg} w-10 h-10 rounded-lg flex items-center justify-center text-lg`}>
+          {icon}
+        </div>
+        <span className="text-3xl font-semibold text-gray-900">{count}</span>
       </div>
-      <h3 className="text-sm font-medium text-gray-700">{title}</h3>
-      <p className="text-xs text-gray-500 mt-1">篇文章</p>
+      <p className="text-sm font-medium text-gray-700">{title}</p>
     </div>
+  );
+}
+
+function PlatformCard({ title, count, icon, color, bgColor }: { title: string; count: number; icon: string; color: string; bgColor: string }) {
+  return (
+    <div className={`${bgColor} rounded-lg p-4 flex items-center gap-3`}>
+      <span className="text-xl">{icon}</span>
+      <div>
+        <p className={`text-lg font-semibold ${color}`}>{count}</p>
+        <p className="text-xs text-gray-500">{title}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuickLink({ href, icon, title, desc }: { href: string; icon: string; title: string; desc: string }) {
+  return (
+    <a
+      href={href}
+      className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all group"
+    >
+      <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
+      <div>
+        <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{title}</p>
+        <p className="text-sm text-gray-400">{desc}</p>
+      </div>
+    </a>
   );
 }
