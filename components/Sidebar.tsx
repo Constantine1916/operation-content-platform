@@ -2,13 +2,66 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface SidebarProps {
   className?: string
 }
 
+interface PlatformCount {
+  name: string
+  color: string
+  count: number
+}
+
 export default function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
+  const [platformCounts, setPlatformCounts] = useState<PlatformCount[]>([])
+  const [totalArticles, setTotalArticles] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPlatformCounts() {
+      try {
+        const platforms = [
+          { name: '小红书', key: 'xiaohongshu', color: 'bg-red-100 text-red-700' },
+          { name: '知乎', key: 'zhihu', color: 'bg-blue-100 text-blue-700' },
+          { name: '微信', key: 'wechat', color: 'bg-green-100 text-green-700' },
+          { name: 'X (Twitter)', key: 'x', color: 'bg-sky-100 text-sky-700' },
+          { name: 'Reddit', key: 'reddit', color: 'bg-orange-100 text-orange-700' },
+        ]
+
+        const counts = await Promise.all(
+          platforms.map(async (platform) => {
+            try {
+              const response = await fetch(`/api/articles?platform=${platform.key}&limit=1`)
+              const data = await response.json()
+              return {
+                name: platform.name,
+                color: platform.color,
+                count: data.pagination?.total || 0,
+              }
+            } catch {
+              return {
+                name: platform.name,
+                color: platform.color,
+                count: 0,
+              }
+            }
+          })
+        )
+
+        setPlatformCounts(counts)
+        setTotalArticles(counts.reduce((sum, p) => sum + p.count, 0))
+      } catch (error) {
+        console.error('Failed to fetch platform counts:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPlatformCounts()
+  }, [])
 
   const menuItems = [
     {
@@ -59,14 +112,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     },
   ]
 
-  const platformItems = [
-    { name: '小红书', color: 'bg-red-100 text-red-700', count: 12 },
-    { name: '知乎', color: 'bg-blue-100 text-blue-700', count: 8 },
-    { name: '微信', color: 'bg-green-100 text-green-700', count: 15 },
-    { name: 'X (Twitter)', color: 'bg-sky-100 text-sky-700', count: 6 },
-    { name: 'Reddit', color: 'bg-orange-100 text-orange-700', count: 5 },
-  ]
-
   return (
     <aside className={`bg-white border-r border-gray-200 ${className}`}>
       <div className="h-full flex flex-col">
@@ -107,17 +152,21 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             平台筛选
           </div>
           <div className="space-y-2">
-            {platformItems.map((platform) => (
-              <button
-                key={platform.name}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-              >
-                <span className={`px-2 py-1 rounded text-xs font-medium ${platform.color}`}>
-                  {platform.name}
-                </span>
-                <span className="text-xs text-gray-500">{platform.count}</span>
-              </button>
-            ))}
+            {loading ? (
+              <div className="text-xs text-gray-400 py-2">加载中...</div>
+            ) : (
+              platformCounts.map((platform) => (
+                <button
+                  key={platform.name}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                >
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${platform.color}`}>
+                    {platform.name}
+                  </span>
+                  <span className="text-xs text-gray-500">{platform.count}</span>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
@@ -125,11 +174,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between text-xs text-gray-600">
             <span>总文章数</span>
-            <span className="font-semibold text-gray-900">46</span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
-            <span>今日更新</span>
-            <span className="font-semibold text-green-600">+8</span>
+            <span className="font-semibold text-gray-900">{loading ? '...' : totalArticles}</span>
           </div>
         </div>
       </div>
