@@ -14,54 +14,51 @@ interface PlatformCount {
   count: number
 }
 
+interface Stats {
+  total: number
+  today_count: number
+  by_platform: Record<string, number>
+}
+
 export default function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
-  const [platformCounts, setPlatformCounts] = useState<PlatformCount[]>([])
-  const [totalArticles, setTotalArticles] = useState(0)
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchPlatformCounts() {
+    async function fetchStats() {
       try {
-        const platforms = [
-          { name: '小红书', key: 'xiaohongshu', color: 'bg-red-100 text-red-700' },
-          { name: '知乎', key: 'zhihu', color: 'bg-blue-100 text-blue-700' },
-          { name: '微信', key: 'wechat', color: 'bg-green-100 text-green-700' },
-          { name: 'X (Twitter)', key: 'x', color: 'bg-sky-100 text-sky-700' },
-          { name: 'Reddit', key: 'reddit', color: 'bg-orange-100 text-orange-700' },
-        ]
-
-        const counts = await Promise.all(
-          platforms.map(async (platform) => {
-            try {
-              const response = await fetch(`/api/articles?platform=${platform.key}&limit=1`)
-              const data = await response.json()
-              return {
-                name: platform.name,
-                color: platform.color,
-                count: data.pagination?.total || 0,
-              }
-            } catch {
-              return {
-                name: platform.name,
-                color: platform.color,
-                count: 0,
-              }
-            }
-          })
-        )
-
-        setPlatformCounts(counts)
-        setTotalArticles(counts.reduce((sum, p) => sum + p.count, 0))
+        const response = await fetch('/api/articles?stats=true')
+        const data = await response.json()
+        
+        if (data.success && data.data) {
+          setStats(data.data)
+        }
       } catch (error) {
-        console.error('Failed to fetch platform counts:', error)
+        console.error('Failed to fetch stats:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchPlatformCounts()
+    fetchStats()
   }, [])
+
+  const platformMap: Record<string, { name: string; color: string; key: string }> = {
+    xiaohongshu: { name: '小红书', key: 'xiaohongshu', color: 'bg-red-100 text-red-700' },
+    zhihu: { name: '知乎', key: 'zhihu', color: 'bg-blue-100 text-blue-700' },
+    wechat: { name: '微信', key: 'wechat', color: 'bg-green-100 text-green-700' },
+    x: { name: 'X (Twitter)', key: 'x', color: 'bg-sky-100 text-sky-700' },
+    reddit: { name: 'Reddit', key: 'reddit', color: 'bg-orange-100 text-orange-700' },
+  }
+
+  const platformCounts: PlatformCount[] = stats 
+    ? Object.entries(stats.by_platform).map(([key, count]) => ({
+        name: platformMap[key]?.name || key,
+        color: platformMap[key]?.color || 'bg-gray-100 text-gray-700',
+        count,
+      }))
+    : []
 
   const menuItems = [
     {
@@ -174,7 +171,13 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between text-xs text-gray-600">
             <span>总文章数</span>
-            <span className="font-semibold text-gray-900">{loading ? '...' : totalArticles}</span>
+            <span className="font-semibold text-gray-900">{loading ? '...' : stats?.total || 0}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
+            <span>今日更新</span>
+            <span className={`font-semibold ${(stats?.today_count || 0) > 0 ? 'text-green-600' : 'text-gray-900'}`}>
+              {loading ? '...' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}
+            </span>
           </div>
         </div>
       </div>
