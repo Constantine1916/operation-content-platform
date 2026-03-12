@@ -22,6 +22,7 @@ const supabaseWrite = createClient(supabaseUrl, supabaseServiceKey);
  * - author: 作者筛选 (xiaohongshu-1|xiaohongshu-2|zhihu-1|...)
  * - page: 页码 (默认1)
  * - limit: 每页数量 (默认20)
+ * - stats: 是否返回统计信息 (true)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -30,6 +31,51 @@ export async function GET(request: NextRequest) {
     const author = searchParams.get('author');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
+    const stats = searchParams.get('stats');
+
+    // 统计模式
+    if (stats === 'true') {
+      // 获取总数
+      const { count: total } = await supabaseRead
+        .from('articles')
+        .select('*', { count: 'exact', head: true });
+
+      // 获取今日新增数量
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const { count: todayCount } = await supabaseRead
+        .from('articles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', today.toISOString());
+
+      // 获取各平台数量
+      const { data: platformCounts } = await supabaseRead
+        .from('articles')
+        .select('platform')
+        .not('platform', 'is', null);
+
+      const byPlatform: Record<string, number> = {
+        xiaohongshu: 0,
+        zhihu: 0,
+        wechat: 0,
+        x: 0,
+        reddit: 0,
+      };
+      platformCounts?.forEach((item: any) => {
+        if (byPlatform[item.platform] !== undefined) {
+          byPlatform[item.platform]++;
+        }
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          total: total || 0,
+          today_count: todayCount || 0,
+          by_platform: byPlatform,
+        },
+      });
+    }
 
     // 构建查询
     let query = supabaseRead.from('articles').select('*', { count: 'exact' });
