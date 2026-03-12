@@ -1,5 +1,3 @@
-'use client'
-
 import { ReactNode, useState } from 'react'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
@@ -34,9 +32,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Top navigation */}
         <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
-        {/* Page content - add margin-top for fixed navbar */}
-        <main className="flex-1 overflow-y-auto pt-16 p-4 lg:p-6">
-          {children}
+        {/* Page content - add margin-top for fixed navbar, max-width for large screens */}
+        <main className="flex-1 overflow-y-auto pt-16">
+          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 lg:py-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>

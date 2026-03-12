@@ -159,9 +159,10 @@ export default function ArticlesPage() {
         <p className="text-gray-600">各平台运营agent产出的内容</p>
       </div>
 
-      {/* 平台切换 */}
-      <div className="mb-4 flex gap-2 flex-wrap">
-        <button
+      {/* 平台切换 - horizontal scroll on mobile */}
+      <div className="mb-4 overflow-x-auto pb-2 -mx-4 px-4">
+        <div className="flex gap-2 flex-nowrap">
+          <button
           onClick={() => setSelectedPlatform('')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedPlatform === ''
@@ -187,10 +188,11 @@ export default function ArticlesPage() {
         ))}
       </div>
 
-      {/* 作者筛选 */}
+      {/* 作者筛选 - horizontal scroll on mobile */}
       {authors.length > 0 && (
-        <div className="mb-6 flex gap-2 flex-wrap">
-          <button
+        <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
+          <div className="flex gap-2 flex-nowrap">
+            <button
             onClick={() => setSelectedAuthor('')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               selectedAuthor === ''
