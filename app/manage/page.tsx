@@ -62,39 +62,39 @@ export default function ManagePage() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="gray-800 text-sm">总文章数</p>
-          <p className="text-2xl font-bold text-text-gray-800">{articles.length}</p>
+          <p className="text-2xl font-bold text-text-gray-900">{articles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="gray-800 text-sm">搜索结果</p>
-          <p className="text-2xl font-bold text-text-gray-800">{filteredArticles.length}</p>
+          <p className="text-2xl font-bold text-text-gray-900">{filteredArticles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="gray-800 text-sm">平台数</p>
-          <p className="text-2xl font-bold text-text-gray-800">5</p>
+          <p className="text-2xl font-bold text-text-gray-900">5</p>
         </div>
       </div>
 
       {/* 文章表格 */}
       {loading ? (
-        <div className="text-center py-12 text-gray-700">加载中...</div>
+        <div className="text-center py-12 text-gray-900">加载中...</div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-lg font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-lg font-medium text-gray-900 uppercase tracking-wider">
                   标题
                 </th>
-                <th className="px-6 py-3 text-left text-lg font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-lg font-medium text-gray-900 uppercase tracking-wider">
                   平台
                 </th>
-                <th className="px-6 py-3 text-left text-lg font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-lg font-medium text-gray-900 uppercase tracking-wider">
                   作者
                 </th>
-                <th className="px-6 py-3 text-left text-lg font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-lg font-medium text-gray-900 uppercase tracking-wider">
                   发布时间
                 </th>
-                <th className="px-6 py-3 text-left text-lg font-medium text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-lg font-medium text-gray-900 uppercase tracking-wider">
                   标签
                 </th>
               </tr>
@@ -102,7 +102,7 @@ export default function ManagePage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredArticles.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-700">
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-900">
                     {searchQuery ? '没有找到匹配的文章' : '暂无文章数据'}
                   </td>
                 </tr>
@@ -119,21 +119,21 @@ export default function ManagePage() {
                         {article.source_platform}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-lg text-text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-lg text-text-gray-900">
                       {article.author || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">
                       {new Date(article.published_at).toLocaleDateString('zh-CN')}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1 flex-wrap max-w-xs">
                         {article.tags?.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-lg border border-gray-200">
+                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-900 rounded text-lg border border-gray-200">
                             {tag}
                           </span>
                         ))}
                         {article.tags?.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-lg border border-gray-200">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-900 rounded text-lg border border-gray-200">
                             +{article.tags.length - 3}
                           </span>
                         )}

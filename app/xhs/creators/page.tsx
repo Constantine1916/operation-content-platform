@@ -49,14 +49,14 @@ export default function CreatorsPage() {
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-text-gray-800">👥 创作者排行</h1>
-          <p className="text-lg text-gray-700">{creators.length} 位创作者</p>
+          <h1 className="text-2xl font-bold text-text-gray-900">👥 创作者排行</h1>
+          <p className="text-lg text-gray-900">{creators.length} 位创作者</p>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 text-lg text-gray-700 uppercase">
+          <thead className="bg-gray-50 text-lg text-gray-900 uppercase">
             <tr>
               <th className="px-4 py-3 text-left">#</th>
               <th className="px-4 py-3 text-left">创作者</th>
@@ -72,7 +72,7 @@ export default function CreatorsPage() {
               <tr key={c.user_id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-lg font-bold ${
-                    i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'
+                    i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'
                   }`}>
                     {i + 1}
                   </span>
@@ -82,20 +82,20 @@ export default function CreatorsPage() {
                     <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-lg font-bold">
                       {(c.nickname || '?').charAt(0)}
                     </div>
-                    <span className="text-lg font-medium text-text-gray-800">{c.nickname}</span>
+                    <span className="text-lg font-medium text-text-gray-900">{c.nickname}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-lg text-right">{c.noteCount}</td>
-                <td className="px-4 py-3 text-lg text-right font-medium text-text-gray-800">
+                <td className="px-4 py-3 text-lg text-right font-medium text-text-gray-900">
                   {formatNumber(c.totalLikes)}
                 </td>
-                <td className="px-4 py-3 text-lg text-right font-medium text-text-gray-800">
+                <td className="px-4 py-3 text-lg text-right font-medium text-text-gray-900">
                   {formatNumber(c.totalCollects)}
                 </td>
                 <td className="px-4 py-3 text-lg text-right">
                   {formatNumber(c.totalComments)}
                 </td>
-                <td className="px-4 py-3 text-lg text-right text-gray-700">
+                <td className="px-4 py-3 text-lg text-right text-gray-900">
                   {formatNumber(Math.round(c.totalLikes / Math.max(c.noteCount, 1)))}
                 </td>
               </tr>
@@ -103,7 +103,7 @@ export default function CreatorsPage() {
           </tbody>
         </table>
         {creators.length === 0 && (
-          <div className="px-6 py-12 text-center text-gray-600">
+          <div className="px-6 py-12 text-center text-gray-900">
             暂无创作者数据
           </div>
         )}
