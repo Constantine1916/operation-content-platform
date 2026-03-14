@@ -32,7 +32,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all ${isActive ? 'bg-gray-900 text-white' : 'gray-700 hover:black hover:bg-gray-50'}`}>
+              <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-lg transition-all ${isActive ? 'bg-gray-900 text-white' : 'gray-700 hover:black hover:bg-gray-50'}`}>
                 <span className={isActive ? 'text-white' : 'gray-600'}>{item.icon}</span>
                 <span className="tracking-wide">{item.title}</span>
               </Link>

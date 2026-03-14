@@ -16,13 +16,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </button>
             <Link href="/overview" className="flex items-center gap-2">
               <div className="w-8 h-8 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50">
-                <span className="text-xs font-medium gray-800">OP</span>
+                <span className="text-lg font-medium gray-800">OP</span>
               </div>
-              <span className="text-sm font-medium gray-800 tracking-[0.15em]">内容运营平台</span>
+              <span className="text-lg font-medium gray-800 tracking-[0.15em]">内容运营平台</span>
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xs gray-600 hover:gray-800 transition-colors tracking-widest uppercase">首页</Link>
+            <Link href="/" className="text-lg gray-600 hover:gray-800 transition-colors tracking-widest uppercase">首页</Link>
           </div>
         </div>
       </div>

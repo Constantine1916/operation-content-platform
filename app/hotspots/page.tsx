@@ -92,7 +92,7 @@ export default function HotspotsPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide black mb-2">热点资讯</h1>
-        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Hotspot News</p>
+        <p className="text-lg gray-600 tracking-[0.2em] uppercase">Hotspot News</p>
       </div>
 
       {/* Category Filter */}
@@ -100,7 +100,7 @@ export default function HotspotsPage() {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory('')}
-            className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all ${
+            className={`px-4 py-2 rounded-full text-lg tracking-widest uppercase transition-all ${
               selectedCategory === '' ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'
             }`}
           >
@@ -110,7 +110,7 @@ export default function HotspotsPage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all ${
+              className={`px-4 py-2 rounded-full text-lg tracking-widest uppercase transition-all ${
                 selectedCategory === cat ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -153,11 +153,11 @@ export default function HotspotsPage() {
                         {formatDate(hotspot.collected_date)}
                       </span>
                     </div>
-                    <h3 className="text-sm font-normal black group-hover:black transition-colors mb-2 line-clamp-2">
+                    <h3 className="text-lg font-normal black group-hover:black transition-colors mb-2 line-clamp-2">
                       {hotspot.title}
                     </h3>
                     {hotspot.summary && (
-                      <p className="text-xs gray-600 line-clamp-2 mb-3">{hotspot.summary}</p>
+                      <p className="text-lg gray-600 line-clamp-2 mb-3">{hotspot.summary}</p>
                     )}
                     {hotspot.source && (
                       <div className="text-[10px] gray-500 uppercase tracking-widest">
@@ -171,7 +171,7 @@ export default function HotspotsPage() {
           </div>
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && <div className="flex justify-center py-8"><div className="w-6 h-6 bg-gray-100 rounded-full animate-spin"></div></div>}
-            {!hasMore && hotspots.length > 0 && <div className="text-center py-8 gray-500 text-xs tracking-widest uppercase">已加载全部 {hotspots.length} 条热点</div>}
+            {!hasMore && hotspots.length > 0 && <div className="text-center py-8 gray-500 text-lg tracking-widest uppercase">已加载全部 {hotspots.length} 条热点</div>}
           </div>
         </>
       )}

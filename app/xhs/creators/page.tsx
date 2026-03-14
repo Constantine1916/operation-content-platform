@@ -50,13 +50,13 @@ export default function CreatorsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-black">👥 创作者排行</h1>
-          <p className="text-sm gray-700">{creators.length} 位创作者</p>
+          <p className="text-lg gray-700">{creators.length} 位创作者</p>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 text-xs gray-700 uppercase">
+          <thead className="bg-gray-50 text-lg gray-700 uppercase">
             <tr>
               <th className="px-4 py-3 text-left">#</th>
               <th className="px-4 py-3 text-left">创作者</th>
@@ -71,7 +71,7 @@ export default function CreatorsPage() {
             {creators.map((c, i) => (
               <tr key={c.user_id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-lg font-bold ${
                     i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 gray-700'
                   }`}>
                     {i + 1}
@@ -79,23 +79,23 @@ export default function CreatorsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-lg font-bold">
                       {(c.nickname || '?').charAt(0)}
                     </div>
-                    <span className="text-sm font-medium text-black">{c.nickname}</span>
+                    <span className="text-lg font-medium text-black">{c.nickname}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-right">{c.noteCount}</td>
-                <td className="px-4 py-3 text-sm text-right font-medium text-black">
+                <td className="px-4 py-3 text-lg text-right">{c.noteCount}</td>
+                <td className="px-4 py-3 text-lg text-right font-medium text-black">
                   {formatNumber(c.totalLikes)}
                 </td>
-                <td className="px-4 py-3 text-sm text-right font-medium text-black">
+                <td className="px-4 py-3 text-lg text-right font-medium text-black">
                   {formatNumber(c.totalCollects)}
                 </td>
-                <td className="px-4 py-3 text-sm text-right">
+                <td className="px-4 py-3 text-lg text-right">
                   {formatNumber(c.totalComments)}
                 </td>
-                <td className="px-4 py-3 text-sm text-right gray-700">
+                <td className="px-4 py-3 text-lg text-right gray-700">
                   {formatNumber(Math.round(c.totalLikes / Math.max(c.noteCount, 1)))}
                 </td>
               </tr>
