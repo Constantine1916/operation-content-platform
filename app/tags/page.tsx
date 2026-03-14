@@ -16,7 +16,7 @@ export default function TagsPage() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide black mb-2">标签管理</h1>
-        <p className="text-lg gray-600 tracking-[0.2em] uppercase">Tag Management</p>
+        <p className="text-lg text-gray-600 tracking-[0.2em] uppercase">Tag Management</p>
       </div>
 
       {loading ? (
@@ -33,10 +33,10 @@ export default function TagsPage() {
             <div key={tag.id} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg opacity-30 group-hover:opacity-50 transition-opacity">🏷️</span>
-                <span className="text-2xl font-normal black">{tag.count}</span>
+                <span className="text-2xl font-normal text-gray-800">{tag.count}</span>
               </div>
-              <h3 className="text-lg font-normal gray-800 truncate group-hover:black transition-colors">#{tag.name}</h3>
-              <p className="text-[10px] gray-500 mt-1">篇文章</p>
+              <h3 className="text-lg font-normal text-gray-800 truncate group-hover:black transition-colors">#{tag.name}</h3>
+              <p className="text-[10px] text-gray-500 mt-1">篇文章</p>
             </div>
           ))}
         </div>
