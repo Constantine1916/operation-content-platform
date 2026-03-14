@@ -34,25 +34,25 @@ export default function LandingPage() {
               <div className="w-10 h-10 border border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                 <span className="text-lg font-medium black">OP</span>
               </div>
-              <span className="text-sm font-medium tracking-[0.15em] gray-800">内容运营平台</span>
+              <span className="text-lg font-medium tracking-[0.15em] gray-800">内容运营平台</span>
             </div>
             
             <div className="hidden md:flex items-center gap-10">
-              <a href="#features" className="text-xs tracking-widest gray-600 hover:gray-800 transition-colors uppercase">功能</a>
-              <a href="#workflow" className="text-xs tracking-widest gray-600 hover:gray-800 transition-colors uppercase">流程</a>
-              <a href="#about" className="text-xs tracking-widest gray-600 hover:gray-800 transition-colors uppercase">关于</a>
+              <a href="#features" className="text-lg tracking-widest gray-600 hover:gray-800 transition-colors uppercase">功能</a>
+              <a href="#workflow" className="text-lg tracking-widest gray-600 hover:gray-800 transition-colors uppercase">流程</a>
+              <a href="#about" className="text-lg tracking-widest gray-600 hover:gray-800 transition-colors uppercase">关于</a>
             </div>
             
             <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-xs tracking-widest gray-700 hover:black transition-colors uppercase px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300"
+                className="text-lg tracking-widest gray-700 hover:black transition-colors uppercase px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300"
               >
                 登录
               </Link>
               <Link
                 href="/login"
-                className="text-xs tracking-widest bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-gray-800 transition-all uppercase font-medium"
+                className="text-lg tracking-widest bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-gray-800 transition-all uppercase font-medium"
               >
                 开始使用
               </Link>
@@ -76,20 +76,20 @@ export default function LandingPage() {
               <span className="block gray-600">智能高效运营</span>
             </h1>
             
-            <p className="text-sm gray-700 leading-relaxed max-w-xl mx-auto mb-16 font-normal">
+            <p className="text-lg gray-700 leading-relaxed max-w-xl mx-auto mb-16 font-normal">
               一站式解决从热点采集、数据分析，内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link
                 href="/login"
-                className="group relative px-10 py-4 bg-gray-900 text-white text-xs tracking-[0.25em] uppercase font-medium rounded-full overflow-hidden"
+                className="group relative px-10 py-4 bg-gray-900 text-white text-lg tracking-[0.25em] uppercase font-medium rounded-full overflow-hidden"
               >
                 <span className="relative z-10">立即开始</span>
               </Link>
               <a
                 href="#features"
-                className="group flex items-center gap-3 text-xs tracking-[0.2em] gray-600 uppercase"
+                className="group flex items-center gap-3 text-lg tracking-[0.2em] gray-600 uppercase"
               >
                 <span>了解更多</span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300">→</span>
@@ -148,7 +148,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <span className="text-[10px] tracking-[0.4em] gray-500 uppercase">Workflow</span>
             <h2 className="text-3xl font-normal mt-4 tracking-wide black">运营闭环</h2>
-            <p className="gray-600 text-sm mt-3">从发现到优化，全链路自动化</p>
+            <p className="gray-600 text-lg mt-3">从发现到优化，全链路自动化</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -169,12 +169,12 @@ export default function LandingPage() {
       <section className="py-32 bg-white">
         <div className="max-w-2xl mx-auto px-8 text-center">
           <h2 className="text-3xl font-normal mb-6 tracking-wide black">开启智能运营之旅</h2>
-          <p className="text-sm gray-600 mb-12 font-normal">
+          <p className="text-lg gray-600 mb-12 font-normal">
             立即体验一站式内容运营平台，让运营更高效
           </p>
           <Link
             href="/login"
-            className="inline-block px-12 py-4 border border-gray-200 black text-xs tracking-[0.25em] uppercase rounded-full hover:bg-gray-900 hover:text-white transition-all duration-500"
+            className="inline-block px-12 py-4 border border-gray-200 black text-lg tracking-[0.25em] uppercase rounded-full hover:bg-gray-900 hover:text-white transition-all duration-500"
           >
             立即开始 →
           </Link>
@@ -187,9 +187,9 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50">
-                <span className="text-xs font-medium gray-800">OP</span>
+                <span className="text-lg font-medium gray-800">OP</span>
               </div>
-              <span className="text-xs gray-600 tracking-widest uppercase">内容运营平台</span>
+              <span className="text-lg gray-600 tracking-widest uppercase">内容运营平台</span>
             </div>
             <p className="text-[10px] gray-500 tracking-widest uppercase">
               © 2026 内容运营平台. All rights reserved.
@@ -207,8 +207,8 @@ function FeatureCard({ number, title, description }: { number: string; title: st
       <div className="text-4xl font-normal gray-400 mb-6 group-hover:gray-500 transition-colors">
         {number}
       </div>
-      <h3 className="text-sm tracking-[0.15em] uppercase mb-3 font-medium black">{title}</h3>
-      <p className="text-xs gray-600 leading-relaxed font-normal">{description}</p>
+      <h3 className="text-lg tracking-[0.15em] uppercase mb-3 font-medium black">{title}</h3>
+      <p className="text-lg gray-600 leading-relaxed font-normal">{description}</p>
     </div>
   );
 }
@@ -222,7 +222,7 @@ function WorkflowStep({ step, title, icon, delay }: { step: number; title: strin
       <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-2xl mb-4 shadow-sm">
         {icon}
       </div>
-      <div className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-medium flex items-center justify-center mb-2">
+      <div className="w-6 h-6 rounded-full bg-gray-900 text-white text-lg font-medium flex items-center justify-center mb-2">
         {step}
       </div>
       <span className="text-[10px] tracking-[0.2em] gray-700 uppercase">{title}</span>

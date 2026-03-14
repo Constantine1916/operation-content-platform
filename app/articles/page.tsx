@@ -83,14 +83,14 @@ export default function ArticlesPage() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide black mb-2">文章管理</h1>
-        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Article Management</p>
+        <p className="text-lg gray-600 tracking-[0.2em] uppercase">Article Management</p>
       </div>
 
       <div className="mb-8 overflow-x-auto">
         <div className="flex gap-2">
-          <button onClick={() => setSelectedPlatform('')} className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all whitespace-nowrap ${selectedPlatform === '' ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'}`}>全部</button>
+          <button onClick={() => setSelectedPlatform('')} className={`px-4 py-2 rounded-full text-lg tracking-widest uppercase transition-all whitespace-nowrap ${selectedPlatform === '' ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'}`}>全部</button>
           {Object.entries(platformNames).map(([key, name]) => (
-            <button key={key} onClick={() => setSelectedPlatform(key)} className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all whitespace-nowrap ${selectedPlatform === key ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'}`}>{name}</button>
+            <button key={key} onClick={() => setSelectedPlatform(key)} className={`px-4 py-2 rounded-full text-lg tracking-widest uppercase transition-all whitespace-nowrap ${selectedPlatform === key ? 'bg-gray-900 text-white' : 'bg-white gray-700 border border-gray-200 hover:border-gray-300'}`}>{name}</button>
           ))}
         </div>
       </div>
@@ -111,8 +111,8 @@ export default function ArticlesPage() {
                       {article.author && <span className="text-[10px] gray-500 uppercase tracking-widest">@{article.author}</span>}
                       <span className="text-[10px] gray-500 uppercase tracking-widest">{formatDate(article.created_at)}</span>
                     </div>
-                    <h3 className="text-sm font-normal black line-clamp-2 mb-2">{article.title}</h3>
-                    {article.content && <p className="text-xs gray-600 line-clamp-2">{article.content}</p>}
+                    <h3 className="text-lg font-normal black line-clamp-2 mb-2">{article.title}</h3>
+                    {article.content && <p className="text-lg gray-600 line-clamp-2">{article.content}</p>}
                   </div>
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function ArticlesPage() {
           </div>
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && <div className="flex justify-center py-8"><div className="w-6 h-6 bg-gray-100 rounded-full animate-spin"></div></div>}
-            {!hasMore && articles.length > 0 && <div className="text-center py-8 gray-500 text-xs tracking-widest uppercase">已加载全部 {articles.length} 篇文章</div>}
+            {!hasMore && articles.length > 0 && <div className="text-center py-8 gray-500 text-lg tracking-widest uppercase">已加载全部 {articles.length} 篇文章</div>}
           </div>
         </>
       )}

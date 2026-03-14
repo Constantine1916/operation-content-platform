@@ -65,7 +65,7 @@ export default function Overview() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-2xl font-normal tracking-wide black mb-2">概览</h1>
-        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Dashboard Overview</p>
+        <p className="text-lg gray-600 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
       {/* Stats Cards */}
@@ -89,7 +89,7 @@ export default function Overview() {
 
       {/* Platform Stats */}
       <div className="mb-10">
-        <h2 className="text-xs font-medium gray-600 uppercase tracking-[0.2em] mb-4">平台分布</h2>
+        <h2 className="text-lg font-medium gray-600 uppercase tracking-[0.2em] mb-4">平台分布</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" />
           <PlatformCard title="知乎" count={stats.zhihu} icon="💡" />
@@ -101,7 +101,7 @@ export default function Overview() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="text-xs font-medium gray-600 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
+        <h2 className="text-lg font-medium gray-600 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
           <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
@@ -122,7 +122,7 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
         </div>
         <span className="text-4xl font-normal black">{count}</span>
       </div>
-      <p className="text-xs tracking-widest gray-600 uppercase">{title}</p>
+      <p className="text-lg tracking-widest gray-600 uppercase">{title}</p>
     </div>
   );
 }
@@ -147,8 +147,8 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
     >
       <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-normal black group-hover:black transition-colors">{title}</p>
-        <p className="text-xs gray-600">{desc}</p>
+        <p className="text-lg font-normal black group-hover:black transition-colors">{title}</p>
+        <p className="text-lg gray-600">{desc}</p>
       </div>
     </a>
   );

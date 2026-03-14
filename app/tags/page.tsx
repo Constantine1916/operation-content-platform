@@ -16,7 +16,7 @@ export default function TagsPage() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide black mb-2">标签管理</h1>
-        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Tag Management</p>
+        <p className="text-lg gray-600 tracking-[0.2em] uppercase">Tag Management</p>
       </div>
 
       {loading ? (
@@ -24,8 +24,8 @@ export default function TagsPage() {
       ) : tags.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center"><span className="text-2xl opacity-30">🏷️</span></div>
-          <p className="gray-600 text-sm">暂无标签</p>
-          <p className="gray-500 text-xs mt-1">当文章包含标签时，这里会显示标签列表</p>
+          <p className="gray-600 text-lg">暂无标签</p>
+          <p className="gray-500 text-lg mt-1">当文章包含标签时，这里会显示标签列表</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -35,7 +35,7 @@ export default function TagsPage() {
                 <span className="text-lg opacity-30 group-hover:opacity-50 transition-opacity">🏷️</span>
                 <span className="text-2xl font-normal black">{tag.count}</span>
               </div>
-              <h3 className="text-sm font-normal gray-800 truncate group-hover:black transition-colors">#{tag.name}</h3>
+              <h3 className="text-lg font-normal gray-800 truncate group-hover:black transition-colors">#{tag.name}</h3>
               <p className="text-[10px] gray-500 mt-1">篇文章</p>
             </div>
           ))}

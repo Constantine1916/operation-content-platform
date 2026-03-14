@@ -49,7 +49,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium black mb-2">
+              <label htmlFor="email" className="block text-lg font-medium black mb-2">
                 邮箱
               </label>
               <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium black mb-2">
+              <label htmlFor="password" className="block text-lg font-medium black mb-2">
                 密码
               </label>
               <input
@@ -79,7 +79,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 py-2 rounded-lg">
+              <div className="text-red-500 text-lg text-center bg-red-50 py-2 rounded-lg">
                 {error}
               </div>
             )}
@@ -95,7 +95,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center gray-600 text-sm mt-8">
+        <p className="text-center gray-600 text-lg mt-8">
           © 2026 内容运营平台. All rights reserved.
         </p>
       </div>
