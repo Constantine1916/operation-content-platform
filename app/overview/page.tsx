@@ -37,7 +37,17 @@ export default function Overview() {
   const totalArticles = Object.values(stats).reduce((a, b) => a + b, 0);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse"></div></div>;
+    return (
+      <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
+        <div className="h-8 w-24 bg-gray-100 rounded-lg mb-10"></div>
+        <div className="grid grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="h-28 bg-gray-100 rounded-2xl"></div>)}
+        </div>
+        <div className="grid grid-cols-5 gap-3 pt-4">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl"></div>)}
+        </div>
+      </div>
+    );
   }
 
   return (
