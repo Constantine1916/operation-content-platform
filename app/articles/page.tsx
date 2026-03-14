@@ -49,7 +49,14 @@ export default function ArticlesPage() {
   };
 
   const loadMore = useCallback(() => { const n = page + 1; setPage(n); fetchArticles(n, false); }, [page, selectedPlatform]);
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatDate = (d: string) => new Date(d).toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -86,7 +93,7 @@ export default function ArticlesPage() {
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${platformColors[article.platform] || 'bg-gray-50 text-gray-900 border-gray-200'}`}>
                     {platformNames[article.platform] || article.platform}
                   </span>
-                  <span className="text-[10px] text-gray-900">{formatDate(article.created_at)}</span>
+                  <span className="text-[10px] text-gray-500">{formatDate(article.created_at)}</span>
                 </div>
 
                 {/* Title */}
