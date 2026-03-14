@@ -87,29 +87,29 @@ export default function SearchKeywordPage() {
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-text-gray-800">
+          <h1 className="text-2xl font-bold text-text-gray-900">
             <span className="filter grayscale">🔍</span> {keyword}
           </h1>
-          <p className="text-lg text-gray-700">{pagination.total} 条笔记</p>
+          <p className="text-lg text-gray-900">{pagination.total} 条笔记</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-lg text-gray-700">笔记数</div>
+          <div className="text-lg text-gray-900">笔记数</div>
           <div className="text-2xl font-bold mt-1">{pagination.total}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-lg text-gray-700">总点赞</div>
+          <div className="text-lg text-gray-900">总点赞</div>
           <div className="text-2xl font-bold mt-1">{formatNumber(totalLikes)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-lg text-gray-700">总收藏</div>
+          <div className="text-lg text-gray-900">总收藏</div>
           <div className="text-2xl font-bold mt-1">{formatNumber(totalCollects)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-lg text-gray-700">平均收藏率</div>
+          <div className="text-lg text-gray-900">平均收藏率</div>
           <div className="text-2xl font-bold mt-1">{avgCollectRatio}%</div>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function SearchKeywordPage() {
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 text-lg text-gray-700 uppercase">
+            <thead className="bg-gray-50 text-lg text-gray-900 uppercase">
               <tr>
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3 text-left">笔记</th>
@@ -160,7 +160,7 @@ export default function SearchKeywordPage() {
             <tbody className="divide-y divide-gray-100">
               {notes.map((note, i) => (
                 <tr key={note.note_id + '-' + i} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-lg text-gray-600">{i + 1}</td>
+                  <td className="px-4 py-3 text-lg text-gray-900">{i + 1}</td>
                   <td className="px-4 py-3">
                     <a
                       href={note.url || `https://www.xiaohongshu.com/explore/${note.note_id}`}
@@ -171,7 +171,7 @@ export default function SearchKeywordPage() {
                       {note.title || '无标题'}
                     </a>
                   </td>
-                  <td className="px-4 py-3 text-lg text-gray-700">@{note.nickname}</td>
+                  <td className="px-4 py-3 text-lg text-gray-900">@{note.nickname}</td>
                   <td className="px-4 py-3 text-lg text-right font-medium">{formatNumber(note.likes)}</td>
                   <td className="px-4 py-3 text-lg text-right font-medium">{formatNumber(note.collects)}</td>
                   <td className="px-4 py-3 text-lg text-right font-medium">{formatNumber(note.comments)}</td>

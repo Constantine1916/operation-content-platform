@@ -67,11 +67,11 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   ]
 
   return (
-    <aside className={`bg-white border-r border-gray-100 ${className}`}>
+    <aside className={`bg-white border-r border-gray-200 ${className}`}>
       <div className="h-full flex flex-col">
         <nav className="flex-1 px-3 py-6 space-y-0.5">
           {/* 主菜单 label */}
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-3">
+          <div className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-3 px-3">
             主菜单
           </div>
 
@@ -84,11 +84,11 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                   isActive
                     ? 'bg-gray-900 text-white'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-900 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 {/* icon 和文字尺寸协调：icon w-5, 文字 text-sm */}
-                <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-900'}`}>
                   {item.icon}
                 </span>
                 <span className="text-sm font-medium">{item.title}</span>
@@ -100,12 +100,12 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         {/* 底部统计 */}
         <div className="px-4 py-4 border-t border-gray-50 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">总文章数</span>
-            <span className="text-xs font-semibold text-gray-700">{loading ? '—' : stats?.total || 0}</span>
+            <span className="text-xs text-gray-900">总文章数</span>
+            <span className="text-xs font-semibold text-gray-900">{loading ? '—' : stats?.total || 0}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">今日更新</span>
-            <span className="text-xs font-semibold text-gray-700">
+            <span className="text-xs text-gray-900">今日更新</span>
+            <span className="text-xs font-semibold text-gray-900">
               {loading ? '—' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}
             </span>
           </div>
