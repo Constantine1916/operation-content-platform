@@ -90,13 +90,13 @@ export default function ArticlesPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-sm font-medium text-gray-800 group-hover:text-gray-900 line-clamp-3 flex-1 mb-3">
+                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-black line-clamp-3 flex-1 mb-3">
                   {article.title}
                 </h3>
 
                 {/* Preview */}
                 {article.content && (
-                  <p className="text-xs text-gray-400 line-clamp-2 mb-3">{article.content}</p>
+                  <p className="text-xs text-gray-600 line-clamp-2 mb-3">{article.content}</p>
                 )}
 
                 {/* Author & Read more */}
