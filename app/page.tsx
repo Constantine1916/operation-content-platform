@@ -53,7 +53,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/login"
-                className="text-xs tracking-widest bg-white text-black px-6 py-2.5 rounded-none hover:bg-white/90 transition-all uppercase font-medium"
+                className="text-xs tracking-widest bg-white text-black px-6 py-2.5 rounded-full hover:bg-white/90 transition-all uppercase font-medium"
               >
                 开始使用
               </Link>
