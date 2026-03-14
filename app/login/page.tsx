@@ -95,7 +95,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center gray-600 text-lg mt-8">
+        <p className="text-center text-gray-600 text-lg mt-8">
           © 2026 内容运营平台. All rights reserved.
         </p>
       </div>
