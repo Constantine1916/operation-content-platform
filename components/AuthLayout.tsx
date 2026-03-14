@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import MainLayout from '@/components/MainLayout';
+import LandingPage from '@/app/page';
+import OverviewPage from '@/app/overview/page';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -21,17 +23,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      
-      // 如果未登录且不在登录页，跳转到登录页
-      if (!session && pathname !== '/login') {
-        router.push('/login');
-      }
     });
 
     return () => subscription.unsubscribe();
-  }, [pathname, router]);
+  }, []);
 
-  // 登录页不需要 MainLayout
+  // 登录页单独处理
   if (pathname === '/login') {
     return <>{children}</>;
   }
@@ -48,10 +45,23 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  // 未登录，跳转到登录页
-  if (!session) {
-    return null; // 会触发 useEffect 跳转
+  // 未登录且不是首页，重定向到首页（Landing）
+  if (!session && pathname !== '/') {
+    router.push('/');
+    return null;
   }
 
+  // 未登录显示 Landing 页面（首页）
+  if (!session) {
+    return <LandingPage />;
+  }
+
+  // 已登录用户访问首页，重定向到概览页
+  if (session && pathname === '/') {
+    router.push('/overview');
+    return null;
+  }
+
+  // 已登录显示带 MainLayout 的内容
   return <MainLayout>{children}</MainLayout>;
 }
