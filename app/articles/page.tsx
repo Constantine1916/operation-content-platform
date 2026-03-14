@@ -109,9 +109,33 @@ export default function ArticlesPage() {
           </div>
 
           {/* Load More */}
-          <div ref={loadMoreRef} className="mt-8">
-            {loadingMore && <div className="flex justify-center py-8"><div className="w-6 h-6 bg-gray-100 rounded-full animate-spin"></div></div>}
-            {!hasMore && <div className="text-center py-8 text-gray-900 text-xs">已加载全部 {articles.length} 篇文章</div>}
+          <div ref={loadMoreRef} className="mt-4">
+            {loadingMore && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 animate-pulse flex flex-col">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="h-4 w-14 bg-gray-100 rounded-full"></div>
+                      <div className="h-3 w-12 bg-gray-100 rounded-full"></div>
+                    </div>
+                    <div className="h-4 w-full bg-gray-100 rounded-lg mb-2"></div>
+                    <div className="h-4 w-4/5 bg-gray-100 rounded-lg mb-2"></div>
+                    <div className="h-4 w-2/3 bg-gray-100 rounded-lg mb-3 flex-1"></div>
+                    <div className="border-t border-gray-50 pt-2 flex justify-between">
+                      <div className="h-3 w-16 bg-gray-100 rounded-full"></div>
+                      <div className="h-3 w-12 bg-gray-100 rounded-full"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!hasMore && articles.length > 0 && (
+              <div className="flex items-center gap-3 justify-center py-8">
+                <div className="flex-1 h-px bg-gray-100"></div>
+                <span className="text-xs text-gray-400">已加载全部 {articles.length} 篇文章</span>
+                <div className="flex-1 h-px bg-gray-100"></div>
+              </div>
+            )}
           </div>
         </>
       )}

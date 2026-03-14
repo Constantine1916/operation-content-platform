@@ -118,9 +118,30 @@ export default function HotspotsPage() {
               </a>
             ))}
           </div>
-          <div ref={loadMoreRef} className="mt-8">
-            {loadingMore && <div className="flex justify-center py-8"><div className="w-6 h-6 bg-gray-200 rounded-full animate-spin"></div></div>}
-            {!hasMore && <div className="text-center py-8 text-gray-400 text-xs">已加载全部 {hotspots.length} 条热点</div>}
+          <div ref={loadMoreRef} className="mt-4">
+            {loadingMore && (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="h-5 w-16 bg-gray-100 rounded-full"></div>
+                      <div className="h-5 w-12 bg-gray-100 rounded-full"></div>
+                      <div className="h-4 w-10 bg-gray-100 rounded-full ml-auto"></div>
+                    </div>
+                    <div className="h-5 w-3/4 bg-gray-100 rounded-lg mb-2"></div>
+                    <div className="h-4 w-full bg-gray-100 rounded-lg mb-1"></div>
+                    <div className="h-4 w-2/3 bg-gray-100 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!hasMore && hotspots.length > 0 && (
+              <div className="flex items-center gap-3 justify-center py-8">
+                <div className="flex-1 h-px bg-gray-100"></div>
+                <span className="text-xs text-gray-400">已加载全部 {hotspots.length} 条热点</span>
+                <div className="flex-1 h-px bg-gray-100"></div>
+              </div>
+            )}
           </div>
         </>
       )}
