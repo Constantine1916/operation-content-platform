@@ -82,7 +82,7 @@ export default function ArticlesPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide black mb-2">文章管理</h1>
+        <h1 className="text-2xl font-normal tracking-wide black mb-2">文章管理</h1>
         <p className="text-xs gray-600 tracking-[0.2em] uppercase">Article Management</p>
       </div>
 
@@ -111,7 +111,7 @@ export default function ArticlesPage() {
                       {article.author && <span className="text-[10px] gray-500 uppercase tracking-widest">@{article.author}</span>}
                       <span className="text-[10px] gray-500 uppercase tracking-widest">{formatDate(article.created_at)}</span>
                     </div>
-                    <h3 className="text-sm font-light black line-clamp-2 mb-2">{article.title}</h3>
+                    <h3 className="text-sm font-normal black line-clamp-2 mb-2">{article.title}</h3>
                     {article.content && <p className="text-xs gray-600 line-clamp-2">{article.content}</p>}
                   </div>
                 </div>

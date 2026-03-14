@@ -71,12 +71,12 @@ export default function LandingPage() {
               </span>
             </div>
             
-            <h1 className="text-6xl md:text-7xl font-light leading-[1.1] tracking-tight mb-8 black">
+            <h1 className="text-6xl md:text-7xl font-normal leading-[1.1] tracking-tight mb-8 black">
               <span className="block">聚合多平台内容</span>
               <span className="block gray-600">智能高效运营</span>
             </h1>
             
-            <p className="text-sm gray-700 leading-relaxed max-w-xl mx-auto mb-16 font-light">
+            <p className="text-sm gray-700 leading-relaxed max-w-xl mx-auto mb-16 font-normal">
               一站式解决从热点采集、数据分析，内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
             </p>
             
@@ -104,7 +104,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-8">
           <div className="text-center mb-24">
             <span className="text-[10px] tracking-[0.4em] gray-500 uppercase">Core Functions</span>
-            <h2 className="text-3xl font-light mt-4 tracking-wide black">核心功能</h2>
+            <h2 className="text-3xl font-normal mt-4 tracking-wide black">核心功能</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -147,7 +147,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className="text-center mb-16">
             <span className="text-[10px] tracking-[0.4em] gray-500 uppercase">Workflow</span>
-            <h2 className="text-3xl font-light mt-4 tracking-wide black">运营闭环</h2>
+            <h2 className="text-3xl font-normal mt-4 tracking-wide black">运营闭环</h2>
             <p className="gray-600 text-sm mt-3">从发现到优化，全链路自动化</p>
           </div>
 
@@ -168,8 +168,8 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-32 bg-white">
         <div className="max-w-2xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-light mb-6 tracking-wide black">开启智能运营之旅</h2>
-          <p className="text-sm gray-600 mb-12 font-light">
+          <h2 className="text-3xl font-normal mb-6 tracking-wide black">开启智能运营之旅</h2>
+          <p className="text-sm gray-600 mb-12 font-normal">
             立即体验一站式内容运营平台，让运营更高效
           </p>
           <Link
@@ -204,11 +204,11 @@ export default function LandingPage() {
 function FeatureCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="bg-gray-50 p-8 rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-white transition-all duration-500 group">
-      <div className="text-4xl font-light gray-400 mb-6 group-hover:gray-500 transition-colors">
+      <div className="text-4xl font-normal gray-400 mb-6 group-hover:gray-500 transition-colors">
         {number}
       </div>
       <h3 className="text-sm tracking-[0.15em] uppercase mb-3 font-medium black">{title}</h3>
-      <p className="text-xs gray-600 leading-relaxed font-light">{description}</p>
+      <p className="text-xs gray-600 leading-relaxed font-normal">{description}</p>
     </div>
   );
 }
