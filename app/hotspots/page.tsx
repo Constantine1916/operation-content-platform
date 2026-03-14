@@ -91,7 +91,7 @@ export default function HotspotsPage() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide black mb-2">热点资讯</h1>
+        <h1 className="text-2xl font-normal tracking-wide black mb-2">热点资讯</h1>
         <p className="text-xs gray-600 tracking-[0.2em] uppercase">Hotspot News</p>
       </div>
 
@@ -153,7 +153,7 @@ export default function HotspotsPage() {
                         {formatDate(hotspot.collected_date)}
                       </span>
                     </div>
-                    <h3 className="text-sm font-light black group-hover:black transition-colors mb-2 line-clamp-2">
+                    <h3 className="text-sm font-normal black group-hover:black transition-colors mb-2 line-clamp-2">
                       {hotspot.title}
                     </h3>
                     {hotspot.summary && (

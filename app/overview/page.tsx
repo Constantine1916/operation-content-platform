@@ -64,7 +64,7 @@ export default function Overview() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-2xl font-light tracking-wide black mb-2">概览</h1>
+        <h1 className="text-2xl font-normal tracking-wide black mb-2">概览</h1>
         <p className="text-xs gray-600 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
@@ -120,7 +120,7 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
         <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-xl border border-gray-100 group-hover:border-gray-200 transition-colors">
           <span className="opacity-60">{icon}</span>
         </div>
-        <span className="text-4xl font-light black">{count}</span>
+        <span className="text-4xl font-normal black">{count}</span>
       </div>
       <p className="text-xs tracking-widest gray-600 uppercase">{title}</p>
     </div>
@@ -132,7 +132,7 @@ function PlatformCard({ title, count, icon }: { title: string; count: number; ic
     <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
       <span className="text-lg opacity-50">{icon}</span>
       <div>
-        <p className="text-xl font-light black">{count}</p>
+        <p className="text-xl font-normal black">{count}</p>
         <p className="text-[10px] gray-500 tracking-widest uppercase">{title}</p>
       </div>
     </div>
@@ -147,7 +147,7 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
     >
       <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-light black group-hover:black transition-colors">{title}</p>
+        <p className="text-sm font-normal black group-hover:black transition-colors">{title}</p>
         <p className="text-xs gray-600">{desc}</p>
       </div>
     </a>

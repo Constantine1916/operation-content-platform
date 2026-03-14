@@ -29,7 +29,7 @@ export default function XhsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide black mb-2">小红书研究</h1>
+        <h1 className="text-2xl font-normal tracking-wide black mb-2">小红书研究</h1>
         <p className="text-xs gray-600 tracking-[0.2em] uppercase">Redbook Research</p>
       </div>
 
@@ -84,7 +84,7 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5">
       <p className="text-[10px] gray-500 uppercase tracking-widest mb-2">{label}</p>
-      <p className="text-2xl font-light black">{value}</p>
+      <p className="text-2xl font-normal black">{value}</p>
     </div>
   );
 }
