@@ -64,7 +64,7 @@ export default function Overview() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-2xl font-light tracking-wide text-gray-900 mb-2">概览</h1>
+        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">概览</h1>
         <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
@@ -120,7 +120,7 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
         <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-xl border border-gray-100 group-hover:border-gray-200 transition-colors">
           <span className="opacity-60">{icon}</span>
         </div>
-        <span className="text-4xl font-light text-gray-800">{count}</span>
+        <span className="text-4xl font-light text-gray-700">{count}</span>
       </div>
       <p className="text-xs tracking-widest text-gray-400 uppercase">{title}</p>
     </div>
@@ -147,7 +147,7 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
     >
       <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-light text-gray-800 group-hover:text-gray-900 transition-colors">{title}</p>
+        <p className="text-sm font-light text-gray-700 group-hover:text-gray-700 transition-colors">{title}</p>
         <p className="text-xs text-gray-400">{desc}</p>
       </div>
     </a>

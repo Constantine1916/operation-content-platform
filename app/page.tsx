@@ -19,7 +19,7 @@ export default function LandingPage() {
   }, [router]);
 
   return (
-    <div className={`min-h-screen bg-[#fafafa] text-gray-900 transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-[#fafafa] text-gray-700 transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       {/* Ambient Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-gray-100 to-transparent rounded-full blur-3xl"></div>
@@ -32,7 +32,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 border border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
-                <span className="text-lg font-medium text-gray-900">OP</span>
+                <span className="text-lg font-medium text-gray-700">OP</span>
               </div>
               <span className="text-sm font-medium tracking-[0.15em] text-gray-600">内容运营平台</span>
             </div>
@@ -46,7 +46,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-xs tracking-widest text-gray-500 hover:text-gray-800 transition-colors uppercase px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300"
+                className="text-xs tracking-widest text-gray-500 hover:text-gray-700 transition-colors uppercase px-4 py-2 border border-gray-200 rounded-full hover:border-gray-300"
               >
                 登录
               </Link>
@@ -71,7 +71,7 @@ export default function LandingPage() {
               </span>
             </div>
             
-            <h1 className="text-6xl md:text-7xl font-light leading-[1.1] tracking-tight mb-8 text-gray-900">
+            <h1 className="text-6xl md:text-7xl font-light leading-[1.1] tracking-tight mb-8 text-gray-700">
               <span className="block">聚合多平台内容</span>
               <span className="block text-gray-400">智能高效运营</span>
             </h1>
@@ -104,7 +104,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-8">
           <div className="text-center mb-24">
             <span className="text-[10px] tracking-[0.4em] text-gray-300 uppercase">Core Functions</span>
-            <h2 className="text-3xl font-light mt-4 tracking-wide text-gray-900">核心功能</h2>
+            <h2 className="text-3xl font-light mt-4 tracking-wide text-gray-700">核心功能</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -147,7 +147,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className="text-center mb-16">
             <span className="text-[10px] tracking-[0.4em] text-gray-300 uppercase">Workflow</span>
-            <h2 className="text-3xl font-light mt-4 tracking-wide text-gray-900">运营闭环</h2>
+            <h2 className="text-3xl font-light mt-4 tracking-wide text-gray-700">运营闭环</h2>
             <p className="text-gray-400 text-sm mt-3">从发现到优化，全链路自动化</p>
           </div>
 
@@ -168,13 +168,13 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-32 bg-white">
         <div className="max-w-2xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-light mb-6 tracking-wide text-gray-900">开启智能运营之旅</h2>
+          <h2 className="text-3xl font-light mb-6 tracking-wide text-gray-700">开启智能运营之旅</h2>
           <p className="text-sm text-gray-400 mb-12 font-light">
             立即体验一站式内容运营平台，让运营更高效
           </p>
           <Link
             href="/login"
-            className="inline-block px-12 py-4 border border-gray-200 text-gray-900 text-xs tracking-[0.25em] uppercase rounded-full hover:bg-gray-900 hover:text-white transition-all duration-500"
+            className="inline-block px-12 py-4 border border-gray-200 text-gray-700 text-xs tracking-[0.25em] uppercase rounded-full hover:bg-gray-900 hover:text-white transition-all duration-500"
           >
             立即开始 →
           </Link>
