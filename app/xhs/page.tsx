@@ -66,7 +66,7 @@ export default function XhsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600" />
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function XhsPage() {
         </div>
         <Link
           href="/xhs/creators"
-          className="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+          className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
         >
           查看创作者 →
         </Link>
@@ -99,11 +99,11 @@ export default function XhsPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="text-sm text-gray-500">总点赞</div>
-          <div className="text-3xl font-bold text-red-600 mt-1">{formatNumber(totalLikes)}</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{formatNumber(totalLikes)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="text-sm text-gray-500">总收藏</div>
-          <div className="text-3xl font-bold text-amber-600 mt-1">{formatNumber(totalCollects)}</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{formatNumber(totalCollects)}</div>
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export default function XhsPage() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900">🔍 搜索关键词</h2>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           {keywords.map(kw => (
             <Link
               key={kw.keyword}
@@ -120,7 +120,7 @@ export default function XhsPage() {
               className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium border border-gray-200">
                   {kw.keyword}
                 </span>
                 <span className="text-sm text-gray-500">{kw.noteCount} 条笔记</span>
@@ -149,11 +149,11 @@ export default function XhsPage() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900">🔥 TOP 笔记排行</h2>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           {topNotes.map((note, i) => (
             <div key={note.note_id} className="flex items-center gap-4 px-6 py-4">
               <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                i < 3 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+                i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
               }`}>
                 {i + 1}
               </span>
@@ -171,7 +171,7 @@ export default function XhsPage() {
                 <span>💬 {formatNumber(note.comments)}</span>
                 {note.collect_like_ratio && (
                   <span className={`px-2 py-0.5 rounded ${
-                    note.collect_like_ratio > 50 ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'
+                    note.collect_like_ratio > 50 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
                     收藏率 {note.collect_like_ratio}%
                   </span>

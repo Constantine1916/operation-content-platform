@@ -10,7 +10,6 @@ interface SidebarProps {
 
 interface PlatformCount {
   name: string
-  color: string
   count: number
 }
 
@@ -44,18 +43,17 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     fetchStats()
   }, [])
 
-  const platformMap: Record<string, { name: string; color: string; key: string }> = {
-    xiaohongshu: { name: '小红书', key: 'xiaohongshu', color: 'bg-red-100 text-red-700' },
-    zhihu: { name: '知乎', key: 'zhihu', color: 'bg-blue-100 text-blue-700' },
-    wechat: { name: '微信', key: 'wechat', color: 'bg-green-100 text-green-700' },
-    x: { name: 'X (Twitter)', key: 'x', color: 'bg-sky-100 text-sky-700' },
-    reddit: { name: 'Reddit', key: 'reddit', color: 'bg-orange-100 text-orange-700' },
+  const platformMap: Record<string, { name: string; key: string }> = {
+    xiaohongshu: { name: '小红书', key: 'xiaohongshu' },
+    zhihu: { name: '知乎', key: 'zhihu' },
+    wechat: { name: '微信', key: 'wechat' },
+    x: { name: 'X (Twitter)', key: 'x' },
+    reddit: { name: 'Reddit', key: 'reddit' },
   }
 
   const platformCounts: PlatformCount[] = stats 
     ? Object.entries(stats.by_platform).map(([key, count]) => ({
         name: platformMap[key]?.name || key,
-        color: platformMap[key]?.color || 'bg-gray-100 text-gray-700',
         count,
       }))
     : []
@@ -125,16 +123,16 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                 href={item.href}
                 className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
-                <span className={isActive ? 'text-blue-600' : 'text-gray-400'}>
+                <span className={isActive ? 'text-white' : 'text-gray-400'}>
                   {item.icon}
                 </span>
                 <span className="ml-3 flex-1">{item.title}</span>
                 {item.badge && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-gray-200 text-gray-700 rounded-full filter grayscale">
                     {item.badge}
                   </span>
                 )}
@@ -157,7 +155,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                   key={platform.name}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                 >
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${platform.color}`}>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
                     {platform.name}
                   </span>
                   <span className="text-xs text-gray-500">{platform.count}</span>
@@ -175,7 +173,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
           </div>
           <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
             <span>今日更新</span>
-            <span className={`font-semibold ${(stats?.today_count || 0) > 0 ? 'text-green-600' : 'text-gray-900'}`}>
+            <span className="font-semibold text-gray-900">
               {loading ? '...' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}
             </span>
           </div>

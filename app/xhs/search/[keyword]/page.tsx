@@ -88,7 +88,7 @@ export default function SearchKeywordPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            <span className="text-red-500">🔍</span> {keyword}
+            <span className="filter grayscale">🔍</span> {keyword}
           </h1>
           <p className="text-sm text-gray-500">{pagination.total} 条笔记</p>
         </div>
@@ -102,15 +102,15 @@ export default function SearchKeywordPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-xs text-gray-500">总点赞</div>
-          <div className="text-2xl font-bold text-red-600 mt-1">{formatNumber(totalLikes)}</div>
+          <div className="text-2xl font-bold mt-1">{formatNumber(totalLikes)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-xs text-gray-500">总收藏</div>
-          <div className="text-2xl font-bold text-amber-600 mt-1">{formatNumber(totalCollects)}</div>
+          <div className="text-2xl font-bold mt-1">{formatNumber(totalCollects)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-xs text-gray-500">平均收藏率</div>
-          <div className="text-2xl font-bold text-green-600 mt-1">{avgCollectRatio}%</div>
+          <div className="text-2xl font-bold mt-1">{avgCollectRatio}%</div>
         </div>
       </div>
 
@@ -128,8 +128,8 @@ export default function SearchKeywordPage() {
             onClick={() => setSort(s.key)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               sort === s.key
-                ? 'bg-red-50 text-red-700'
-                : 'text-gray-500 hover:bg-gray-50'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             {s.label}
@@ -141,7 +141,7 @@ export default function SearchKeywordPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500" />
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600" />
           </div>
         ) : (
           <table className="w-full">
@@ -157,7 +157,7 @@ export default function SearchKeywordPage() {
                 <th className="px-4 py-3 text-center">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100">
               {notes.map((note, i) => (
                 <tr key={note.note_id + '-' + i} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-400">{i + 1}</td>
@@ -166,7 +166,7 @@ export default function SearchKeywordPage() {
                       href={note.url || `https://www.xiaohongshu.com/explore/${note.note_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-gray-900 hover:text-red-600 line-clamp-1"
+                      className="text-sm font-medium text-gray-900 hover:text-gray-600 line-clamp-1"
                     >
                       {note.title || '无标题'}
                     </a>
@@ -178,7 +178,7 @@ export default function SearchKeywordPage() {
                   <td className="px-4 py-3 text-sm text-right">
                     <span className={`px-2 py-0.5 rounded text-xs ${
                       note.collect_like_ratio && note.collect_like_ratio > 50
-                        ? 'bg-green-50 text-green-700 font-medium'
+                        ? 'bg-gray-900 text-white font-medium'
                         : 'text-gray-500'
                     }`}>
                       {note.collect_like_ratio ? note.collect_like_ratio + '%' : '-'}
@@ -188,7 +188,7 @@ export default function SearchKeywordPage() {
                     <button
                       onClick={() => handleImport(note.note_id)}
                       disabled={importing.has(note.note_id)}
-                      className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                      className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-50 transition-colors"
                     >
                       {importing.has(note.note_id) ? '导入中...' : '导入'}
                     </button>
@@ -209,7 +209,7 @@ export default function SearchKeywordPage() {
               onClick={() => fetchData(p)}
               className={`px-3 py-1 rounded text-sm ${
                 p === pagination.page
-                  ? 'bg-red-500 text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

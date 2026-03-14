@@ -27,7 +27,6 @@ export default function HotspotsPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // 重置状态并加载第一页
   useEffect(() => {
     setHotspots([]);
     setPage(0);
@@ -35,7 +34,6 @@ export default function HotspotsPage() {
     fetchHotspots(0, true);
   }, [selectedCategory]);
 
-  // 设置滚动加载观察器
   useEffect(() => {
     const options = {
       root: null,
@@ -60,7 +58,6 @@ export default function HotspotsPage() {
     };
   }, [hasMore, loading, loadingMore, page]);
 
-  // 获取分类列表（只在初始化时调用一次）
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -102,7 +99,6 @@ export default function HotspotsPage() {
   }, [page, selectedCategory]);
 
   const fetchCategories = async () => {
-    // 从现有数据中提取所有分类
     const res = await fetch('/api/hotspots?limit=1000');
     const data = await res.json();
     const cats = new Set<string>();
@@ -117,16 +113,16 @@ export default function HotspotsPage() {
     return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
   };
 
-  const getHeatColor = (heat: string) => {
+  const getHeatStyle = (heat: string) => {
     switch (heat) {
       case '极高':
-        return 'text-red-600 bg-red-50';
+        return 'text-gray-900 bg-gray-100 border border-gray-300';
       case '高':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-gray-800 bg-gray-50 border border-gray-200';
       case '中':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-gray-600 bg-gray-50 border border-gray-200';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-500 bg-gray-50 border border-gray-200';
     }
   };
 
@@ -144,8 +140,8 @@ export default function HotspotsPage() {
             onClick={() => setSelectedCategory('')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               selectedCategory === ''
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             全部
@@ -156,8 +152,8 @@ export default function HotspotsPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               {cat}
@@ -177,14 +173,14 @@ export default function HotspotsPage() {
             {hotspots.map((hotspot) => (
               <div
                 key={hotspot.id}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg border border-gray-200 p-6 hover:border-gray-400 transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       {hotspot.热度 && (
                         <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${getHeatColor(
+                          className={`px-2 py-1 rounded text-xs font-semibold ${getHeatStyle(
                             hotspot.热度
                           )}`}
                         >
@@ -192,7 +188,7 @@ export default function HotspotsPage() {
                         </span>
                       )}
                       {hotspot.category && (
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium border border-gray-200">
                           {hotspot.category}
                         </span>
                       )}
@@ -208,7 +204,7 @@ export default function HotspotsPage() {
                           href={hotspot.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-blue-600 transition-colors"
+                          className="hover:text-gray-600 transition-colors"
                         >
                           {hotspot.title}
                         </a>
@@ -236,7 +232,7 @@ export default function HotspotsPage() {
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && (
               <div className="text-center py-4 text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
                 <p className="mt-2">加载更多...</p>
               </div>
             )}

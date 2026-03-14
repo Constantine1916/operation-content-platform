@@ -75,22 +75,16 @@ export default function Home() {
           title="热点资讯" 
           count={hotspotsCount} 
           icon="📰" 
-          bgColor="bg-amber-50"
-          iconBg="bg-amber-100"
         />
         <StatCard 
           title="文章总数" 
           count={totalArticles} 
           icon="📝" 
-          bgColor="bg-emerald-50"
-          iconBg="bg-emerald-100"
         />
         <StatCard 
           title="运营Agents" 
           count={6} 
           icon="🤖" 
-          bgColor="bg-violet-50"
-          iconBg="bg-violet-100"
         />
       </div>
 
@@ -98,11 +92,11 @@ export default function Home() {
       <div className="mb-8">
         <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">平台分布</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" color="text-red-600" bgColor="bg-red-50" />
-          <PlatformCard title="知乎" count={stats.zhihu} icon="💡" color="text-blue-600" bgColor="bg-blue-50" />
-          <PlatformCard title="微信" count={stats.wechat} icon="💬" color="text-green-600" bgColor="bg-green-50" />
-          <PlatformCard title="X" count={stats.x} icon="🐦" color="text-sky-600" bgColor="bg-sky-50" />
-          <PlatformCard title="Reddit" count={stats.reddit} icon="🟠" color="text-orange-600" bgColor="bg-orange-50" />
+          <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" />
+          <PlatformCard title="知乎" count={stats.zhihu} icon="💡" />
+          <PlatformCard title="微信" count={stats.wechat} icon="💬" />
+          <PlatformCard title="X" count={stats.x} icon="🐦" />
+          <PlatformCard title="Reddit" count={stats.reddit} icon="🟠" />
         </div>
       </div>
 
@@ -120,12 +114,12 @@ export default function Home() {
   );
 }
 
-function StatCard({ title, count, icon, bgColor, iconBg }: { title: string; count: number; icon: string; bgColor: string; iconBg: string }) {
+function StatCard({ title, count, icon }: { title: string; count: number; icon: string }) {
   return (
-    <div className={`${bgColor} rounded-xl p-5`}>
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-400 transition-colors">
       <div className="flex items-center gap-3 mb-3">
-        <div className={`${iconBg} w-10 h-10 rounded-lg flex items-center justify-center text-lg`}>
-          {icon}
+        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-lg">
+          <span className="filter grayscale">{icon}</span>
         </div>
         <span className="text-3xl font-semibold text-gray-900">{count}</span>
       </div>
@@ -134,12 +128,12 @@ function StatCard({ title, count, icon, bgColor, iconBg }: { title: string; coun
   );
 }
 
-function PlatformCard({ title, count, icon, color, bgColor }: { title: string; count: number; icon: string; color: string; bgColor: string }) {
+function PlatformCard({ title, count, icon }: { title: string; count: number; icon: string }) {
   return (
-    <div className={`${bgColor} rounded-lg p-4 flex items-center gap-3`}>
-      <span className="text-xl">{icon}</span>
+    <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:border-gray-400 transition-colors">
+      <span className="text-xl filter grayscale">{icon}</span>
       <div>
-        <p className={`text-lg font-semibold ${color}`}>{count}</p>
+        <p className="text-lg font-semibold text-gray-900">{count}</p>
         <p className="text-xs text-gray-500">{title}</p>
       </div>
     </div>
@@ -150,11 +144,11 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
   return (
     <a
       href={href}
-      className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all group"
+      className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-400 hover:shadow-sm transition-all group"
     >
-      <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
+      <span className="text-2xl group-hover:scale-110 transition-transform filter grayscale">{icon}</span>
       <div>
-        <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{title}</p>
+        <p className="font-medium text-gray-900 group-hover:text-gray-700 transition-colors">{title}</p>
         <p className="text-sm text-gray-400">{desc}</p>
       </div>
     </a>
