@@ -28,11 +28,11 @@ export default function LandingPage() {
       </div>
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-md bg-black/50">
         <div className="max-w-6xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 border border-white/20 rounded-lg flex items-center justify-center bg-white/5">
+              <div className="w-10 h-10 border border-white/20 rounded-2xl flex items-center justify-center bg-white/5">
                 <span className="text-lg font-light tracking-widest">OP</span>
               </div>
               <span className="text-sm font-light tracking-[0.2em] text-white/80">内容运营平台</span>
@@ -47,13 +47,13 @@ export default function LandingPage() {
             <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-xs tracking-widest text-white/50 hover:text-white transition-colors uppercase px-4 py-2"
+                className="text-xs tracking-widest text-white/50 hover:text-white transition-colors uppercase px-4 py-2 border border-white/10 rounded-full hover:border-white/30"
               >
                 登录
               </Link>
               <Link
                 href="/login"
-                className="text-xs tracking-widest bg-white text-black px-6 py-2.5 rounded-full hover:bg-white/90 transition-all uppercase font-medium"
+                className="text-xs tracking-widest bg-white text-black px-6 py-2.5 rounded-full hover:bg-gray-200 transition-all uppercase font-medium border border-white"
               >
                 开始使用
               </Link>
@@ -67,7 +67,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className="text-center">
             <div className="inline-block mb-10">
-              <span className="text-[10px] tracking-[0.4em] text-white/40 uppercase border border-white/10 px-5 py-2">
+              <span className="text-[10px] tracking-[0.4em] text-white/40 uppercase border border-white/10 px-5 py-2 rounded-full">
                 智能内容运营解决方案
               </span>
             </div>
@@ -78,20 +78,20 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-sm text-white/50 leading-relaxed max-w-xl mx-auto mb-16 font-light tracking-wide">
-              一站式解决从热点采集、数据分析、内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
+              一站式解决从热点采集、数据分析，内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link
                 href="/login"
-                className="group relative px-10 py-4 bg-white text-black text-xs tracking-[0.25em] uppercase font-medium overflow-hidden"
+                className="group relative px-10 py-4 bg-white text-black text-xs tracking-[0.25em] uppercase font-medium rounded-full overflow-hidden border border-white shadow-lg shadow-white/10"
               >
                 <span className="relative z-10">立即开始</span>
                 <div className="absolute inset-0 bg-gray-200 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
               </Link>
               <a
                 href="#features"
-                className="group flex items-center gap-3 text-xs tracking-[0.2em] text-white/50 uppercase"
+                className="group flex items-center gap-3 text-xs tracking-[0.2em] text-white/50 uppercase px-6 py-3 border border-white/20 rounded-full hover:border-white/40 hover:bg-white/5 transition-all"
               >
                 <span>了解更多</span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300">→</span>
@@ -109,7 +109,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-light mt-4 tracking-wide">核心功能</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <FeatureCard
               number="01"
               title="热点数据采集"
@@ -118,7 +118,7 @@ export default function LandingPage() {
             <FeatureCard
               number="02"
               title="热点数据分析"
-              description="深度分析热点趋势、用户画像、内容画像，挖掘潜在爆款因子"
+              description="深度分析热点趋势、用户画像，内容画像，挖掘潜在爆款因子"
             />
             <FeatureCard
               number="03"
@@ -152,7 +152,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-light mt-4 tracking-wide">运营闭环</h2>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-0">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <WorkflowStep label="数据采集" delay={0} />
             <WorkflowArrow />
             <WorkflowStep label="智能分析" delay={1} />
@@ -175,7 +175,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/login"
-            className="inline-block px-12 py-4 border border-white/20 text-white text-xs tracking-[0.25em] uppercase hover:bg-white hover:text-black transition-all duration-500"
+            className="inline-block px-12 py-4 border border-white/20 text-white text-xs tracking-[0.25em] uppercase rounded-full hover:bg-white hover:text-black transition-all duration-500"
           >
             立即开始 →
           </Link>
@@ -187,7 +187,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-white/10 rounded flex items-center justify-center bg-white/5">
+              <div className="w-8 h-8 border border-white/10 rounded-xl flex items-center justify-center bg-white/5">
                 <span className="text-xs font-light tracking-widest">OP</span>
               </div>
               <span className="text-xs text-white/30 tracking-widest uppercase">内容运营平台</span>
@@ -204,11 +204,11 @@ export default function LandingPage() {
 
 function FeatureCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="bg-[#0a0a0a] p-12 hover:bg-white/[0.02] transition-colors duration-500 group">
-      <div className="text-5xl font-thin text-white/10 mb-8 group-hover:text-white/20 transition-colors">
+    <div className="bg-[#0a0a0a] p-8 rounded-2xl border border-white/5 hover:border-white/20 hover:bg-white/[0.02] transition-all duration-500 group">
+      <div className="text-4xl font-thin text-white/10 mb-6 group-hover:text-white/20 transition-colors">
         {number}
       </div>
-      <h3 className="text-sm tracking-[0.2em] uppercase mb-4 font-medium">{title}</h3>
+      <h3 className="text-sm tracking-[0.15em] uppercase mb-3 font-medium">{title}</h3>
       <p className="text-xs text-white/40 leading-relaxed font-light">{description}</p>
     </div>
   );
@@ -222,7 +222,7 @@ function WorkflowStep({ label, delay }: { label: string; delay: number }) {
         animationDelay: `${delay * 150}ms`
       }}
     >
-      <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center mb-4 bg-white/[0.02]">
+      <div className="w-16 h-16 border border-white/20 rounded-2xl flex items-center justify-center mb-4 bg-white/[0.02]">
         <div className="w-2 h-2 bg-white rounded-full"></div>
       </div>
       <span className="text-[10px] tracking-[0.2em] text-white/50 uppercase">{label}</span>
