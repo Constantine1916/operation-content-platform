@@ -14,7 +14,7 @@ interface Hotspot {
   collected_time: string;
 }
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20;
 
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
@@ -110,50 +110,38 @@ export default function HotspotsPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-  };
-
-  const getHeatStyle = (heat: string) => {
-    switch (heat) {
-      case '极高':
-        return 'text-gray-900 bg-gray-100 border border-gray-300';
-      case '高':
-        return 'text-gray-800 bg-gray-50 border border-gray-200';
-      case '中':
-        return 'text-gray-600 bg-gray-50 border border-gray-200';
-      default:
-        return 'text-gray-500 bg-gray-50 border border-gray-200';
-    }
+    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
   };
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">📰 热点资讯</h1>
-        <p className="text-gray-600">小经理每日采集的科技、AI、产品热点</p>
+        <h1 className="text-2xl font-light tracking-wide text-white/90 mb-2">热点资讯</h1>
+        <p className="text-xs text-white/30 tracking-[0.2em] uppercase">Hotspot News</p>
       </div>
 
-      {/* 分类筛选 */}
-      <div className="mb-6">
+      {/* Category Filter */}
+      <div className="mb-8">
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory('')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all ${
               selectedCategory === ''
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-white text-black'
+                : 'bg-white/[0.05] text-white/50 border border-white/10 hover:border-white/30'
             }`}
           >
             全部
           </button>
-          {categories.slice(0, 15).map((cat) => (
+          {categories.slice(0, 12).map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all ${
                 selectedCategory === cat
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'bg-white text-black'
+                  : 'bg-white/[0.05] text-white/50 border border-white/10 hover:border-white/30'
               }`}
             >
               {cat}
@@ -162,82 +150,75 @@ export default function HotspotsPage() {
         </div>
       </div>
 
-      {/* 热点列表 */}
+      {/* Hotspots List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">加载中...</div>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border border-white/10 rounded-full bg-white/5 animate-pulse"></div>
+        </div>
       ) : hotspots.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">暂无数据</div>
+        <div className="text-center py-20 text-white/30">暂无数据</div>
       ) : (
         <>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {hotspots.map((hotspot) => (
-              <div
+              <a
                 key={hotspot.id}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:border-gray-400 transition-colors"
+                href={hotspot.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-white/[0.02] border border-white/10 rounded-2xl p-6 hover:border-white/30 hover:bg-white/[0.04] transition-all group"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-start gap-4">
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Tags */}
+                    <div className="flex items-center gap-2 mb-3">
                       {hotspot.热度 && (
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${getHeatStyle(
-                            hotspot.热度
-                          )}`}
-                        >
+                        <span className="px-2 py-1 rounded-full text-[10px] tracking-widest uppercase bg-white/10 text-white/60 border border-white/10">
                           🔥 {hotspot.热度}
                         </span>
                       )}
                       {hotspot.category && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium border border-gray-200">
+                        <span className="px-2 py-1 rounded-full text-[10px] tracking-widest uppercase bg-white/5 text-white/40 border border-white/10">
                           {hotspot.category}
                         </span>
                       )}
-                      <span className="text-sm text-gray-500">
-                        📅 {formatDate(hotspot.collected_date)}
-                        {hotspot.collected_time && ` ${hotspot.collected_time}`}
+                      <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                        {formatDate(hotspot.collected_date)}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {hotspot.url ? (
-                        <a
-                          href={hotspot.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-gray-600 transition-colors"
-                        >
-                          {hotspot.title}
-                        </a>
-                      ) : (
-                        hotspot.title
-                      )}
+                    {/* Title */}
+                    <h3 className="text-sm font-light text-white/80 group-hover:text-white transition-colors mb-2 line-clamp-2">
+                      {hotspot.title}
                     </h3>
 
+                    {/* Summary */}
                     {hotspot.summary && (
-                      <p className="text-gray-600 text-sm mb-3">{hotspot.summary}</p>
+                      <p className="text-xs text-white/40 line-clamp-2 mb-3">{hotspot.summary}</p>
                     )}
 
+                    {/* Source */}
                     {hotspot.source && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>📰 来源: {hotspot.source}</span>
+                      <div className="text-[10px] text-white/30 uppercase tracking-widest">
+                        📰 {hotspot.source}
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
 
-          {/* 滚动加载触发器 */}
+          {/* Load More Trigger */}
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && (
-              <div className="text-center py-4 text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-                <p className="mt-2">加载更多...</p>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border border-white/10 rounded-full bg-white/5 animate-spin"></div>
               </div>
             )}
             {!hasMore && hotspots.length > 0 && (
-              <div className="text-center py-4 text-gray-400 text-sm">
+              <div className="text-center py-8 text-white/20 text-xs tracking-widest uppercase">
                 已加载全部 {hotspots.length} 条热点
               </div>
             )}

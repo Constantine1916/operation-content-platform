@@ -37,10 +37,10 @@ function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const hours = Math.floor(diff / 3600000);
   if (hours < 1) return '刚刚';
-  if (hours < 24) return `${hours}小时前`;
+  if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}天前`;
-  return `${Math.floor(days / 30)}个月前`;
+  if (days < 30) return `${days}d`;
+  return `${Math.floor(days / 30)}个月`;
 }
 
 export default function XhsPage() {
@@ -66,78 +66,55 @@ export default function XhsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600" />
+        <div className="w-8 h-8 border border-white/10 rounded-full bg-white/5 animate-pulse"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">📕 小红书研究</h1>
-          <p className="text-sm text-gray-500 mt-1">搜索历史 · 笔记排行 · 创作者分析</p>
-        </div>
-        <Link
-          href="/xhs/creators"
-          className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
-        >
-          查看创作者 →
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-2xl font-light tracking-wide text-white/90 mb-2">小红书研究</h1>
+        <p className="text-xs text-white/30 tracking-[0.2em] uppercase">Redbook Research</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-sm text-gray-500">关键词数</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{keywords.length}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-sm text-gray-500">收录笔记</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{totalNotes}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-sm text-gray-500">总点赞</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{formatNumber(totalLikes)}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-sm text-gray-500">总收藏</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{formatNumber(totalCollects)}</div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <StatCard label="关键词" value={keywords.length} />
+        <StatCard label="收录笔记" value={totalNotes} />
+        <StatCard label="总点赞" value={formatNumber(totalLikes)} />
+        <StatCard label="总收藏" value={formatNumber(totalCollects)} />
       </div>
 
       {/* Keywords */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">🔍 搜索关键词</h2>
+      <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-white/10">
+          <h2 className="text-xs tracking-[0.2em] text-white/40 uppercase">搜索关键词</h2>
         </div>
-        <div className="divide-y divide-gray-100">
-          {keywords.map(kw => (
+        <div className="divide-y divide-white/5">
+          {keywords.map((kw) => (
             <Link
               key={kw.keyword}
               href={`/xhs/search/${encodeURIComponent(kw.keyword)}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-between px-6 py-4 hover:bg-white/[0.02] transition-colors group"
             >
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium border border-gray-200">
+                <span className="px-3 py-1.5 bg-white/5 text-white/60 text-xs rounded-full border border-white/10 group-hover:border-white/20 transition-colors">
                   {kw.keyword}
                 </span>
-                <span className="text-sm text-gray-500">{kw.noteCount} 条笔记</span>
+                <span className="text-xs text-white/30">{kw.noteCount} 条笔记</span>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-xs text-white/30">
                 <span>👍 {formatNumber(kw.totalLikes)}</span>
                 <span>⭐ {formatNumber(kw.totalCollects)}</span>
                 <span>💬 {formatNumber(kw.totalComments)}</span>
-                <span className="text-xs">{timeAgo(kw.lastSearched)}</span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <span className="opacity-50">{timeAgo(kw.lastSearched)}</span>
               </div>
             </Link>
           ))}
           {keywords.length === 0 && (
-            <div className="px-6 py-12 text-center text-gray-400">
+            <div className="px-6 py-12 text-center text-white/30 text-sm">
               暂无搜索记录，使用 redbook CLI 搜索后数据会自动出现
             </div>
           )}
@@ -145,35 +122,34 @@ export default function XhsPage() {
       </div>
 
       {/* Top Notes */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">🔥 TOP 笔记排行</h2>
+      <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10">
+          <h2 className="text-xs tracking-[0.2em] text-white/40 uppercase">TOP 笔记排行</h2>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-white/5">
           {topNotes.map((note, i) => (
             <div key={note.note_id} className="flex items-center gap-4 px-6 py-4">
-              <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
+              <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-light ${
+                i < 3 ? 'bg-white text-black' : 'bg-white/10 text-white/40'
               }`}>
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
+                <div className="text-sm text-white/70 truncate group-hover:text-white transition-colors">
                   {note.title || '无标题'}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-[10px] text-white/30 mt-0.5">
                   @{note.nickname} · {note.keyword}
                 </div>
               </div>
-              <div className="flex items-center gap-3 text-xs text-gray-500 flex-shrink-0">
+              <div className="flex items-center gap-3 text-[10px] text-white/30 flex-shrink-0">
                 <span>👍 {formatNumber(note.likes)}</span>
                 <span>⭐ {formatNumber(note.collects)}</span>
-                <span>💬 {formatNumber(note.comments)}</span>
                 {note.collect_like_ratio && (
-                  <span className={`px-2 py-0.5 rounded ${
-                    note.collect_like_ratio > 50 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                  <span className={`px-2 py-0.5 rounded-full ${
+                    note.collect_like_ratio > 50 ? 'bg-white/10 text-white/60' : 'bg-white/5 text-white/40'
                   }`}>
-                    收藏率 {note.collect_like_ratio}%
+                    {note.collect_like_ratio}%
                   </span>
                 )}
               </div>
@@ -181,6 +157,15 @@ export default function XhsPage() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
+      <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2">{label}</p>
+      <p className="text-2xl font-light text-white/70">{value}</p>
     </div>
   );
 }

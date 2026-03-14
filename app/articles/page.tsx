@@ -12,6 +12,8 @@ interface Article {
   created_at: string;
 }
 
+const PAGE_SIZE = 20;
+
 const platformNames: Record<string, string> = {
   xiaohongshu: '小红书',
   zhihu: '知乎',
@@ -20,65 +22,25 @@ const platformNames: Record<string, string> = {
   reddit: 'Reddit',
 };
 
-const platformEmojis: Record<string, string> = {
-  xiaohongshu: '📕',
-  zhihu: '💡',
-  wechat: '📱',
-  x: '🐦',
-  reddit: '🤖',
-};
-
-const authorNames: Record<string, string> = {
-  'xiaohongshu-1': '小红',
-  'xiaohongshu-2': '小红2',
-  'zhihu-1': '小知',
-  'wechat-1': '小微',
-  'x-1': '小X',
-  'reddit-1': '小Reddit',
-};
-
-const authorEmojis: Record<string, string> = {
-  'xiaohongshu-1': '📕',
-  'xiaohongshu-2': '📕',
-  'zhihu-1': '💡',
-  'wechat-1': '📱',
-  'x-1': '🐦',
-  'reddit-1': '🤖',
-};
-
-const PAGE_SIZE = 30;
-
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
-  const [selectedAuthor, setSelectedAuthor] = useState<string>('');
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
-  const [authors, setAuthors] = useState<string[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
-    setAuthors(uniqueAuthors);
-  }, [articles]);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setArticles([]);
     setPage(0);
     setHasMore(true);
     fetchArticles(0, true);
-  }, [selectedPlatform, selectedAuthor]);
+  }, [selectedPlatform]);
 
   useEffect(() => {
-    const options = {
-      root: null,
-      rootMargin: '100px',
-      threshold: 0.1,
-    };
+    const options = { root: null, rootMargin: '100px', threshold: 0.1 };
 
     observerRef.current = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
@@ -91,37 +53,24 @@ export default function ArticlesPage() {
     }
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      if (observerRef.current) observerRef.current.disconnect();
     };
   }, [hasMore, loading, loadingMore, page]);
 
   const fetchArticles = async (pageNum: number, isFirstLoad = false) => {
-    if (isFirstLoad) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+    if (isFirstLoad) setLoading(true);
+    else setLoadingMore(true);
 
     try {
       const apiPage = pageNum + 1;
       let url = `/api/articles?limit=${PAGE_SIZE}&page=${apiPage}`;
-      if (selectedPlatform) {
-        url += `&platform=${selectedPlatform}`;
-      }
-      if (selectedAuthor) {
-        url += `&author=${selectedAuthor}`;
-      }
+      if (selectedPlatform) url += `&platform=${selectedPlatform}`;
       
       const res = await fetch(url);
       const result = await res.json();
       const newArticles = result.data || [];
 
-      if (newArticles.length < PAGE_SIZE) {
-        setHasMore(false);
-      }
-
+      if (newArticles.length < PAGE_SIZE) setHasMore(false);
       setArticles(prev => pageNum === 0 ? newArticles : [...prev, ...newArticles]);
     } catch (error) {
       console.error('Failed to fetch articles:', error);
@@ -139,187 +88,107 @@ export default function ArticlesPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
   };
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">📝 文章管理</h1>
-        <p className="text-gray-600">各平台运营agent产出的内容</p>
+        <h1 className="text-2xl font-light tracking-wide text-white/90 mb-2">文章管理</h1>
+        <p className="text-xs text-white/30 tracking-[0.2em] uppercase">Article Management</p>
       </div>
 
-      {/* 平台切换 */}
-      <div className="mb-4 overflow-x-auto pb-2 -mx-4 px-4">
-        <div className="flex gap-2 flex-nowrap">
+      {/* Platform Filter */}
+      <div className="mb-8 overflow-x-auto">
+        <div className="flex gap-2">
           <button
             onClick={() => setSelectedPlatform('')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all whitespace-nowrap ${
               selectedPlatform === ''
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-white text-black'
+                : 'bg-white/[0.05] text-white/50 border border-white/10 hover:border-white/30'
             }`}
           >
-            全部平台
+            全部
           </button>
           {Object.entries(platformNames).map(([key, name]) => (
             <button
               key={key}
               onClick={() => setSelectedPlatform(key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-full text-xs tracking-widest uppercase transition-all whitespace-nowrap ${
                 selectedPlatform === key
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'bg-white text-black'
+                  : 'bg-white/[0.05] text-white/50 border border-white/10 hover:border-white/30'
               }`}
             >
-              <span className="filter grayscale">{platformEmojis[key]}</span>
-              <span>{name}</span>
+              {name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 作者筛选 */}
-      {authors.length > 0 && (
-        <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
-          <div className="flex gap-2 flex-nowrap">
-            <button
-              onClick={() => setSelectedAuthor('')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedAuthor === ''
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              全部作者
-            </button>
-            {authors.map((author) => (
-              <button
-                key={author}
-                onClick={() => setSelectedAuthor(author)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                  selectedAuthor === author
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <span className="filter grayscale">{authorEmojis[author] || '👤'}</span>
-                <span>{authorNames[author] || author}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 文章列表 */}
+      {/* Articles List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">加载中...</div>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border border-white/10 rounded-full bg-white/5 animate-pulse"></div>
+        </div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">暂无数据</div>
+        <div className="text-center py-20 text-white/30">暂无文章</div>
       ) : (
-        <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <>
+          <div className="space-y-3">
             {articles.map((article) => (
               <div
                 key={article.id}
-                className="bg-white rounded-lg border border-gray-200 p-5 hover:border-gray-400 transition-colors cursor-pointer"
-                onClick={() => setSelectedArticle(article)}
+                className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 hover:border-white/30 hover:bg-white/[0.04] transition-all"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl filter grayscale">{platformEmojis[article.platform]}</span>
-                  <span className="text-xs font-medium text-gray-500">
-                    {platformNames[article.platform]}
-                  </span>
-                  {article.author && (
-                    <>
-                      <span className="text-gray-300">|</span>
-                      <span className="text-xs font-medium text-gray-600">
-                        {authorEmojis[article.author] || '👤'} {authorNames[article.author] || article.author}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Platform & Author */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="px-2 py-1 rounded-full text-[10px] tracking-widest uppercase bg-white/10 text-white/60 border border-white/10">
+                        {platformNames[article.platform] || article.platform}
                       </span>
-                    </>
-                  )}
-                </div>
+                      {article.author && (
+                        <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                          @{article.author}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                        {formatDate(article.created_at)}
+                      </span>
+                    </div>
 
-                <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {article.title}
-                </h3>
+                    {/* Title */}
+                    <h3 className="text-sm font-light text-white/80 line-clamp-2 mb-2">
+                      {article.title}
+                    </h3>
 
-                <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                  {article.content.substring(0, 100)}...
-                </p>
-
-                <div className="text-xs text-gray-500">
-                  📅 {formatDate(article.created_at)}
+                    {/* Content Preview */}
+                    {article.content && (
+                      <p className="text-xs text-white/40 line-clamp-2">{article.content}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* 滚动加载触发器 */}
+          {/* Load More */}
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && (
-              <div className="text-center py-4 text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-                <p className="mt-2">加载更多...</p>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border border-white/10 rounded-full bg-white/5 animate-spin"></div>
               </div>
             )}
             {!hasMore && articles.length > 0 && (
-              <div className="text-center py-4 text-gray-400 text-sm">
+              <div className="text-center py-8 text-white/20 text-xs tracking-widest uppercase">
                 已加载全部 {articles.length} 篇文章
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* 文章详情弹窗 */}
-      {selectedArticle && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setSelectedArticle(null)}
-        >
-          <div
-            className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl filter grayscale">{platformEmojis[selectedArticle.platform]}</span>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {selectedArticle.title}
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {platformNames[selectedArticle.platform]}
-                    {selectedArticle.author && (
-                      <> • {authorEmojis[selectedArticle.author] || '👤'} {authorNames[selectedArticle.author] || selectedArticle.author}</>
-                    )}
-                    {' • '}
-                    {formatDate(selectedArticle.created_at)}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedArticle(null)}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="prose max-w-none">
-              <pre className="whitespace-pre-wrap font-sans text-gray-700">
-                {selectedArticle.content}
-              </pre>
-            </div>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
