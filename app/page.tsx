@@ -144,24 +144,71 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Workflow Section */}
+      {/* Workflow Section - Redesigned */}
       <section id="workflow" className="py-32 bg-white/[0.02]">
-        <div className="max-w-5xl mx-auto px-8">
-          <div className="text-center mb-20">
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="text-center mb-16">
             <span className="text-[10px] tracking-[0.4em] text-white/30 uppercase">Workflow</span>
             <h2 className="text-3xl font-light mt-4 tracking-wide">运营闭环</h2>
+            <p className="text-white/40 text-sm mt-3">从发现到优化，全链路自动化</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <WorkflowStep label="数据采集" delay={0} />
-            <WorkflowArrow />
-            <WorkflowStep label="智能分析" delay={1} />
-            <WorkflowArrow />
-            <WorkflowStep label="内容创作" delay={2} />
-            <WorkflowArrow />
-            <WorkflowStep label="自动发布" delay={3} />
-            <WorkflowArrow />
-            <WorkflowStep label="效果优化" delay={4} />
+          {/* Horizontal Timeline */}
+          <div className="relative">
+            {/* Progress Line */}
+            <div className="absolute top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            
+            <div className="flex items-start justify-between gap-4">
+              <WorkflowItem 
+                step={1}
+                title="数据采集"
+                icon="📊"
+                delay={0}
+              />
+              <WorkflowItem 
+                step={2}
+                title="智能分析"
+                icon="🔍"
+                delay={1}
+              />
+              <WorkflowItem 
+                step={3}
+                title="内容创作"
+                icon="✍️"
+                delay={2}
+              />
+              <WorkflowItem 
+                step={4}
+                title="自动发布"
+                icon="🚀"
+                delay={3}
+              />
+              <WorkflowItem 
+                step={5}
+                title="效果优化"
+                icon="⚡"
+                delay={4}
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mt-16 grid grid-cols-5 gap-4 text-center">
+            <div className="text-xs text-white/40 leading-relaxed">
+              实时聚合全网热点数据
+            </div>
+            <div className="text-xs text-white/40 leading-relaxed">
+              深度分析趋势与画像
+            </div>
+            <div className="text-xs text-white/40 leading-relaxed">
+              AI 辅助批量生成内容
+            </div>
+            <div className="text-xs text-white/40 leading-relaxed">
+              一键分发多平台
+            </div>
+            <div className="text-xs text-white/40 leading-relaxed">
+              数据驱动持续优化
+            </div>
           </div>
         </div>
       </section>
@@ -214,28 +261,19 @@ function FeatureCard({ number, title, description }: { number: string; title: st
   );
 }
 
-function WorkflowStep({ label, delay }: { label: string; delay: number }) {
+function WorkflowItem({ step, title, icon, delay }: { step: number; title: string; icon: string; delay: number }) {
   return (
     <div 
-      className="flex flex-col items-center"
-      style={{ 
-        animationDelay: `${delay * 150}ms`
-      }}
+      className="flex flex-col items-center flex-1"
+      style={{ animationDelay: `${delay * 100}ms` }}
     >
-      <div className="w-16 h-16 border border-white/20 rounded-2xl flex items-center justify-center mb-4 bg-white/[0.02]">
-        <div className="w-2 h-2 bg-white rounded-full"></div>
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-2xl mb-4 shadow-lg">
+        {icon}
       </div>
-      <span className="text-[10px] tracking-[0.2em] text-white/50 uppercase">{label}</span>
-    </div>
-  );
-}
-
-function WorkflowArrow() {
-  return (
-    <div className="hidden md:block text-white/20 mx-2">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-        <path d="M5 12h14M12 5l7 7-7 7" />
-      </svg>
+      <div className="w-6 h-6 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center mb-2">
+        {step}
+      </div>
+      <span className="text-xs tracking-[0.1em] text-white/80 uppercase">{title}</span>
     </div>
   );
 }
