@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import MainLayout from '@/components/MainLayout'
+import AuthLayout from '@/components/AuthLayout'
 
 export const metadata: Metadata = {
   title: '运营内容管理平台',
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
-        <MainLayout>{children}</MainLayout>
+        <AuthLayout>{children}</AuthLayout>
       </body>
     </html>
   )
