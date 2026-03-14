@@ -15,7 +15,7 @@ export default function TagsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide text-gray-900 mb-2">标签管理</h1>
+        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">标签管理</h1>
         <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Tag Management</p>
       </div>
 
@@ -35,7 +35,7 @@ export default function TagsPage() {
                 <span className="text-lg opacity-30 group-hover:opacity-50 transition-opacity">🏷️</span>
                 <span className="text-2xl font-light text-gray-700">{tag.count}</span>
               </div>
-              <h3 className="text-sm font-light text-gray-600 truncate group-hover:text-gray-800 transition-colors">#{tag.name}</h3>
+              <h3 className="text-sm font-light text-gray-600 truncate group-hover:text-gray-700 transition-colors">#{tag.name}</h3>
               <p className="text-[10px] text-gray-300 mt-1">篇文章</p>
             </div>
           ))}

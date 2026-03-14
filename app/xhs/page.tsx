@@ -29,7 +29,7 @@ export default function XhsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide text-gray-900 mb-2">小红书研究</h1>
+        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">小红书研究</h1>
         <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Redbook Research</p>
       </div>
 
