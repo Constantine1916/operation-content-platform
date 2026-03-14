@@ -35,7 +35,7 @@ export default function CreatorsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600" />
       </div>
     );
   }
@@ -67,29 +67,29 @@ export default function CreatorsPage() {
               <th className="px-4 py-3 text-right">篇均点赞</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-gray-100">
             {creators.map((c, i) => (
               <tr key={c.user_id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                    i < 3 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+                    i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
                   }`}>
                     {i + 1}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-bold">
                       {(c.nickname || '?').charAt(0)}
                     </div>
                     <span className="text-sm font-medium text-gray-900">{c.nickname}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm text-right">{c.noteCount}</td>
-                <td className="px-4 py-3 text-sm text-right font-medium text-red-600">
+                <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
                   {formatNumber(c.totalLikes)}
                 </td>
-                <td className="px-4 py-3 text-sm text-right font-medium text-amber-600">
+                <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
                   {formatNumber(c.totalCollects)}
                 </td>
                 <td className="px-4 py-3 text-sm text-right">

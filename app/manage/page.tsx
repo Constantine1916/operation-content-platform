@@ -50,9 +50,9 @@ export default function ManagePage() {
             placeholder="搜索文章标题或作者..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
-          <button className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <button className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors">
             搜索
           </button>
         </div>
@@ -60,15 +60,15 @@ export default function ManagePage() {
 
       {/* 统计信息 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-gray-600 text-sm">总文章数</p>
           <p className="text-2xl font-bold text-gray-900">{articles.length}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-gray-600 text-sm">搜索结果</p>
           <p className="text-2xl font-bold text-gray-900">{filteredArticles.length}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-gray-600 text-sm">平台数</p>
           <p className="text-2xl font-bold text-gray-900">5</p>
         </div>
@@ -78,7 +78,7 @@ export default function ManagePage() {
       {loading ? (
         <div className="text-center py-12 text-gray-500">加载中...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -115,7 +115,7 @@ export default function ManagePage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-200">
                         {article.source_platform}
                       </span>
                     </td>
@@ -128,12 +128,12 @@ export default function ManagePage() {
                     <td className="px-6 py-4">
                       <div className="flex gap-1 flex-wrap max-w-xs">
                         {article.tags?.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200">
                             {tag}
                           </span>
                         ))}
                         {article.tags?.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200">
                             +{article.tags.length - 3}
                           </span>
                         )}

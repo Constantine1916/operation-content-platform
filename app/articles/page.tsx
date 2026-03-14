@@ -28,7 +28,6 @@ const platformEmojis: Record<string, string> = {
   reddit: '🤖',
 };
 
-// 作者名称映射
 const authorNames: Record<string, string> = {
   'xiaohongshu-1': '小红',
   'xiaohongshu-2': '小红2',
@@ -62,13 +61,11 @@ export default function ArticlesPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // 提取所有唯一的作者
   useEffect(() => {
     const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
     setAuthors(uniqueAuthors);
   }, [articles]);
 
-  // 重置状态并加载第一页
   useEffect(() => {
     setArticles([]);
     setPage(0);
@@ -76,7 +73,6 @@ export default function ArticlesPage() {
     fetchArticles(0, true);
   }, [selectedPlatform, selectedAuthor]);
 
-  // 设置滚动加载观察器
   useEffect(() => {
     const options = {
       root: null,
@@ -109,7 +105,7 @@ export default function ArticlesPage() {
     }
 
     try {
-      const apiPage = pageNum + 1; // API uses 1-based page numbers
+      const apiPage = pageNum + 1;
       let url = `/api/articles?limit=${PAGE_SIZE}&page=${apiPage}`;
       if (selectedPlatform) {
         url += `&platform=${selectedPlatform}`;
@@ -159,15 +155,15 @@ export default function ArticlesPage() {
         <p className="text-gray-600">各平台运营agent产出的内容</p>
       </div>
 
-      {/* 平台切换 - horizontal scroll on mobile */}
+      {/* 平台切换 */}
       <div className="mb-4 overflow-x-auto pb-2 -mx-4 px-4">
         <div className="flex gap-2 flex-nowrap">
           <button
           onClick={() => setSelectedPlatform('')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedPlatform === ''
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
         >
           全部平台
@@ -178,17 +174,17 @@ export default function ArticlesPage() {
             onClick={() => setSelectedPlatform(key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               selectedPlatform === key
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <span>{platformEmojis[key]}</span>
+            <span className="filter grayscale">{platformEmojis[key]}</span>
             <span>{name}</span>
           </button>
         ))}
       </div>
 
-      {/* 作者筛选 - horizontal scroll on mobile */}
+      {/* 作者筛选 */}
       {authors.length > 0 && (
         <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
           <div className="flex gap-2 flex-nowrap">
@@ -196,8 +192,8 @@ export default function ArticlesPage() {
             onClick={() => setSelectedAuthor('')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               selectedAuthor === ''
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             全部作者
@@ -208,11 +204,11 @@ export default function ArticlesPage() {
               onClick={() => setSelectedAuthor(author)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                 selectedAuthor === author
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <span>{authorEmojis[author] || '👤'}</span>
+              <span className="filter grayscale">{authorEmojis[author] || '👤'}</span>
               <span>{authorNames[author] || author}</span>
             </button>
           ))}
@@ -230,18 +226,18 @@ export default function ArticlesPage() {
             {articles.map((article) => (
               <div
                 key={article.id}
-                className="bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-lg border border-gray-200 p-5 hover:border-gray-400 transition-colors cursor-pointer"
                 onClick={() => setSelectedArticle(article)}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">{platformEmojis[article.platform]}</span>
+                  <span className="text-2xl filter grayscale">{platformEmojis[article.platform]}</span>
                   <span className="text-xs font-medium text-gray-500">
                     {platformNames[article.platform]}
                   </span>
                   {article.author && (
                     <>
                       <span className="text-gray-300">|</span>
-                      <span className="text-xs font-medium text-purple-500">
+                      <span className="text-xs font-medium text-gray-600">
                         {authorEmojis[article.author] || '👤'} {authorNames[article.author] || article.author}
                       </span>
                     </>
@@ -267,7 +263,7 @@ export default function ArticlesPage() {
           <div ref={loadMoreRef} className="mt-8">
             {loadingMore && (
               <div className="text-center py-4 text-gray-500">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
                 <p className="mt-2">加载更多...</p>
               </div>
             )}
@@ -292,7 +288,7 @@ export default function ArticlesPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{platformEmojis[selectedArticle.platform]}</span>
+                <span className="text-3xl filter grayscale">{platformEmojis[selectedArticle.platform]}</span>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
                     {selectedArticle.title}
