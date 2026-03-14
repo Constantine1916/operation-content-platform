@@ -64,8 +64,8 @@ export default function Overview() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">概览</h1>
-        <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Dashboard Overview</p>
+        <h1 className="text-2xl font-light tracking-wide black mb-2">概览</h1>
+        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
       {/* Stats Cards */}
@@ -89,7 +89,7 @@ export default function Overview() {
 
       {/* Platform Stats */}
       <div className="mb-10">
-        <h2 className="text-xs font-medium text-gray-400 uppercase tracking-[0.2em] mb-4">平台分布</h2>
+        <h2 className="text-xs font-medium gray-600 uppercase tracking-[0.2em] mb-4">平台分布</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" />
           <PlatformCard title="知乎" count={stats.zhihu} icon="💡" />
@@ -101,7 +101,7 @@ export default function Overview() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="text-xs font-medium text-gray-400 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
+        <h2 className="text-xs font-medium gray-600 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
           <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
@@ -120,9 +120,9 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
         <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-xl border border-gray-100 group-hover:border-gray-200 transition-colors">
           <span className="opacity-60">{icon}</span>
         </div>
-        <span className="text-4xl font-light text-gray-700">{count}</span>
+        <span className="text-4xl font-light black">{count}</span>
       </div>
-      <p className="text-xs tracking-widest text-gray-400 uppercase">{title}</p>
+      <p className="text-xs tracking-widest gray-600 uppercase">{title}</p>
     </div>
   );
 }
@@ -132,8 +132,8 @@ function PlatformCard({ title, count, icon }: { title: string; count: number; ic
     <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
       <span className="text-lg opacity-50">{icon}</span>
       <div>
-        <p className="text-xl font-light text-gray-700">{count}</p>
-        <p className="text-[10px] text-gray-300 tracking-widest uppercase">{title}</p>
+        <p className="text-xl font-light black">{count}</p>
+        <p className="text-[10px] gray-500 tracking-widest uppercase">{title}</p>
       </div>
     </div>
   );
@@ -147,8 +147,8 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
     >
       <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-light text-gray-700 group-hover:text-gray-700 transition-colors">{title}</p>
-        <p className="text-xs text-gray-400">{desc}</p>
+        <p className="text-sm font-light black group-hover:black transition-colors">{title}</p>
+        <p className="text-xs gray-600">{desc}</p>
       </div>
     </a>
   );
