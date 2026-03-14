@@ -70,8 +70,8 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     <aside className={`bg-white border-r border-gray-100 ${className}`}>
       <div className="h-full flex flex-col">
         <nav className="flex-1 px-3 py-6 space-y-0.5">
-          {/* 主菜单 label - 很小，低调 */}
-          <div className="text-[9px] font-semibold text-gray-300 uppercase tracking-[0.25em] mb-3 px-3">
+          {/* 主菜单 label */}
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-3">
             主菜单
           </div>
 
