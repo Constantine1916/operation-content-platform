@@ -59,7 +59,7 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(0);
   const [authors, setAuthors] = useState<string[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
@@ -159,29 +159,30 @@ export default function ArticlesPage() {
       <div className="mb-4 overflow-x-auto pb-2 -mx-4 px-4">
         <div className="flex gap-2 flex-nowrap">
           <button
-          onClick={() => setSelectedPlatform('')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            selectedPlatform === ''
-              ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          全部平台
-        </button>
-        {Object.entries(platformNames).map(([key, name]) => (
-          <button
-            key={key}
-            onClick={() => setSelectedPlatform(key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-              selectedPlatform === key
+            onClick={() => setSelectedPlatform('')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedPlatform === ''
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <span className="filter grayscale">{platformEmojis[key]}</span>
-            <span>{name}</span>
+            全部平台
           </button>
-        ))}
+          {Object.entries(platformNames).map(([key, name]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedPlatform(key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                selectedPlatform === key
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <span className="filter grayscale">{platformEmojis[key]}</span>
+              <span>{name}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 作者筛选 */}
@@ -189,29 +190,30 @@ export default function ArticlesPage() {
         <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
           <div className="flex gap-2 flex-nowrap">
             <button
-            onClick={() => setSelectedAuthor('')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedAuthor === ''
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            全部作者
-          </button>
-          {authors.map((author) => (
-            <button
-              key={author}
-              onClick={() => setSelectedAuthor(author)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                selectedAuthor === author
+              onClick={() => setSelectedAuthor('')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedAuthor === ''
                   ? 'bg-gray-900 text-white'
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <span className="filter grayscale">{authorEmojis[author] || '👤'}</span>
-              <span>{authorNames[author] || author}</span>
+              全部作者
             </button>
-          ))}
+            {authors.map((author) => (
+              <button
+                key={author}
+                onClick={() => setSelectedAuthor(author)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  selectedAuthor === author
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="filter grayscale">{authorEmojis[author] || '👤'}</span>
+                <span>{authorNames[author] || author}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -221,7 +223,7 @@ export default function ArticlesPage() {
       ) : articles.length === 0 ? (
         <div className="text-center py-12 text-gray-500">暂无数据</div>
       ) : (
-        <>
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {articles.map((article) => (
               <div
@@ -273,7 +275,7 @@ export default function ArticlesPage() {
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
 
       {/* 文章详情弹窗 */}
@@ -298,7 +300,8 @@ export default function ArticlesPage() {
                     {selectedArticle.author && (
                       <> • {authorEmojis[selectedArticle.author] || '👤'} {authorNames[selectedArticle.author] || selectedArticle.author}</>
                     )}
-                     • {formatDate(selectedArticle.created_at)}
+                    {' • '}
+                    {formatDate(selectedArticle.created_at)}
                   </p>
                 </div>
               </div>
