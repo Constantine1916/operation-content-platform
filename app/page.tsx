@@ -7,58 +7,53 @@ import { supabase } from '@/lib/supabase';
 
 export default function LandingPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/overview');
       }
-      setLoading(false);
+      setTimeout(() => setLoaded(true), 100);
     });
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-8 w-8 bg-gray-800 rounded-full"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className={`min-h-screen bg-[#0a0a0a] text-white transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Ambient Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-radial from-gray-800/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-gradient-radial from-gray-700/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMDIwMjAiIGZpbGwtb3BhY2l0eT0iMC4yIj48cGF0aCBkPSJNMzAgMzBoMjB2MjBIMzB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+      </div>
+
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-900">
-        <div className="container mx-auto px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5">
+        <div className="max-w-6xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-white rounded-lg flex items-center justify-center">
-                <span className="text-sm font-bold">OP</span>
+              <div className="w-10 h-10 border border-white/20 rounded-lg flex items-center justify-center bg-white/5">
+                <span className="text-lg font-light tracking-widest">OP</span>
               </div>
-              <span className="text-lg font-semibold tracking-wide">内容运营平台</span>
+              <span className="text-sm font-light tracking-[0.2em] text-white/80">内容运营平台</span>
             </div>
             
-            {/* Nav Links */}
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-400 hover:text-white transition-colors text-sm">功能</a>
-              <a href="#about" className="text-gray-400 hover:text-white transition-colors text-sm">关于</a>
+            <div className="hidden md:flex items-center gap-10">
+              <a href="#features" className="text-xs tracking-widest text-white/50 hover:text-white/80 transition-colors uppercase">功能</a>
+              <a href="#workflow" className="text-xs tracking-widest text-white/50 hover:text-white/80 transition-colors uppercase">流程</a>
+              <a href="#about" className="text-xs tracking-widest text-white/50 hover:text-white/80 transition-colors uppercase">关于</a>
             </div>
             
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
+                className="text-xs tracking-widest text-white/50 hover:text-white transition-colors uppercase px-4 py-2"
               >
                 登录
               </Link>
               <Link
                 href="/login"
-                className="px-5 py-2 bg-white text-black text-sm font-medium rounded-full hover:bg-gray-200 transition-colors"
+                className="text-xs tracking-widest bg-white text-black px-6 py-2.5 rounded-none hover:bg-white/90 transition-all uppercase font-medium"
               >
                 开始使用
               </Link>
@@ -68,35 +63,38 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-32">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-block px-4 py-1.5 mb-8 border border-gray-800 rounded-full">
-              <span className="text-xs text-gray-500 uppercase tracking-widest">智能内容运营解决方案</span>
+      <section className="relative pt-48 pb-32">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="text-center">
+            <div className="inline-block mb-10">
+              <span className="text-[10px] tracking-[0.4em] text-white/40 uppercase border border-white/10 px-5 py-2">
+                智能内容运营解决方案
+              </span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight tracking-tight">
-              聚合多平台内容
-              <br />
-              <span className="text-gray-600">智能高效运营</span>
+            <h1 className="text-6xl md:text-7xl font-thin leading-[1.1] tracking-tight mb-8">
+              <span className="block">聚合多平台内容</span>
+              <span className="block text-white/40">智能高效运营</span>
             </h1>
             
-            <p className="text-xl text-gray-400 mb-12 leading-relaxed">
-              一站式解决从热点采集、数据分析、内容创作、自动化发布到效果优化的全链路运营需求
+            <p className="text-sm text-white/50 leading-relaxed max-w-xl mx-auto mb-16 font-light tracking-wide">
+              一站式解决从热点采集、数据分析、内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link
                 href="/login"
-                className="px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all hover:scale-105"
+                className="group relative px-10 py-4 bg-white text-black text-xs tracking-[0.25em] uppercase font-medium overflow-hidden"
               >
-                立即开始 →
+                <span className="relative z-10">立即开始</span>
+                <div className="absolute inset-0 bg-gray-200 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
               </Link>
               <a
                 href="#features"
-                className="px-8 py-4 border border-gray-800 text-white font-medium rounded-full hover:border-gray-600 transition-all"
+                className="group flex items-center gap-3 text-xs tracking-[0.2em] text-white/50 uppercase"
               >
-                了解更多
+                <span>了解更多</span>
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300">→</span>
               </a>
             </div>
           </div>
@@ -104,50 +102,39 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-gray-950">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">核心功能</h2>
-            <p className="text-gray-500">完整的运营闭环，从数据到增长</p>
+      <section id="features" className="py-32 border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="text-center mb-24">
+            <span className="text-[10px] tracking-[0.4em] text-white/30 uppercase">Core Functions</span>
+            <h2 className="text-3xl font-light mt-4 tracking-wide">核心功能</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
             <FeatureCard
               number="01"
               title="热点数据采集"
               description="实时聚合全网热点，跨平台监控小红书、知乎、微信、X、Reddit 等平台热门内容"
             />
-            
-            {/* Feature 2 */}
             <FeatureCard
               number="02"
               title="热点数据分析"
               description="深度分析热点趋势、用户画像、内容画像，挖掘潜在爆款因子"
             />
-            
-            {/* Feature 3 */}
             <FeatureCard
               number="03"
               title="智能内容创作"
               description="基于热点洞察，AI 辅助生成高质量文章和帖子，批量产出运营内容"
             />
-            
-            {/* Feature 4 */}
             <FeatureCard
               number="04"
               title="自动化发布"
               description="一键分发多平台，定时发布，解放双手，显著提升运营效率"
             />
-            
-            {/* Feature 5 */}
             <FeatureCard
               number="05"
               title="账号数据分析"
               description="全维度追踪账号表现，阅读量、互动率、粉丝增长等核心指标尽在掌握"
             />
-            
-            {/* Feature 6 */}
             <FeatureCard
               number="06"
               title="AI 效果优化"
@@ -157,57 +144,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Process Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">运营闭环</h2>
-            <p className="text-gray-500">从发现到优化，全链路自动化</p>
+      {/* Workflow Section */}
+      <section id="workflow" className="py-32 bg-white/[0.02]">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="text-center mb-20">
+            <span className="text-[10px] tracking-[0.4em] text-white/30 uppercase">Workflow</span>
+            <h2 className="text-3xl font-light mt-4 tracking-wide">运营闭环</h2>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4">
-            <ProcessStep label="数据采集" />
-            <ProcessArrow />
-            <ProcessStep label="智能分析" />
-            <ProcessArrow />
-            <ProcessStep label="内容创作" />
-            <ProcessArrow />
-            <ProcessStep label="自动发布" />
-            <ProcessArrow />
-            <ProcessStep label="效果优化" />
+          <div className="flex flex-wrap items-center justify-center gap-0">
+            <WorkflowStep label="数据采集" delay={0} />
+            <WorkflowArrow />
+            <WorkflowStep label="智能分析" delay={1} />
+            <WorkflowArrow />
+            <WorkflowStep label="内容创作" delay={2} />
+            <WorkflowArrow />
+            <WorkflowStep label="自动发布" delay={3} />
+            <WorkflowArrow />
+            <WorkflowStep label="效果优化" delay={4} />
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gray-950">
-        <div className="container mx-auto px-6">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">开启智能运营之旅</h2>
-            <p className="text-gray-400 mb-10">
-              立即体验一站式内容运营平台，让运营更高效
-            </p>
-            <Link
-              href="/login"
-              className="inline-block px-10 py-4 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all hover:scale-105"
-            >
-              立即开始 →
-            </Link>
-          </div>
+      <section className="py-32 border-t border-white/5">
+        <div className="max-w-2xl mx-auto px-8 text-center">
+          <h2 className="text-3xl font-light mb-6 tracking-wide">开启智能运营之旅</h2>
+          <p className="text-sm text-white/40 mb-12 font-light">
+            立即体验一站式内容运营平台，让运营更高效
+          </p>
+          <Link
+            href="/login"
+            className="inline-block px-12 py-4 border border-white/20 text-white text-xs tracking-[0.25em] uppercase hover:bg-white hover:text-black transition-all duration-500"
+          >
+            立即开始 →
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="about" className="py-12 border-t border-gray-900">
-        <div className="container mx-auto px-6">
+      <footer id="about" className="py-12 border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border border-gray-700 rounded flex items-center justify-center">
-                <span className="text-xs font-bold">OP</span>
+              <div className="w-8 h-8 border border-white/10 rounded flex items-center justify-center bg-white/5">
+                <span className="text-xs font-light tracking-widest">OP</span>
               </div>
-              <span className="text-gray-500 text-sm">内容运营平台</span>
+              <span className="text-xs text-white/30 tracking-widest uppercase">内容运营平台</span>
             </div>
-            <p className="text-gray-600 text-sm">
+            <p className="text-[10px] text-white/20 tracking-widest uppercase">
               © 2026 内容运营平台. All rights reserved.
             </p>
           </div>
@@ -219,31 +204,36 @@ export default function LandingPage() {
 
 function FeatureCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="group p-8 border border-gray-800 rounded-2xl hover:border-gray-600 transition-all hover:bg-gray-900/50">
-      <div className="text-4xl font-bold text-gray-800 mb-4 group-hover:text-gray-700 transition-colors">
+    <div className="bg-[#0a0a0a] p-12 hover:bg-white/[0.02] transition-colors duration-500 group">
+      <div className="text-5xl font-thin text-white/10 mb-8 group-hover:text-white/20 transition-colors">
         {number}
       </div>
-      <h3 className="text-lg font-semibold mb-3">{title}</h3>
-      <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
+      <h3 className="text-sm tracking-[0.2em] uppercase mb-4 font-medium">{title}</h3>
+      <p className="text-xs text-white/40 leading-relaxed font-light">{description}</p>
     </div>
   );
 }
 
-function ProcessStep({ label }: { label: string }) {
+function WorkflowStep({ label, delay }: { label: string; delay: number }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-20 h-20 border border-gray-800 rounded-full flex items-center justify-center mb-3">
-        <div className="w-3 h-3 bg-white rounded-full"></div>
+    <div 
+      className="flex flex-col items-center"
+      style={{ 
+        animationDelay: `${delay * 150}ms`
+      }}
+    >
+      <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center mb-4 bg-white/[0.02]">
+        <div className="w-2 h-2 bg-white rounded-full"></div>
       </div>
-      <span className="text-sm text-gray-400">{label}</span>
+      <span className="text-[10px] tracking-[0.2em] text-white/50 uppercase">{label}</span>
     </div>
   );
 }
 
-function ProcessArrow() {
+function WorkflowArrow() {
   return (
-    <div className="hidden md:block text-gray-700">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <div className="hidden md:block text-white/20 mx-2">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M5 12h14M12 5l7 7-7 7" />
       </svg>
     </div>
