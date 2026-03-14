@@ -61,15 +61,15 @@ export default function ManagePage() {
       {/* 统计信息 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="gray-800 text-lg">总文章数</p>
+          <p className="gray-800 text-xs">总文章数</p>
           <p className="text-2xl font-bold text-black">{articles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="gray-800 text-lg">搜索结果</p>
+          <p className="gray-800 text-xs">搜索结果</p>
           <p className="text-2xl font-bold text-black">{filteredArticles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="gray-800 text-lg">平台数</p>
+          <p className="gray-800 text-xs">平台数</p>
           <p className="text-2xl font-bold text-black">5</p>
         </div>
       </div>

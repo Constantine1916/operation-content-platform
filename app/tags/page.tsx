@@ -24,7 +24,7 @@ export default function TagsPage() {
       ) : tags.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center"><span className="text-2xl opacity-30">🏷️</span></div>
-          <p className="gray-600 text-lg">暂无标签</p>
+          <p className="gray-600 text-xs">暂无标签</p>
           <p className="gray-500 text-lg mt-1">当文章包含标签时，这里会显示标签列表</p>
         </div>
       ) : (
