@@ -25,8 +25,8 @@ export default function LoginPage() {
       if (error) {
         setError(error.message);
       } else {
-        // 登录成功，跳转到首页
-        router.push('/');
+        // 登录成功，跳转到概览页
+        router.push('/overview');
         router.refresh();
       }
     } catch (err: any) {
