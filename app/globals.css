@@ -2,24 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 黑白简约风格 - Black & White Minimal Theme */
+/* Light Theme - Clean & Minimal */
 :root {
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-card: #111111;
-  --bg-hover: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --border-color: #262626;
-  --border-light: #333333;
+  --bg-primary: #fafafa;
+  --bg-secondary: #ffffff;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-muted: #a3a3a3;
+  --border-color: #e5e5e5;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
@@ -27,47 +20,14 @@ html, body {
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-light);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-/* 链接样式 */
-a {
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-a:hover {
-  opacity: 0.8;
-}
-
-/* 按钮基础样式 */
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-/* 选中状态 */
-::selection {
-  background-color: var(--text-primary);
-  color: var(--bg-primary);
-}
+a { color: inherit; text-decoration: none; transition: opacity 0.2s; }
+a:hover { opacity: 0.7; }
+button { font-family: inherit; cursor: pointer; }
+::selection { background-color: #171717; color: white; }

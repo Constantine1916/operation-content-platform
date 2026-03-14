@@ -54,7 +54,7 @@ export default function Overview() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="w-8 h-8 border border-white/10 rounded-full bg-white/5"></div>
+          <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
         </div>
       </div>
     );
@@ -64,8 +64,8 @@ export default function Overview() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-2xl font-light tracking-wide text-white/90 mb-2">概览</h1>
-        <p className="text-xs text-white/30 tracking-[0.2em] uppercase">Dashboard Overview</p>
+        <h1 className="text-2xl font-light tracking-wide text-gray-900 mb-2">概览</h1>
+        <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
       {/* Stats Cards */}
@@ -89,7 +89,7 @@ export default function Overview() {
 
       {/* Platform Stats */}
       <div className="mb-10">
-        <h2 className="text-xs font-medium text-white/30 uppercase tracking-[0.2em] mb-4">平台分布</h2>
+        <h2 className="text-xs font-medium text-gray-400 uppercase tracking-[0.2em] mb-4">平台分布</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" />
           <PlatformCard title="知乎" count={stats.zhihu} icon="💡" />
@@ -101,7 +101,7 @@ export default function Overview() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="text-xs font-medium text-white/30 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
+        <h2 className="text-xs font-medium text-gray-400 uppercase tracking-[0.2em] mb-4">快捷访问</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
           <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
@@ -115,25 +115,25 @@ export default function Overview() {
 
 function StatCard({ title, count, icon }: { title: string; count: number; icon: string }) {
   return (
-    <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 hover:border-white/20 hover:bg-white/[0.04] transition-all group">
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-200 hover:shadow-sm transition-all group">
       <div className="flex items-center gap-4 mb-4">
-        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-xl border border-white/10 group-hover:border-white/20 transition-colors">
-          <span className="filter grayscale opacity-50">{icon}</span>
+        <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-xl border border-gray-100 group-hover:border-gray-200 transition-colors">
+          <span className="opacity-60">{icon}</span>
         </div>
-        <span className="text-4xl font-light text-white/80">{count}</span>
+        <span className="text-4xl font-light text-gray-800">{count}</span>
       </div>
-      <p className="text-xs tracking-widest text-white/40 uppercase">{title}</p>
+      <p className="text-xs tracking-widest text-gray-400 uppercase">{title}</p>
     </div>
   );
 }
 
 function PlatformCard({ title, count, icon }: { title: string; count: number; icon: string }) {
   return (
-    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex items-center gap-3 hover:border-white/20 hover:bg-white/[0.04] transition-all">
-      <span className="text-lg filter grayscale opacity-40">{icon}</span>
+    <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
+      <span className="text-lg opacity-50">{icon}</span>
       <div>
-        <p className="text-xl font-light text-white/60">{count}</p>
-        <p className="text-[10px] text-white/30 tracking-widest uppercase">{title}</p>
+        <p className="text-xl font-light text-gray-700">{count}</p>
+        <p className="text-[10px] text-gray-300 tracking-widest uppercase">{title}</p>
       </div>
     </div>
   );
@@ -143,12 +143,12 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
   return (
     <a
       href={href}
-      className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/10 rounded-2xl hover:border-white/30 hover:bg-white/[0.04] transition-all group"
+      className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-300 hover:shadow-sm transition-all group"
     >
-      <span className="text-2xl filter grayscale opacity-40 group-hover:opacity-60 transition-opacity">{icon}</span>
+      <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-light text-white/70 group-hover:text-white transition-colors">{title}</p>
-        <p className="text-xs text-white/30">{desc}</p>
+        <p className="text-sm font-light text-gray-800 group-hover:text-gray-900 transition-colors">{title}</p>
+        <p className="text-xs text-gray-400">{desc}</p>
       </div>
     </a>
   );
