@@ -54,8 +54,7 @@ export default function Overview() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 w-8 bg-white/10 rounded-full mb-3"></div>
-          <div className="h-3 w-24 bg-white/10 rounded"></div>
+          <div className="w-8 h-8 border border-white/10 rounded-full bg-white/5"></div>
         </div>
       </div>
     );
@@ -66,7 +65,7 @@ export default function Overview() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-2xl font-light tracking-wide text-white/90 mb-2">概览</h1>
-        <p className="text-xs text-white/40 tracking-widest uppercase">Dashboard Overview</p>
+        <p className="text-xs text-white/30 tracking-[0.2em] uppercase">Dashboard Overview</p>
       </div>
 
       {/* Stats Cards */}
@@ -119,11 +118,11 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
     <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 hover:border-white/20 hover:bg-white/[0.04] transition-all group">
       <div className="flex items-center gap-4 mb-4">
         <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-xl border border-white/10 group-hover:border-white/20 transition-colors">
-          <span className="filter grayscale opacity-60">{icon}</span>
+          <span className="filter grayscale opacity-50">{icon}</span>
         </div>
         <span className="text-4xl font-light text-white/80">{count}</span>
       </div>
-      <p className="text-xs tracking-widest text-white/50 uppercase">{title}</p>
+      <p className="text-xs tracking-widest text-white/40 uppercase">{title}</p>
     </div>
   );
 }
@@ -131,9 +130,9 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
 function PlatformCard({ title, count, icon }: { title: string; count: number; icon: string }) {
   return (
     <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex items-center gap-3 hover:border-white/20 hover:bg-white/[0.04] transition-all">
-      <span className="text-lg filter grayscale opacity-50">{icon}</span>
+      <span className="text-lg filter grayscale opacity-40">{icon}</span>
       <div>
-        <p className="text-xl font-light text-white/70">{count}</p>
+        <p className="text-xl font-light text-white/60">{count}</p>
         <p className="text-[10px] text-white/30 tracking-widest uppercase">{title}</p>
       </div>
     </div>
@@ -146,9 +145,9 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
       href={href}
       className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/10 rounded-2xl hover:border-white/30 hover:bg-white/[0.04] transition-all group"
     >
-      <span className="text-2xl filter grayscale opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
+      <span className="text-2xl filter grayscale opacity-40 group-hover:opacity-60 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-light text-white/80 group-hover:text-white transition-colors">{title}</p>
+        <p className="text-sm font-light text-white/70 group-hover:text-white transition-colors">{title}</p>
         <p className="text-xs text-white/30">{desc}</p>
       </div>
     </a>
