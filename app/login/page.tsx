@@ -41,15 +41,15 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">内容运营平台</h1>
-          <p className="text-gray-500">登录您的账户</p>
+          <h1 className="text-3xl font-bold text-black mb-2">内容运营平台</h1>
+          <p className="gray-700">登录您的账户</p>
         </div>
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium black mb-2">
                 邮箱
               </label>
               <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium black mb-2">
                 密码
               </label>
               <input
@@ -95,7 +95,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-400 text-sm mt-8">
+        <p className="text-center gray-600 text-sm mt-8">
           © 2026 内容运营平台. All rights reserved.
         </p>
       </div>

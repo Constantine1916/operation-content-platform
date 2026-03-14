@@ -29,8 +29,8 @@ export default function XhsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">小红书研究</h1>
-        <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Redbook Research</p>
+        <h1 className="text-2xl font-light tracking-wide black mb-2">小红书研究</h1>
+        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Redbook Research</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -41,36 +41,36 @@ export default function XhsPage() {
       </div>
 
       <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-50"><h2 className="text-xs tracking-[0.2em] text-gray-400 uppercase">搜索关键词</h2></div>
+        <div className="px-6 py-4 border-b border-gray-50"><h2 className="text-xs tracking-[0.2em] gray-600 uppercase">搜索关键词</h2></div>
         <div className="divide-y divide-gray-50">
           {keywords.map((kw) => (
             <Link key={kw.keyword} href={`/xhs/search/${encodeURIComponent(kw.keyword)}`} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors group">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-full border border-gray-100 group-hover:border-gray-200 transition-colors">{kw.keyword}</span>
-                <span className="text-xs text-gray-400">{kw.noteCount} 条笔记</span>
+                <span className="px-3 py-1.5 bg-gray-50 gray-800 text-xs rounded-full border border-gray-100 group-hover:border-gray-200 transition-colors">{kw.keyword}</span>
+                <span className="text-xs gray-600">{kw.noteCount} 条笔记</span>
               </div>
-              <div className="flex items-center gap-4 text-xs text-gray-400">
+              <div className="flex items-center gap-4 text-xs gray-600">
                 <span>👍 {formatNumber(kw.totalLikes)}</span><span>⭐ {formatNumber(kw.totalCollects)}</span><span className="opacity-50">{timeAgo(kw.lastSearched)}</span>
               </div>
             </Link>
           ))}
-          {keywords.length === 0 && <div className="px-6 py-12 text-center text-gray-400 text-sm">暂无搜索记录</div>}
+          {keywords.length === 0 && <div className="px-6 py-12 text-center gray-600 text-sm">暂无搜索记录</div>}
         </div>
       </div>
 
       <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50"><h2 className="text-xs tracking-[0.2em] text-gray-400 uppercase">TOP 笔记排行</h2></div>
+        <div className="px-6 py-4 border-b border-gray-50"><h2 className="text-xs tracking-[0.2em] gray-600 uppercase">TOP 笔记排行</h2></div>
         <div className="divide-y divide-gray-50">
           {topNotes.map((note, i) => (
             <div key={note.note_id} className="flex items-center gap-4 px-6 py-4">
-              <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs ${i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>{i + 1}</span>
+              <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs ${i < 3 ? 'bg-gray-900 text-white' : 'bg-gray-100 gray-600'}`}>{i + 1}</span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-gray-700 truncate">{note.title || '无标题'}</div>
-                <div className="text-[10px] text-gray-400 mt-0.5">@{note.nickname} · {note.keyword}</div>
+                <div className="text-sm black truncate">{note.title || '无标题'}</div>
+                <div className="text-[10px] gray-600 mt-0.5">@{note.nickname} · {note.keyword}</div>
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-gray-400 flex-shrink-0">
+              <div className="flex items-center gap-3 text-[10px] gray-600 flex-shrink-0">
                 <span>👍 {formatNumber(note.likes)}</span><span>⭐ {formatNumber(note.collects)}</span>
-                {note.collect_like_ratio && <span className={`px-2 py-0.5 rounded-full ${note.collect_like_ratio > 50 ? 'bg-gray-100 text-gray-600' : 'bg-gray-50 text-gray-400'}`}>{note.collect_like_ratio}%</span>}
+                {note.collect_like_ratio && <span className={`px-2 py-0.5 rounded-full ${note.collect_like_ratio > 50 ? 'bg-gray-100 gray-800' : 'bg-gray-50 gray-600'}`}>{note.collect_like_ratio}%</span>}
               </div>
             </div>
           ))}
@@ -83,8 +83,8 @@ export default function XhsPage() {
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5">
-      <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-2">{label}</p>
-      <p className="text-2xl font-light text-gray-700">{value}</p>
+      <p className="text-[10px] gray-500 uppercase tracking-widest mb-2">{label}</p>
+      <p className="text-2xl font-light black">{value}</p>
     </div>
   );
 }

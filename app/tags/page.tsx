@@ -15,8 +15,8 @@ export default function TagsPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide text-gray-700 mb-2">标签管理</h1>
-        <p className="text-xs text-gray-400 tracking-[0.2em] uppercase">Tag Management</p>
+        <h1 className="text-2xl font-light tracking-wide black mb-2">标签管理</h1>
+        <p className="text-xs gray-600 tracking-[0.2em] uppercase">Tag Management</p>
       </div>
 
       {loading ? (
@@ -24,8 +24,8 @@ export default function TagsPage() {
       ) : tags.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center"><span className="text-2xl opacity-30">🏷️</span></div>
-          <p className="text-gray-400 text-sm">暂无标签</p>
-          <p className="text-gray-300 text-xs mt-1">当文章包含标签时，这里会显示标签列表</p>
+          <p className="gray-600 text-sm">暂无标签</p>
+          <p className="gray-500 text-xs mt-1">当文章包含标签时，这里会显示标签列表</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -33,10 +33,10 @@ export default function TagsPage() {
             <div key={tag.id} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg opacity-30 group-hover:opacity-50 transition-opacity">🏷️</span>
-                <span className="text-2xl font-light text-gray-700">{tag.count}</span>
+                <span className="text-2xl font-light black">{tag.count}</span>
               </div>
-              <h3 className="text-sm font-light text-gray-600 truncate group-hover:text-gray-700 transition-colors">#{tag.name}</h3>
-              <p className="text-[10px] text-gray-300 mt-1">篇文章</p>
+              <h3 className="text-sm font-light gray-800 truncate group-hover:black transition-colors">#{tag.name}</h3>
+              <p className="text-[10px] gray-500 mt-1">篇文章</p>
             </div>
           ))}
         </div>

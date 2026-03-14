@@ -28,23 +28,23 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     <aside className={`bg-white border-r border-gray-100 ${className}`}>
       <div className="h-full flex flex-col">
         <nav className="flex-1 px-3 py-6 space-y-1">
-          <div className="text-[10px] font-semibold text-gray-300 uppercase tracking-[0.2em] mb-4 px-3">主菜单</div>
+          <div className="text-[10px] font-semibold gray-500 uppercase tracking-[0.2em] mb-4 px-3">主菜单</div>
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all ${isActive ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}>
-                <span className={isActive ? 'text-white' : 'text-gray-400'}>{item.icon}</span>
+              <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all ${isActive ? 'bg-gray-900 text-white' : 'gray-700 hover:black hover:bg-gray-50'}`}>
+                <span className={isActive ? 'text-white' : 'gray-600'}>{item.icon}</span>
                 <span className="tracking-wide">{item.title}</span>
               </Link>
             );
           })}
         </nav>
         <div className="px-3 py-4 border-t border-gray-50">
-          <div className="flex items-center justify-between text-[10px] text-gray-400">
-            <span>总文章数</span><span className="font-medium text-gray-600">{loading ? '...' : stats?.total || 0}</span>
+          <div className="flex items-center justify-between text-[10px] gray-600">
+            <span>总文章数</span><span className="font-medium gray-800">{loading ? '...' : stats?.total || 0}</span>
           </div>
-          <div className="flex items-center justify-between text-[10px] text-gray-400 mt-2">
-            <span>今日更新</span><span className="font-medium text-gray-600">{loading ? '...' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}</span>
+          <div className="flex items-center justify-between text-[10px] gray-600 mt-2">
+            <span>今日更新</span><span className="font-medium gray-800">{loading ? '...' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}</span>
           </div>
         </div>
       </div>

@@ -41,7 +41,7 @@ export default function ManagePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">文章管理</h1>
+        <h1 className="text-2xl font-bold text-black mb-4">文章管理</h1>
         
         {/* 搜索框 */}
         <div className="flex gap-4">
@@ -61,40 +61,40 @@ export default function ManagePage() {
       {/* 统计信息 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-gray-600 text-sm">总文章数</p>
-          <p className="text-2xl font-bold text-gray-900">{articles.length}</p>
+          <p className="gray-800 text-sm">总文章数</p>
+          <p className="text-2xl font-bold text-black">{articles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-gray-600 text-sm">搜索结果</p>
-          <p className="text-2xl font-bold text-gray-900">{filteredArticles.length}</p>
+          <p className="gray-800 text-sm">搜索结果</p>
+          <p className="text-2xl font-bold text-black">{filteredArticles.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-gray-600 text-sm">平台数</p>
-          <p className="text-2xl font-bold text-gray-900">5</p>
+          <p className="gray-800 text-sm">平台数</p>
+          <p className="text-2xl font-bold text-black">5</p>
         </div>
       </div>
 
       {/* 文章表格 */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">加载中...</div>
+        <div className="text-center py-12 gray-700">加载中...</div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium gray-700 uppercase tracking-wider">
                   标题
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium gray-700 uppercase tracking-wider">
                   平台
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium gray-700 uppercase tracking-wider">
                   作者
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium gray-700 uppercase tracking-wider">
                   发布时间
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium gray-700 uppercase tracking-wider">
                   标签
                 </th>
               </tr>
@@ -102,7 +102,7 @@ export default function ManagePage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredArticles.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center gray-700">
                     {searchQuery ? '没有找到匹配的文章' : '暂无文章数据'}
                   </td>
                 </tr>
@@ -110,30 +110,30 @@ export default function ManagePage() {
                 filteredArticles.map(article => (
                   <tr key={article.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 max-w-md truncate">
+                      <div className="text-sm font-medium text-black max-w-md truncate">
                         {article.title}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-200">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 black border border-gray-200">
                         {article.source_platform}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {article.author || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm gray-700">
                       {new Date(article.published_at).toLocaleDateString('zh-CN')}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1 flex-wrap max-w-xs">
                         {article.tags?.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200">
+                          <span key={i} className="px-2 py-1 bg-gray-100 gray-800 rounded text-xs border border-gray-200">
                             {tag}
                           </span>
                         ))}
                         {article.tags?.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200">
+                          <span className="px-2 py-1 bg-gray-100 gray-800 rounded text-xs border border-gray-200">
                             +{article.tags.length - 3}
                           </span>
                         )}

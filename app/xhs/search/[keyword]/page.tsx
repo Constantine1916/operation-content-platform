@@ -81,35 +81,35 @@ export default function SearchKeywordPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/xhs" className="text-gray-400 hover:text-gray-600">
+        <Link href="/xhs" className="gray-600 hover:gray-800">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-black">
             <span className="filter grayscale">🔍</span> {keyword}
           </h1>
-          <p className="text-sm text-gray-500">{pagination.total} 条笔记</p>
+          <p className="text-sm gray-700">{pagination.total} 条笔记</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-xs text-gray-500">笔记数</div>
+          <div className="text-xs gray-700">笔记数</div>
           <div className="text-2xl font-bold mt-1">{pagination.total}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-xs text-gray-500">总点赞</div>
+          <div className="text-xs gray-700">总点赞</div>
           <div className="text-2xl font-bold mt-1">{formatNumber(totalLikes)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-xs text-gray-500">总收藏</div>
+          <div className="text-xs gray-700">总收藏</div>
           <div className="text-2xl font-bold mt-1">{formatNumber(totalCollects)}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="text-xs text-gray-500">平均收藏率</div>
+          <div className="text-xs gray-700">平均收藏率</div>
           <div className="text-2xl font-bold mt-1">{avgCollectRatio}%</div>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function SearchKeywordPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               sort === s.key
                 ? 'bg-gray-900 text-white'
-                : 'text-gray-500 hover:bg-gray-100'
+                : 'gray-700 hover:bg-gray-100'
             }`}
           >
             {s.label}
@@ -145,7 +145,7 @@ export default function SearchKeywordPage() {
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+            <thead className="bg-gray-50 text-xs gray-700 uppercase">
               <tr>
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3 text-left">笔记</th>
@@ -160,18 +160,18 @@ export default function SearchKeywordPage() {
             <tbody className="divide-y divide-gray-100">
               {notes.map((note, i) => (
                 <tr key={note.note_id + '-' + i} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-400">{i + 1}</td>
+                  <td className="px-4 py-3 text-sm gray-600">{i + 1}</td>
                   <td className="px-4 py-3">
                     <a
                       href={note.url || `https://www.xiaohongshu.com/explore/${note.note_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-gray-900 hover:text-gray-600 line-clamp-1"
+                      className="text-sm font-medium text-black hover:gray-800 line-clamp-1"
                     >
                       {note.title || '无标题'}
                     </a>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">@{note.nickname}</td>
+                  <td className="px-4 py-3 text-sm gray-700">@{note.nickname}</td>
                   <td className="px-4 py-3 text-sm text-right font-medium">{formatNumber(note.likes)}</td>
                   <td className="px-4 py-3 text-sm text-right font-medium">{formatNumber(note.collects)}</td>
                   <td className="px-4 py-3 text-sm text-right font-medium">{formatNumber(note.comments)}</td>
@@ -179,7 +179,7 @@ export default function SearchKeywordPage() {
                     <span className={`px-2 py-0.5 rounded text-xs ${
                       note.collect_like_ratio && note.collect_like_ratio > 50
                         ? 'bg-gray-900 text-white font-medium'
-                        : 'text-gray-500'
+                        : 'gray-700'
                     }`}>
                       {note.collect_like_ratio ? note.collect_like_ratio + '%' : '-'}
                     </span>
@@ -210,7 +210,7 @@ export default function SearchKeywordPage() {
               className={`px-3 py-1 rounded text-sm ${
                 p === pagination.page
                   ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 black hover:bg-gray-200'
               }`}
             >
               {p}
