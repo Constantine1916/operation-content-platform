@@ -54,7 +54,7 @@ export default function XhsPage() {
               </div>
             </Link>
           ))}
-          {keywords.length === 0 && <div className="px-6 py-12 text-center text-gray-600 text-xs">暂无搜索记录</div>}
+          {keywords.length === 0 && <div className="px-6 py-12 text-center text-gray-600 text-sm">暂无搜索记录</div>}
         </div>
       </div>
 

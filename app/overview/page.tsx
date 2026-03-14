@@ -43,8 +43,8 @@ export default function Overview() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-10">
-        <h1 className="text-xl font-semibold text-gray-900 mb-1">概览</h1>
-        <p className="text-xs text-gray-400 tracking-[0.15em] uppercase">Dashboard Overview</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">概览</h1>
+        <p className="text-sm text-gray-400 tracking-[0.15em] uppercase">Dashboard Overview</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
@@ -54,7 +54,7 @@ export default function Overview() {
       </div>
 
       <div className="mb-10">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-[0.15em] mb-4">平台分布</h2>
+        <h2 className="text-base font-semibold text-gray-500 uppercase tracking-[0.15em] mb-4">平台分布</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <PlatformCard title="小红书" count={stats.xiaohongshu} icon="📕" />
           <PlatformCard title="知乎" count={stats.zhihu} icon="💡" />
@@ -65,7 +65,7 @@ export default function Overview() {
       </div>
 
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-[0.15em] mb-4">快捷访问</h2>
+        <h2 className="text-base font-semibold text-gray-500 uppercase tracking-[0.15em] mb-4">快捷访问</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
           <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
@@ -86,7 +86,7 @@ function StatCard({ title, count, icon }: { title: string; count: number; icon: 
         </div>
         <span className="text-3xl font-semibold text-gray-800">{count}</span>
       </div>
-      <p className="text-xs tracking-widest text-gray-400 uppercase">{title}</p>
+      <p className="text-sm tracking-widest text-gray-400 uppercase">{title}</p>
     </div>
   );
 }
@@ -108,8 +108,8 @@ function QuickLink({ href, icon, title, desc }: { href: string; icon: string; ti
     <a href={href} className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-300 hover:shadow-sm transition-all group">
       <span className="text-xl opacity-50 group-hover:opacity-70 transition-opacity">{icon}</span>
       <div>
-        <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 transition-colors">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+        <p className="text-base font-medium text-gray-800 group-hover:text-gray-900 transition-colors">{title}</p>
+        <p className="text-sm text-gray-400 mt-0.5">{desc}</p>
       </div>
     </a>
   );
