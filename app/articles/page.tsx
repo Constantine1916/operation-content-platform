@@ -11,15 +11,23 @@ const platformColors: Record<string, string> = { xiaohongshu: 'bg-red-50 text-re
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('');
+  const [selectedAuthor, setSelectedAuthor] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [copied, setCopied] = useState(false);
+  const [authors, setAuthors] = useState<string[]>([]);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setArticles([]); setPage(0); setHasMore(true); fetchArticles(0, true); }, [selectedPlatform]);
+  // 从文章列表中提取所有唯一作者
+  useEffect(() => {
+    const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
+    setAuthors(uniqueAuthors);
+  }, [articles]);
+
+  useEffect(() => { setArticles([]); setPage(0); setHasMore(true); fetchArticles(0, true); }, [selectedPlatform, selectedAuthor]);
 
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
@@ -41,6 +49,7 @@ export default function ArticlesPage() {
     try {
       let url = `/api/articles?limit=${PAGE_SIZE}&page=${pageNum + 1}`;
       if (selectedPlatform) url += `&platform=${selectedPlatform}`;
+      if (selectedAuthor) url += `&author=${selectedAuthor}`;
       const result = await fetch(url).then(r => r.json());
       const items = result.data || [];
       if (items.length < PAGE_SIZE) setHasMore(false);
@@ -76,10 +85,18 @@ export default function ArticlesPage() {
       </div>
 
       {/* Platform Filter */}
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => setSelectedPlatform('')} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedPlatform === '' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>全部</button>
         {Object.entries(platformNames).map(([key, name]) => (
           <button key={key} onClick={() => setSelectedPlatform(key)} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedPlatform === key ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>{name}</button>
+        ))}
+      </div>
+
+      {/* Author Filter */}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <button onClick={() => setSelectedAuthor('')} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedAuthor === '' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>全部作者</button>
+        {authors.map((author) => (
+          <button key={author} onClick={() => setSelectedAuthor(author)} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedAuthor === author ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>@{author}</button>
         ))}
       </div>
 
