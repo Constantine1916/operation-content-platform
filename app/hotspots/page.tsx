@@ -8,23 +8,11 @@ interface HotspotGroup { timeKey: string; label: string; items: Hotspot[]; }
 const PAGE_SIZE = 100;
 
 function toBeijingLabel(date: string, time: string): string {
-  // collected_time 存储的是 UTC 时间，需要转换为北京时间 (UTC+8)
+  // collected_time 存储的已经是 UTC 时间，不需要再做时区转换
+  // 直接从 time 字段提取小时和分钟显示即可
   if (!time) return date;
-  const parts = time.split(':');
-  const hours = parseInt(parts[0], 10);
-  const minutes = parts[1] || '00';
-  let beijingHour = hours + 8;
-  let beijingDate = date;
-  
-  // 如果超过24小时，需要加一天
-  if (beijingHour >= 24) {
-    beijingHour -= 24;
-    const dt = new Date(date);
-    dt.setDate(dt.getDate() + 1);
-    beijingDate = dt.toISOString().slice(0, 10);
-  }
-  
-  return `${beijingDate.slice(5)} ${beijingHour.toString().padStart(2, '0')}:${minutes}`;
+  const [hours, minutes] = time.split(':');
+  return `${date.slice(5)} ${hours}:${minutes}`;
 }
 
 function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
