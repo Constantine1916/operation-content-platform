@@ -11,14 +11,31 @@ interface Article {
   tags: string[]
 }
 
+const authorNames: Record<string, string> = {
+  'xiaohongshu-1': '小红',
+  'xiaohongshu-2': '小红2',
+  'zhihu-1': '小知',
+  'wechat-1': '小微',
+  'x-1': '小X',
+  'reddit-1': '小Reddit',
+};
+
 export default function ManagePage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedAuthor, setSelectedAuthor] = useState('')
+  const [authors, setAuthors] = useState<string[]>([])
 
   useEffect(() => {
     fetchArticles()
   }, [])
+
+  // 从文章列表中提取所有唯一作者
+  useEffect(() => {
+    const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
+    setAuthors(uniqueAuthors);
+  }, [articles]);
 
   const fetchArticles = async () => {
     setLoading(true)
@@ -33,10 +50,15 @@ export default function ManagePage() {
     }
   }
 
-  const filteredArticles = articles.filter(article =>
-    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.author?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = searchQuery === '' || 
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.author?.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesAuthor = selectedAuthor === '' || article.author === selectedAuthor
+    
+    return matchesSearch && matchesAuthor
+  })
 
   return (
     <div>
@@ -44,7 +66,7 @@ export default function ManagePage() {
         <h1 className="text-2xl font-bold text-black mb-4">文章管理</h1>
         
         {/* 搜索框 */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <input
             type="text"
             placeholder="搜索文章标题或作者..."
@@ -52,6 +74,21 @@ export default function ManagePage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
+          
+          {/* 作者筛选下拉框 */}
+          <select
+            value={selectedAuthor}
+            onChange={(e) => setSelectedAuthor(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white"
+          >
+            <option value="">全部作者</option>
+            {authors.map((author) => (
+              <option key={author} value={author}>
+                {authorNames[author] || author}
+              </option>
+            ))}
+          </select>
+          
           <button className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors">
             搜索
           </button>
