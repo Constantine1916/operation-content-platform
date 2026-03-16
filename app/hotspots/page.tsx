@@ -8,11 +8,15 @@ interface HotspotGroup { timeKey: string; label: string; items: Hotspot[]; }
 const PAGE_SIZE = 100;
 
 function toBeijingLabel(date: string, time: string): string {
-  // collected_time 存储的已经是 UTC 时间，不需要再做时区转换
-  // 直接从 time 字段提取小时和分钟显示即可
-  if (!time) return date;
-  const [hours, minutes] = time.split(':');
-  return `${date.slice(5)} ${hours}:${minutes}`;
+  // 数据库存储的是UTC时间，需要先指定UTC时区再转换为北京时间
+  const utcDateTime = new Date(`${date}T${time}Z`);
+  return utcDateTime.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).replace(/\//g, '-');
 }
 
 function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
