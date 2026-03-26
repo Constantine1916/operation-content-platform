@@ -94,6 +94,14 @@ export default function LoginPage() {
           </form>
         </div>
 
+        {/* Register Link */}
+        <p className="text-center text-gray-900 text-lg mt-6">
+          还没有账户？{' '}
+          <a href="/register" className="text-gray-600 underline hover:text-gray-900">
+            注册
+          </a>
+        </p>
+
         {/* Footer */}
         <p className="text-center text-gray-900 text-lg mt-8">
           © 2026 内容运营平台. All rights reserved.

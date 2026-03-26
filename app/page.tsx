@@ -51,10 +51,10 @@ export default function LandingPage() {
                 登录
               </Link>
               <Link
-                href="/login"
+                href="/register"
                 className="text-lg tracking-widest bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-gray-800 transition-all uppercase font-medium"
               >
-                开始使用
+                注册
               </Link>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function LandingPage() {
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link
-                href="/login"
+                href="/register"
                 className="group relative px-10 py-4 bg-gray-900 text-white text-lg tracking-[0.25em] uppercase font-medium rounded-full overflow-hidden"
               >
                 <span className="relative z-10">立即开始</span>
@@ -173,7 +173,7 @@ export default function LandingPage() {
             立即体验一站式内容运营平台，让运营更高效
           </p>
           <Link
-            href="/login"
+            href="/register"
             className="inline-block px-12 py-4 border border-gray-200 black text-lg tracking-[0.25em] uppercase rounded-full hover:bg-gray-900 hover:text-white transition-all duration-500"
           >
             立即开始 →
