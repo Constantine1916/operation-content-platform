@@ -28,8 +28,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return () => subscription.unsubscribe();
   }, []);
 
-  // 登录页单独处理
-  if (pathname === '/login') {
+  // 登录页和注册页单独处理
+  if (pathname === '/login' || pathname === '/register') {
     return <>{children}</>;
   }
 
