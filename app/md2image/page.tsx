@@ -307,7 +307,7 @@ export default function Md2ImagePage() {
       setPages(pg)
     })()
     return () => { cancelled = true }
-  }, [md, avatar, date])
+  }, [md, avatar, name, date])
 
   const onConvert = async () => {
     if (!md) { setError('请先上传 MD 文件'); return }
