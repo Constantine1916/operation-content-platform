@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+const PROFILE_KEY = 'xhs_profile'
+
 interface NavbarProps { onMenuClick?: () => void }
 
 interface Profile {
@@ -14,7 +16,20 @@ interface Profile {
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
+
   useEffect(() => {
+    // 1. Instant: restore from localStorage
+    try {
+      const cached = localStorage.getItem(PROFILE_KEY)
+      if (cached) {
+        const p = JSON.parse(cached)
+        if (p.username || p.avatar_url) {
+          setProfile({ username: p.username, avatar_url: p.avatar_url, email: null })
+        }
+      }
+    } catch {}
+
+    // 2. Background: fetch from API to keep localStorage fresh
     async function loadProfile() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
@@ -26,18 +41,26 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       const data = await res.json()
       if (data.success && data.data) {
         setProfile(data.data)
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify({ username: data.data.username, avatar_url: data.data.avatar_url })) } catch {}
       }
     }
     loadProfile()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) { setProfile(null); return }
+      if (!session) {
+        setProfile(null)
+        try { localStorage.removeItem(PROFILE_KEY) } catch {}
+        return
+      }
       supabase.auth.getSession().then(({ data: { session: s } }) => {
         if (!s) return
         fetch('/api/profile', {
           headers: { Authorization: `Bearer ${s.access_token}` },
         }).then(r => r.json()).then(data => {
-          if (data.success && data.data) setProfile(data.data)
+          if (data.success && data.data) {
+            setProfile(data.data)
+            try { localStorage.setItem(PROFILE_KEY, JSON.stringify({ username: data.data.username, avatar_url: data.data.avatar_url })) } catch {}
+          }
         })
       })
     })
