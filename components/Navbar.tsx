@@ -85,13 +85,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-sm font-medium text-gray-900">
                     {(profile.username || profile.email || '?').charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
               {/* Username */}
-              <span className="text-sm text-gray-900 max-w-24 truncate hidden sm:inline">
+              <span className="text-sm font-medium text-gray-900 max-w-24 truncate hidden sm:inline">
                 {profile.username || profile.email?.split('@')[0] || '未设置用户名'}
               </span>
             </Link>
