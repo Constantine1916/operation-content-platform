@@ -47,8 +47,13 @@ function parseMd(text: string): Block[] {
 
 // ── Inline renderer (identical to skill) ────────────────────────────────
 function ri(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Bold/italic/code BEFORE HTML escape
+  let r = s
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+  // Then escape HTML-safe characters
+  return r.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 // ── Block → inner HTML (identical to skill) ─────────────────────────────
