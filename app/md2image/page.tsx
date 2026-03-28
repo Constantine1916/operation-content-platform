@@ -46,14 +46,34 @@ function parseMd(text: string): Block[] {
 }
 
 // ── Inline renderer (identical to skill) ────────────────────────────────
+// Properly handle inline markdown: only escape text content, not the markdown marker chars
 function ri(s: string): string {
-  // Bold/italic/code BEFORE HTML escape
-  let r = s
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-  // Then escape HTML-safe characters
-  return r.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Split by bold/italic/code markers, preserving the markers
+  const SEGMENT_RE = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g
+  const parts = s.split(SEGMENT_RE)
+  return parts.map(part => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      // Bold: escape text inside, wrap in strong
+      const inner = escapeHtml(part.slice(2, -2))
+      return `<strong>${inner}</strong>`
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      // Italic: escape text inside, wrap in em
+      const inner = escapeHtml(part.slice(1, -1))
+      return `<em>${inner}</em>`
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      // Inline code: escape text inside, wrap in code
+      const inner = escapeHtml(part.slice(1, -1))
+      return `<code>${inner}</code>`
+    }
+    // Plain text: just HTML-escape
+    return escapeHtml(part)
+  }).join('')
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 // ── Block → inner HTML (identical to skill) ─────────────────────────────
