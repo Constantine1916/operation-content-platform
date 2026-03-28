@@ -46,8 +46,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }, [])
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed w-full top-0 z-50">
-      <div className="flex items-center justify-between h-16 px-4">
+    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed left-0 right-0 top-0 z-50 w-screen">
+      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* 左侧：汉堡菜单 + Logo */}
         <div className="flex items-center gap-2 min-w-0">
           <button
