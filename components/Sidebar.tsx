@@ -98,14 +98,14 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         </nav>
 
         {/* 底部统计 */}
-        <div className="px-4 py-4 border-t border-gray-50 space-y-2">
+        <div className="px-4 py-4 border-t border-gray-200 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-900">总文章数</span>
-            <span className="text-xs font-semibold text-gray-900">{loading ? '—' : stats?.total || 0}</span>
+            <span className="text-xs text-gray-600">总文章数</span>
+            <span className="text-xs font-bold text-gray-900">{loading ? '—' : stats?.total || 0}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-900">今日更新</span>
-            <span className="text-xs font-semibold text-gray-900">
+            <span className="text-xs text-gray-600">今日更新</span>
+            <span className="text-xs font-bold text-gray-900">
               {loading ? '—' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}
             </span>
           </div>
