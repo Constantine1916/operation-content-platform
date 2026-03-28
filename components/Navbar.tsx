@@ -14,8 +14,6 @@ interface Profile {
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [navWidth, setNavWidth] = useState('100vw')
-
   useEffect(() => {
     async function loadProfile() {
       const { data: { session } } = await supabase.auth.getSession()
@@ -46,19 +44,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Dynamically set width based on sidebar visibility
-  useEffect(() => {
-    function updateWidth() {
-      const sidebarWidth = window.innerWidth >= 1024 ? 256 : 0
-      setNavWidth(`${window.innerWidth - sidebarWidth}px`)
-    }
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
-  }, [])
-
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed left-0 top-0 z-50" style={{ width: navWidth }}>
+    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed top-0 z-50" style={{ left: '16rem', width: 'calc(100vw - 16rem)' }}>
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* 左侧：汉堡菜单 + Logo */}
         <div className="flex items-center gap-2 min-w-0">
