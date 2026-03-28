@@ -7,6 +7,7 @@ import html2canvas from 'html2canvas'
 const CARD_W = 1080
 const CARD_H = 1440
 const PAD = 48
+const BLOCK_GAP = 42
 
 // ── Block types ─────────────────────────────────────────────────────────
 type Block =
@@ -15,21 +16,16 @@ type Block =
   | { kind: 'quote'; text: string }
   | { kind: 'li'; items: string[] }
 
-// ── Markdown parser ─────────────────────────────────────────────────────
+// ── Parser (identical to skill) ─────────────────────────────────────────
 function parseMd(text: string): Block[] {
   const lines = text.split('\n')
   const blocks: Block[] = []
   let i = 0
-
   while (i < lines.length) {
     const l = lines[i]!.trim()
     if (!l || /^---+$/.test(l)) { i++; continue }
-
-    // Heading
     const hm = l.match(/^(#{1,6})\s+(.+)/)
     if (hm) { blocks.push({ kind: 'h', level: hm[1]!.length, text: hm[2]! }); i++; continue }
-
-    // Blockquote
     if (l.startsWith('>')) {
       const parts: string[] = []
       while (i < lines.length && lines[i]!.trim().startsWith('>')) {
@@ -37,8 +33,6 @@ function parseMd(text: string): Block[] {
       }
       blocks.push({ kind: 'quote', text: parts.join(' ') }); continue
     }
-
-    // List
     if (/^[-*+]\s/.test(l)) {
       const items: string[] = []
       while (i < lines.length && /^\s*[-*+]\s/.test(lines[i]!)) {
@@ -46,176 +40,144 @@ function parseMd(text: string): Block[] {
       }
       blocks.push({ kind: 'li', items }); continue
     }
-
-    // Paragraph
     blocks.push({ kind: 'p', text: l }); i++
   }
   return blocks
 }
 
-// ── Inline renderer ─────────────────────────────────────────────────────
+// ── Inline renderer (identical to skill) ────────────────────────────────
 function ri(s: string): string {
-  return s
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
 }
 
-// ── Block → HTML ───────────────────────────────────────────────────────
+// ── Block → inner HTML (identical to skill) ─────────────────────────────
 function b2html(b: Block): string {
   switch (b.kind) {
     case 'h': {
-      const size = b.level === 1 ? '1.5em' : b.level === 2 ? '1.2em' : '1em'
-      return `<p class="block hd" style="font-size:${size};font-weight:700;line-height:1.4;">${ri(b.text)}</p>`
+      const size = b.level <= 2 ? '1.15em' : '1em'
+      return `<p class="block heading" style="font-size:${size};font-weight:700;">${ri(b.text)}</p>`
     }
     case 'p': return `<p class="block para">${ri(b.text)}</p>`
-    case 'quote': return `<p class="block qt">${ri(b.text)}</p>`
-    case 'li': return `<ul class="block lst">${b.items.map(t => `<li>${ri(t)}</li>`).join('')}</ul>`
+    case 'quote': return `<p class="block para" style="color:#555;">${ri(b.text)}</p>`
+    case 'li': return `<ul class="block list">${b.items.map(t => `<li>${ri(t)}</li>`).join('')}</ul>`
   }
 }
 
-const BLOCK_GAP = 24
-
-// ── CSS for card ────────────────────────────────────────────────────────
-function cardCss(): string {
+// ── CSS (identical to skill, with isLastPage support) ────────────────────
+function cardCss(fixedH?: number, isLast?: boolean): string {
+  const hCss = fixedH ? `height:${fixedH}px;` : 'height:auto;'
   return `*{margin:0;padding:0;box-sizing:border-box}
 body{width:${CARD_W}px;background:#fff;font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#1a1a1a}
-.card{width:${CARD_W}px;height:${CARD_H}px;background:#fff;display:flex;flex-direction:column;padding:${PAD}px ${PAD}px 40px}
+.card{width:${CARD_W}px;${hCss}background:#fff;display:flex;flex-direction:column;padding:${PAD}px ${PAD}px 40px}
 .header{display:flex;align-items:center;gap:16px;margin-bottom:36px;flex-shrink:0}
-.av{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0}
-.av-ph{background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:48px;color:#999}
-.mt{display:flex;flex-direction:column;gap:6px}
-.nr{display:flex;align-items:center;gap:8px}
-.nm{font-size:40px;font-weight:600;color:#1a1a1a;line-height:1.2}
-.vf{width:36px;height:36px;flex-shrink:0}
-.dt{font-size:32px;color:#999;line-height:1.2}
-.ct{flex:1;display:flex;flex-direction:column;justify-content:flex-start}
-.block{margin-bottom:${BLOCK_GAP}px}
+.avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.meta{display:flex;flex-direction:column;gap:6px}
+.name-row{display:flex;align-items:center;gap:8px}
+.name{font-size:40px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.verified{width:36px;height:36px;flex-shrink:0}
+.date{font-size:32px;color:#999;line-height:1.2}
+.content{flex:1;color:#1a1a1a;font-size:36px;${!isLast ? 'display:flex;flex-direction:column;justify-content:space-between;' : ''}}
+.block{margin-bottom:0}
 .para{font-size:36px;line-height:1.8}
-.hd{line-height:1.4}
-.lst{list-style:none;padding:0;font-size:36px;line-height:1.8}
-.lst li{padding-left:1.2em;position:relative}
-.lst li::before{content:"•";position:absolute;left:0}
-.qt{font-size:36px;color:#555;line-height:1.8}
-code{font-size:28px;background:#f5f5f5;border-radius:4px;padding:2px 6px;font-family:monospace}
+.heading{line-height:1.5}
+.list{list-style:none;padding:0;font-size:36px;line-height:1.8}
+.list li{padding-left:1.2em;margin-bottom:8px;position:relative}
+.list li::before{content:"•";position:absolute;left:0;color:#1a1a1a}
 strong{font-weight:700}`
 }
 
-// ── Build full card HTML ────────────────────────────────────────────────
-function cardHtml(blocks: Block[], avatar: string, name: string, date: string): string {
+// ── Full card HTML (identical to skill) ─────────────────────────────────
+function cardHtml(blocks: Block[], avatar: string, name: string, date: string, fixedH?: number, isLast?: boolean): string {
   const contentHtml = blocks.map(b => b2html(b)).join('\n')
   const avatarEl = avatar
-    ? `<img class="av" src="${avatar}" crossorigin="anonymous" />`
-    : `<div class="av av-ph">${(name || '?').charAt(0).toUpperCase()}</div>`
+    ? `<img class="avatar" src="${avatar}" crossorigin="anonymous" />`
+    : `<div class="avatar" style="background:#eee;"></div>`
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>${cardCss(fixedH, isLast)}</style>
+</head><body>
+<div class="card">
+  <div class="header">${avatarEl}
+    <div class="meta">
+      <div class="name-row">
+        <span class="name">${name || '未设置'}</span>
+        <svg class="verified" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="12" fill="#1890ff"/>
+          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="date">${date}</span>
+    </div>
+  </div>
+  <div class="content">${contentHtml}</div>
+</div>
+</body></html>`
+}
 
+// ── Measurement HTML (for Pass 0) ────────────────────────────────────────
+function measureHtml(blocks: Block[], avatar: string, name: string, date: string): string {
+  const avatarEl = avatar
+    ? `<img class="avatar" src="${avatar}" crossorigin="anonymous" />`
+    : `<div class="avatar" style="background:#eee;"></div>`
+  const CONTENT_W = CARD_W - PAD * 2
+  const blocksHtml = blocks.map((b, i) =>
+    `<div id="b${i}" style="width:${CONTENT_W}px;">${b2html(b)}</div>`
+  ).join(`<div style="height:${BLOCK_GAP}px"></div>`)
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>${cardCss()}</style>
 </head><body>
-<div class="card">
-  <div class="header">
-    ${avatarEl}
-    <div class="mt">
-      <div class="nr">
-        <span class="nm">${name || '未设置'}</span>
-        <svg class="vf" viewBox="0 0 24 24" fill="none">
+<div class="card" id="chrome-card">
+  <div class="header">${avatarEl}
+    <div class="meta">
+      <div class="name-row">
+        <span class="name">${name || '未设置'}</span>
+        <svg class="verified" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="12" fill="#1890ff"/>
           <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="dt">${date}</span>
+      <span class="date">${date}</span>
     </div>
   </div>
-  <div class="ct">${contentHtml}</div>
+  <div class="content" style="flex:0;height:0;"></div>
 </div>
+<div id="measure-blocks" style="padding:0;">${blocksHtml}</div>
 </body></html>`
 }
 
-// ── Measure blocks in browser ───────────────────────────────────────────
-async function measureBlocks(blocks: Block[], avatar: string, name: string, date: string): Promise<number[]> {
-  const blocksHtml = blocks.map((b, i) =>
-    `<div id="b${i}">${b2html(b)}</div>`
-  ).join(`<div style="height:${BLOCK_GAP}px"></div>`)
-
-  const avatarEl = avatar
-    ? `<img class="av" src="${avatar}" crossorigin="anonymous" />`
-    : `<div class="av av-ph">${(name || '?').charAt(0).toUpperCase()}</div>`
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>${cardCss()}</style>
-</head><body>
-<div style="padding:${PAD}px ${PAD}px 40px;width:${CARD_W}px;">
-  <div style="display:flex;align-items:center;gap:16px;margin-bottom:36px;">
-    ${avatarEl}
-    <div class="mt">
-      <div class="nr"><span class="nm">${name || '未设置'}</span>
-        <svg class="vf" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="12" fill="#1890ff"/>
-          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <span class="dt">${date}</span>
-    </div>
-  </div>
-  <div style="height:${BLOCK_GAP}px"></div>
-  ${blocksHtml}
-</div>
-</body></html>`
-
-  const root = document.createElement('div')
-  root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;`
-  root.innerHTML = html
-  document.body.appendChild(root)
-  await new Promise(r => setTimeout(r, 500))
-
-  const heights: number[] = []
-  for (let i = 0; i < blocks.length; i++) {
-    const el = root.querySelector(`#b${i}`)
-    heights.push(el ? (el as HTMLElement).offsetHeight : 0)
-  }
-
-  document.body.removeChild(root)
-  return heights.map(h => h + BLOCK_GAP)
-}
-
-// ── Paginate by pixel height ────────────────────────────────────────────
-function paginate(blocks: Block[], heights: number[], headerH: number, available: number): Block[][] {
+// ── Pagination (identical to skill) ─────────────────────────────────────
+function paginate(blocks: Block[], heights: number[], available: number): Block[][] {
   const pages: Block[][] = []
   let cur: Block[] = []
   let used = 0
-
   for (let i = 0; i < blocks.length; i++) {
-    const needed = used === 0 ? heights[i]! : used + BLOCK_GAP + heights[i]!
-    if (needed > available && cur.length > 0) {
-      pages.push(cur); cur = []; used = 0
-    }
+    const bh = heights[i]!
+    const needed = cur.length === 0 ? bh : used + BLOCK_GAP + bh
+    if (needed > available && cur.length > 0) { pages.push(cur); cur = []; used = 0 }
     cur.push(blocks[i]!)
-    used = used === 0 ? heights[i]! : used + BLOCK_GAP + heights[i]!
+    used = used === 0 ? bh : used + BLOCK_GAP + bh
   }
   if (cur.length > 0) pages.push(cur)
   return pages
 }
 
-// ── Capture card HTML → data URL ───────────────────────────────────────
-async function captureCard(blocks: Block[], avatar: string, name: string, date: string): Promise<string> {
-  const html = cardHtml(blocks, avatar, name, date)
+// ── html2canvas capture ──────────────────────────────────────────────────
+async function capture(html: string, w: number, h: number): Promise<string> {
   const root = document.createElement('div')
-  root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;height:${CARD_H}px;overflow:hidden;background:#fff;`
+  root.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;overflow:hidden;background:#fff;`
   root.innerHTML = html
   document.body.appendChild(root)
-  await new Promise(r => setTimeout(r, 800))
-
+  await new Promise(r => setTimeout(r, 1000))
   const canvas = await html2canvas(root as HTMLElement, {
-    width: CARD_W, height: CARD_H,
-    scale: 1, useCORS: true, allowTaint: true,
-    backgroundColor: '#ffffff',
-    windowWidth: CARD_W, windowHeight: CARD_H,
+    width: w, height: h, scale: 1,
+    useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+    windowWidth: w, windowHeight: h,
   })
   document.body.removeChild(root)
   return canvas.toDataURL('image/png', 1.0)
 }
 
-// ── Page ────────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────
 export default function Md2ImagePage() {
   const [md, setMd] = useState('')
   const [name, setName] = useState('')
@@ -225,10 +187,9 @@ export default function Md2ImagePage() {
   })
   const [avatar, setAvatar] = useState('')
   const [blocks, setBlocks] = useState<Block[]>([])
-  const [pages, setPages] = useState<Block[][]>([])
   const [profileOk, setProfileOk] = useState(false)
+  const [pages, setPages] = useState<Block[][]>([])
   const [images, setImages] = useState<string[]>([])
-  const [previewImgs, setPreviewImgs] = useState<string[]>([])
   const [converting, setConverting] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
@@ -250,41 +211,6 @@ export default function Md2ImagePage() {
     })
   }, [])
 
-  // Parse + paginate when md changes
-  useEffect(() => {
-    if (!md) { setBlocks([]); setPages([]); setPreviewImgs([]); return }
-    const bs = parseMd(md)
-    setBlocks(bs)
-    setImages([])
-    // Paginate immediately using heuristics
-    // We'll do proper pixel measurement before convert
-    // For preview, group ~3 blocks at a time as placeholder
-    const chunkSize = 5
-    const pg: Block[][] = []
-    for (let i = 0; i < bs.length; i += chunkSize) {
-      pg.push(bs.slice(i, i + chunkSize))
-    }
-    setPages(pg)
-  }, [md])
-
-  // Generate preview images (lightweight approximation)
-  useEffect(() => {
-    if (pages.length === 0 || !name) { setPreviewImgs([]); return }
-    let cancelled = false
-    ;(async () => {
-      const imgs: string[] = []
-      for (const pg of pages) {
-        if (cancelled) break
-        try {
-          const url = await captureCard(pg, avatar, name, date)
-          if (!cancelled) imgs.push(url)
-          setPreviewImgs([...imgs])
-        } catch {}
-      }
-    })()
-    return () => { cancelled = true }
-  }, [pages, avatar, name, date])
-
   const onFile = useCallback((file: File) => {
     if (!file.name.endsWith('.md')) { setError('请上传 .md 文件'); return }
     setError('')
@@ -299,6 +225,47 @@ export default function Md2ImagePage() {
     if (f) onFile(f)
   }, [onFile])
 
+  // Parse + do Pass 0 (measure) + paginate when md changes
+  useEffect(() => {
+    if (!md) { setBlocks([]); setPages([]); return }
+    const bs = parseMd(md)
+    setBlocks(bs)
+    setImages([])
+
+    let cancelled = false
+    ;(async () => {
+      // Build measure HTML and render to measure each block
+      const mhtml = measureHtml(bs, avatar, name || '未设置', date)
+      const root = document.createElement('div')
+      root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;`
+      root.innerHTML = mhtml
+      document.body.appendChild(root)
+      await new Promise(r => setTimeout(r, 600))
+
+      if (cancelled) { document.body.removeChild(root); return }
+
+      // Get header height
+      const headerEl = root.querySelector('#chrome-card') as HTMLElement | null
+      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0
+
+      // Get each block's height
+      const heights: number[] = []
+      for (let i = 0; i < bs.length; i++) {
+        const el = root.querySelector(`#b${i}`) as HTMLElement | null
+        heights.push(el ? el.getBoundingClientRect().height + BLOCK_GAP : 0)
+      }
+
+      document.body.removeChild(root)
+
+      if (cancelled) return
+
+      const availableH = CARD_H - Math.ceil(headerH)
+      const pg = paginate(bs, heights, availableH)
+      setPages(pg)
+    })()
+    return () => { cancelled = true }
+  }, [md, avatar, name, date])
+
   const onConvert = async () => {
     if (!md) { setError('请先上传 MD 文件'); return }
     if (!name) { setError('请填写显示名称'); return }
@@ -307,20 +274,51 @@ export default function Md2ImagePage() {
     setImages([])
 
     try {
-      // 1. Measure each block
-      const heights = await measureBlocks(blocks, avatar, name, date)
+      const bs = parseMd(md)
 
-      // 2. Header height estimate (avatar row + margin)
-      const headerH = 96 + 36 + 36 + PAD * 2
+      // Re-measure if not done yet (same logic as useEffect)
+      const mhtml = measureHtml(bs, avatar, name, date)
+      const root = document.createElement('div')
+      root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;`
+      root.innerHTML = mhtml
+      document.body.appendChild(root)
+      await new Promise(r => setTimeout(r, 600))
 
-      // 3. Paginate
-      const pg = paginate(blocks, heights, headerH, CARD_H - headerH)
-      console.log(`Pages: ${pg.length}, blocks: ${blocks.length}`)
+      const headerEl = root.querySelector('#chrome-card') as HTMLElement | null
+      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0
+      const heights: number[] = []
+      for (let i = 0; i < bs.length; i++) {
+        const el = root.querySelector(`#b${i}`) as HTMLElement | null
+        heights.push(el ? el.getBoundingClientRect().height + BLOCK_GAP : 0)
+      }
+      document.body.removeChild(root)
 
-      // 4. Capture each page
+      const availableH = CARD_H - Math.ceil(headerH)
+      const pg = paginate(bs, heights, availableH)
+
+      // Pass 1: measure natural heights of each page at fixed cardHeight
+      const naturalHeights: number[] = []
+      for (let i = 0; i < pg.length; i++) {
+        const pHtml = cardHtml(pg[i]!, avatar, name, date, CARD_H, i === pg.length - 1)
+        const pRoot = document.createElement('div')
+        pRoot.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;overflow:hidden;`
+        pRoot.innerHTML = pHtml
+        document.body.appendChild(pRoot)
+        await new Promise(r => setTimeout(r, 400))
+        const scrollH = (pRoot.querySelector('.card') as HTMLElement | null)?.scrollHeight ?? CARD_H
+        naturalHeights.push(scrollH)
+        document.body.removeChild(pRoot)
+      }
+
+      // Unified height: at least CARD_H, expand if any overflows
+      const unifiedH = Math.max(CARD_H, ...naturalHeights)
+      console.log(`Pages: ${pg.length}, header: ${Math.ceil(headerH)}, unifiedH: ${unifiedH}`)
+
+      // Pass 2: render final images
       const imgs: string[] = []
       for (let i = 0; i < pg.length; i++) {
-        const url = await captureCard(pg[i]!, avatar, name, date)
+        const fHtml = cardHtml(pg[i]!, avatar, name, date, unifiedH, i === pg.length - 1)
+        const url = await capture(fHtml, CARD_W, unifiedH)
         imgs.push(url)
         setImages([...imgs])
       }
@@ -397,22 +395,22 @@ export default function Md2ImagePage() {
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-base text-red-600">{error}</div>
       )}
 
-      {/* 效果预览（每张卡片独立展示，可滚动） */}
-      {previewImgs.length > 0 && (
+      {/* 预览区域 */}
+      {pages.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-4">
-            效果预览（{previewImgs.length} 张卡片）
+            效果预览（{pages.length} 张卡片，1080×1440px）
           </h2>
           <div className="space-y-4">
-            {previewImgs.map((img, i) => (
+            {pages.map((pg, i) => (
               <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                <img
-                  src={img}
-                  alt={`预览${i + 1}`}
-                  className="w-full"
-                  style={{ maxWidth: '540px', display: 'block', margin: '0 auto' }}
+                <div className="text-xs text-gray-400 px-3 py-1 bg-gray-50 border-b border-gray-100">第 {i + 1} 张</div>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: cardHtml(pg, avatar, name || '未设置', date, CARD_H, i === pages.length - 1)
+                  }}
+                  style={{ width: '540px', height: '720px', overflow: 'hidden', transform: 'scale(1)', transformOrigin: 'top left', pointerEvents: 'none' }}
                 />
-                <p className="text-center text-sm text-gray-500 py-1">第 {i + 1} 张</p>
               </div>
             ))}
           </div>
@@ -425,12 +423,13 @@ export default function Md2ImagePage() {
         disabled={converting || !md || !name}
         className="w-full bg-gray-900 text-white py-4 rounded-2xl text-lg font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        {converting ? '转换中...' : `转换为图片${pages.length > 0 ? `（预计 ${pages.length} 张）` : ''}`}
+        {converting ? '转换中...' : `转换为图片${pages.length > 0 ? `（${pages.length} 张）` : ''}`}
       </button>
 
       {/* 最终结果下载 */}
       {images.map((img, i) => (
         <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+          <div className="text-sm text-gray-500 text-center">第 {i + 1} 张</div>
           <img src={img} alt={`card-${i + 1}`} className="w-full rounded-xl" style={{ maxWidth: '540px', margin: '0 auto', display: 'block' }} />
           <button
             onClick={() => download(img, i + 1)}
