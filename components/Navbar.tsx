@@ -62,20 +62,20 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           </div>
           <div className="flex items-center gap-3">
             {profile ? (
-              <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">
+              <Link href="/profile" className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-1 rounded-full hover:bg-gray-100 transition-colors">
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
                   {profile.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={profile.avatar_url} alt={profile.username || ''} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-sm font-medium text-gray-600">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">
                       {(profile.username || profile.email || '?').charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
-                {/* Username or email */}
-                <span className="text-lg text-gray-900 max-w-24 truncate">
+                {/* Username or email — hidden on very small screens */}
+                <span className="hidden sm:inline text-sm sm:text-base text-gray-900 max-w-20 sm:max-w-24 truncate">
                   {profile.username || profile.email?.split('@')[0] || '未设置用户名'}
                 </span>
               </Link>

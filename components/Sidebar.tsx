@@ -67,8 +67,8 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   ]
 
   return (
-    <aside className={`bg-white border-r border-gray-200 ${className}`}>
-      <div className="h-full flex flex-col">
+    <aside className={`bg-white border-r border-gray-200 h-full flex flex-col ${className}`}>
+      <div className="flex-1 flex flex-col min-h-0">
         <nav className="flex-1 px-3 py-6 space-y-0.5">
           {/* 主菜单 label */}
           <div className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-3 px-3">
