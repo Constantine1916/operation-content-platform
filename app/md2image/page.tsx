@@ -50,23 +50,24 @@ function parseMd(text: string): Block[] {
 // Properly handle inline markdown: only escape text content, not the markdown marker chars
 function ri(s: string): string {
   // Split by bold/italic/code markers, preserving the markers
+  // Use inline style instead of semantic tags — html2canvas handles inline styles reliably
   const SEGMENT_RE = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g
   const parts = s.split(SEGMENT_RE)
   return parts.map(part => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      // Bold: escape text inside, wrap in strong
+      // Bold: inline style for reliable rendering
       const inner = escapeHtml(part.slice(2, -2))
-      return `<strong>${inner}</strong>`
+      return `<span style="font-weight:700">${inner}</span>`
     }
     if (part.startsWith('*') && part.endsWith('*')) {
-      // Italic: escape text inside, wrap in em
+      // Italic: inline style
       const inner = escapeHtml(part.slice(1, -1))
-      return `<em>${inner}</em>`
+      return `<span style="font-style:italic">${inner}</span>`
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      // Inline code: escape text inside, wrap in code
+      // Inline code
       const inner = escapeHtml(part.slice(1, -1))
-      return `<code>${inner}</code>`
+      return `<span style="font-family:monospace;font-size:0.78em;background:#f5f5f5;border-radius:4px;padding:2px 6px">${inner}</span>`
     }
     // Plain text: just HTML-escape
     return escapeHtml(part)
@@ -109,8 +110,7 @@ body{width:${CARD_W}px;background:#fff;font-family:-apple-system,"PingFang SC","
 .heading{line-height:1.5}
 .list{list-style:none;padding:0;font-size:36px;line-height:1.8}
 .list li{padding-left:1.2em;margin-bottom:8px;position:relative}
-.list li::before{content:"•";position:absolute;left:0;color:#1a1a1a}
-strong{font-weight:700}`
+.list li::before{content:"•";position:absolute;left:0;color:#1a1a1a}`
 }
 
 // ── Full card HTML (identical to skill) ─────────────────────────────────
