@@ -264,11 +264,11 @@ export default function Md2ImagePage() {
       setPages(pg)
     })()
     return () => { cancelled = true }
-  }, [md, avatar, name, date])
+  }, [md, avatar, date])
 
   const onConvert = async () => {
     if (!md) { setError('请先上传 MD 文件'); return }
-    if (!name) { setError('请填写显示名称'); return }
+    if (!name) setError('提示：显示名称未填写，将使用"未设置"代替')
     setError('')
     setConverting(true)
     setImages([])
@@ -420,7 +420,7 @@ export default function Md2ImagePage() {
       {/* 转换按钮 */}
       <button
         onClick={onConvert}
-        disabled={converting || !md || !name}
+        disabled={converting || !md}
         className="w-full bg-gray-900 text-white py-4 rounded-2xl text-lg font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         {converting ? '转换中...' : `转换为图片${pages.length > 0 ? `（${pages.length} 张）` : ''}`}
