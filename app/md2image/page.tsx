@@ -3,77 +3,57 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import html2canvas from 'html2canvas'
-import Link from 'next/link'
 
-// Card: 1080 x 1440 (3:4 ratio)
 const CARD_W = 1080
 const CARD_H = 1440
 const PAD = 48
 
-// ── Markdown block parser ───────────────────────────────────────────────
+// ── Block types ─────────────────────────────────────────────────────────
 type Block =
   | { kind: 'h'; level: number; text: string }
   | { kind: 'p'; text: string }
   | { kind: 'quote'; text: string }
-  | { kind: 'li'; text: string }
-  | { kind: 'code'; text: string }
+  | { kind: 'li'; items: string[] }
 
+// ── Markdown parser ─────────────────────────────────────────────────────
 function parseMd(text: string): Block[] {
-  const blocks: Block[] = []
   const lines = text.split('\n')
+  const blocks: Block[] = []
   let i = 0
-  let codeBuf = ''
-  let inCode = false
 
   while (i < lines.length) {
-    const raw = lines[i]!
-    const l = raw.trim()
-
+    const l = lines[i]!.trim()
     if (!l || /^---+$/.test(l)) { i++; continue }
 
-    // Code fence
-    if (l.startsWith('```')) {
-      if (!inCode && codeBuf) { blocks.push({ kind: 'code', text: codeBuf.trimEnd() }); codeBuf = '' }
-      inCode = !inCode
-      i++; continue
-    }
-    if (inCode) { codeBuf += raw + '\n'; i++; continue }
-
-    // Heading: leading #+
+    // Heading
     const hm = l.match(/^(#{1,6})\s+(.+)/)
-    if (hm) {
-      blocks.push({ kind: 'h', level: hm[1]!.length, text: hm[2]! })
-      i++; continue
-    }
+    if (hm) { blocks.push({ kind: 'h', level: hm[1]!.length, text: hm[2]! }); i++; continue }
 
     // Blockquote
     if (l.startsWith('>')) {
-      blocks.push({ kind: 'quote', text: l.slice(1).trim() })
-      i++; continue
+      const parts: string[] = []
+      while (i < lines.length && lines[i]!.trim().startsWith('>')) {
+        parts.push(lines[i]!.trim().replace(/^>\s?/, '')); i++
+      }
+      blocks.push({ kind: 'quote', text: parts.join(' ') }); continue
     }
 
     // List
     if (/^[-*+]\s/.test(l)) {
-      blocks.push({ kind: 'li', text: l.replace(/^[-*+]\s/, '') })
-      i++; continue
+      const items: string[] = []
+      while (i < lines.length && /^\s*[-*+]\s/.test(lines[i]!)) {
+        items.push(lines[i]!.trim().replace(/^[-*+]\s/, '')); i++
+      }
+      blocks.push({ kind: 'li', items }); continue
     }
 
-    // Paragraph — accumulate until blank
-    if (l) {
-      let para = l
-      while (i + 1 < lines.length && lines[i + 1]!.trim() && !/^#{1,6}\s/.test(lines[i + 1]!) && !lines[i + 1]!.trim().startsWith('>') && !/^[-*+]\s/.test(lines[i + 1]!) && !lines[i + 1]!.trim().startsWith('```')) {
-        i++
-        para += ' ' + lines[i]!.trim()
-      }
-      blocks.push({ kind: 'p', text: para })
-    }
-    i++
+    // Paragraph
+    blocks.push({ kind: 'p', text: l }); i++
   }
-  if (codeBuf.trim()) blocks.push({ kind: 'code', text: codeBuf.trimEnd() })
   return blocks
 }
 
-// ── Inline markdown renderer ───────────────────────────────────────────
+// ── Inline renderer ─────────────────────────────────────────────────────
 function ri(s: string): string {
   return s
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -82,105 +62,160 @@ function ri(s: string): string {
     .replace(/`(.+?)`/g, '<code>$1</code>')
 }
 
-// ── Block → HTML ─────────────────────────────────────────────────────
+// ── Block → HTML ───────────────────────────────────────────────────────
 function b2html(b: Block): string {
   switch (b.kind) {
     case 'h': {
       const size = b.level === 1 ? '1.5em' : b.level === 2 ? '1.2em' : '1em'
-      return `<h${b.level} class="hd" style="font-size:${size}">${ri(b.text)}</h${b.level}>`
+      return `<p class="block hd" style="font-size:${size};font-weight:700;line-height:1.4;">${ri(b.text)}</p>`
     }
-    case 'p': return `<p class="para">${ri(b.text)}</p>`
-    case 'quote': return `<p class="qt">${ri(b.text)}</p>`
-    case 'li': return `<li>${ri(b.text)}</li>`
-    case 'code': return `<pre class="code"><code>${ri(b.text)}</code></pre>`
+    case 'p': return `<p class="block para">${ri(b.text)}</p>`
+    case 'quote': return `<p class="block qt">${ri(b.text)}</p>`
+    case 'li': return `<ul class="block lst">${b.items.map(t => `<li>${ri(t)}</li>`).join('')}</ul>`
   }
 }
 
-// ── Build full card HTML ──────────────────────────────────────────────
+const BLOCK_GAP = 24
+
+// ── CSS for card ────────────────────────────────────────────────────────
+function cardCss(): string {
+  return `*{margin:0;padding:0;box-sizing:border-box}
+body{width:${CARD_W}px;background:#fff;font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#1a1a1a}
+.card{width:${CARD_W}px;height:${CARD_H}px;background:#fff;display:flex;flex-direction:column;padding:${PAD}px ${PAD}px 40px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:36px;flex-shrink:0}
+.av{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.av-ph{background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:48px;color:#999}
+.mt{display:flex;flex-direction:column;gap:6px}
+.nr{display:flex;align-items:center;gap:8px}
+.nm{font-size:40px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.vf{width:36px;height:36px;flex-shrink:0}
+.dt{font-size:32px;color:#999;line-height:1.2}
+.ct{flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.block{margin-bottom:${BLOCK_GAP}px}
+.para{font-size:36px;line-height:1.8}
+.hd{line-height:1.4}
+.lst{list-style:none;padding:0;font-size:36px;line-height:1.8}
+.lst li{padding-left:1.2em;position:relative}
+.lst li::before{content:"•";position:absolute;left:0}
+.qt{font-size:36px;color:#555;line-height:1.8}
+code{font-size:28px;background:#f5f5f5;border-radius:4px;padding:2px 6px;font-family:monospace}
+strong{font-weight:700}`
+}
+
+// ── Build full card HTML ────────────────────────────────────────────────
 function cardHtml(blocks: Block[], avatar: string, name: string, date: string): string {
-  const listGroups: string[] = []
-  const nonList: { i: number; html: string }[] = []
-  const nonListHtml = blocks.map((b, i) => {
-    if (b.kind === 'li') return null
-    return { i, html: b2html(b) }
-  }).filter(Boolean) as { i: number; html: string }[]
-
-  let curList: string[] = []
-  let curListIdx = -1
-  blocks.forEach((b, i) => {
-    if (b.kind === 'li') {
-      if (curList.length === 0) curListIdx = i
-      curList.push(b2html(b))
-    } else {
-      if (curList.length > 0) {
-        listGroups.push(`<ul class="lst">${curList.join('')}</ul>`)
-        curList = []
-        curListIdx = -1
-      }
-      nonList.push({ i, html: b2html(b) })
-    }
-  })
-  if (curList.length > 0) listGroups.push(`<ul class="lst">${curList.join('')}</ul>`)
-
-  const contentParts: string[] = []
-  let li = 0
-  let nl = 0
-  blocks.forEach(b => {
-    if (b.kind === 'li') {
-      contentParts.push(listGroups[li++])
-    } else {
-      contentParts.push(nonList[nl++].html)
-    }
-  })
-
+  const contentHtml = blocks.map(b => b2html(b)).join('\n')
   const avatarEl = avatar
     ? `<img class="av" src="${avatar}" crossorigin="anonymous" />`
     : `<div class="av av-ph">${(name || '?').charAt(0).toUpperCase()}</div>`
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{width:${CARD_W}px;background:#fff;font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#1a1a1a}
-.c{width:${CARD_W}px;height:${CARD_H}px;background:#fff;display:flex;flex-direction:column;padding:${PAD}px ${PAD}px 40px}
-.hdr{display:flex;align-items:center;gap:16px;margin-bottom:48px;flex-shrink:0}
-.av{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0}
-.av-ph{background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:48px;color:#999}
-.mt{display:flex;flex-direction:column;gap:6px}
-.nm{font-size:40px;font-weight:600;color:#1a1a1a;line-height:1.2}
-.nr{display:flex;align-items:center;gap:8px}
-.vf{width:36px;height:36px;flex-shrink:0}
-.dt{font-size:32px;color:#999;line-height:1.2}
-.ct{flex:1}
-.para{font-size:36px;line-height:1.8;margin-bottom:0}
-.hd{font-weight:700;line-height:1.4}
-.hd+*,.para+*{margin-top:8px}
-.lst{list-style:none;padding:0;font-size:36px;line-height:1.8}
-.lst li{padding-left:1.2em;position:relative}
-.lst li::before{content:"•";position:absolute;left:0}
-.qt{font-size:36px;color:#555;line-height:1.8}
-pre,code{font-family:monospace}
-code{font-size:28px;background:#f5f5f5;border-radius:4px;padding:2px 6px}
-pre{font-size:24px;padding:16px;background:#f5f5f5;border-radius:8px;overflow-x:auto;line-height:1.5;white-space:pre-wrap;word-break:break-all}
-strong{font-weight:700}
-</style>
+<style>${cardCss()}</style>
 </head><body>
-<div class="c">
-<div class="hdr">
-${avatarEl}
-<div class="mt">
-<div class="nr">
-<span class="nm">${name || '未设置'}</span>
-<svg class="vf" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#1890ff"/><path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</div>
-<span class="dt">${date}</span>
-</div>
-</div>
-<div class="ct">${contentParts.join('\n')}</div>
+<div class="card">
+  <div class="header">
+    ${avatarEl}
+    <div class="mt">
+      <div class="nr">
+        <span class="nm">${name || '未设置'}</span>
+        <svg class="vf" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="12" fill="#1890ff"/>
+          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="dt">${date}</span>
+    </div>
+  </div>
+  <div class="ct">${contentHtml}</div>
 </div>
 </body></html>`
 }
 
-// ── Page component ────────────────────────────────────────────────────
+// ── Measure blocks in browser ───────────────────────────────────────────
+async function measureBlocks(blocks: Block[], avatar: string, name: string, date: string): Promise<number[]> {
+  const blocksHtml = blocks.map((b, i) =>
+    `<div id="b${i}">${b2html(b)}</div>`
+  ).join(`<div style="height:${BLOCK_GAP}px"></div>`)
+
+  const avatarEl = avatar
+    ? `<img class="av" src="${avatar}" crossorigin="anonymous" />`
+    : `<div class="av av-ph">${(name || '?').charAt(0).toUpperCase()}</div>`
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>${cardCss()}</style>
+</head><body>
+<div style="padding:${PAD}px ${PAD}px 40px;width:${CARD_W}px;">
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:36px;">
+    ${avatarEl}
+    <div class="mt">
+      <div class="nr"><span class="nm">${name || '未设置'}</span>
+        <svg class="vf" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="12" fill="#1890ff"/>
+          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="dt">${date}</span>
+    </div>
+  </div>
+  <div style="height:${BLOCK_GAP}px"></div>
+  ${blocksHtml}
+</div>
+</body></html>`
+
+  const root = document.createElement('div')
+  root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;`
+  root.innerHTML = html
+  document.body.appendChild(root)
+  await new Promise(r => setTimeout(r, 500))
+
+  const heights: number[] = []
+  for (let i = 0; i < blocks.length; i++) {
+    const el = root.querySelector(`#b${i}`)
+    heights.push(el ? (el as HTMLElement).offsetHeight : 0)
+  }
+
+  document.body.removeChild(root)
+  return heights.map(h => h + BLOCK_GAP)
+}
+
+// ── Paginate by pixel height ────────────────────────────────────────────
+function paginate(blocks: Block[], heights: number[], headerH: number, available: number): Block[][] {
+  const pages: Block[][] = []
+  let cur: Block[] = []
+  let used = 0
+
+  for (let i = 0; i < blocks.length; i++) {
+    const needed = used === 0 ? heights[i]! : used + BLOCK_GAP + heights[i]!
+    if (needed > available && cur.length > 0) {
+      pages.push(cur); cur = []; used = 0
+    }
+    cur.push(blocks[i]!)
+    used = used === 0 ? heights[i]! : used + BLOCK_GAP + heights[i]!
+  }
+  if (cur.length > 0) pages.push(cur)
+  return pages
+}
+
+// ── Capture card HTML → data URL ───────────────────────────────────────
+async function captureCard(blocks: Block[], avatar: string, name: string, date: string): Promise<string> {
+  const html = cardHtml(blocks, avatar, name, date)
+  const root = document.createElement('div')
+  root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;height:${CARD_H}px;overflow:hidden;background:#fff;`
+  root.innerHTML = html
+  document.body.appendChild(root)
+  await new Promise(r => setTimeout(r, 800))
+
+  const canvas = await html2canvas(root as HTMLElement, {
+    width: CARD_W, height: CARD_H,
+    scale: 1, useCORS: true, allowTaint: true,
+    backgroundColor: '#ffffff',
+    windowWidth: CARD_W, windowHeight: CARD_H,
+  })
+  document.body.removeChild(root)
+  return canvas.toDataURL('image/png', 1.0)
+}
+
+// ── Page ────────────────────────────────────────────────────────────────
 export default function Md2ImagePage() {
   const [md, setMd] = useState('')
   const [name, setName] = useState('')
@@ -190,37 +225,65 @@ export default function Md2ImagePage() {
   })
   const [avatar, setAvatar] = useState('')
   const [blocks, setBlocks] = useState<Block[]>([])
+  const [pages, setPages] = useState<Block[][]>([])
   const [profileOk, setProfileOk] = useState(false)
   const [images, setImages] = useState<string[]>([])
+  const [previewImgs, setPreviewImgs] = useState<string[]>([])
   const [converting, setConverting] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // Load profile on mount
+  // Load profile
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) return
-      supabase.auth.getUser(session.access_token).then(({ data: { user } }) => {
-        if (!user) return
-        fetch('/api/profile', {
-          headers: { Authorization: `Bearer ${session.access_token}` }
-        }).then(r => r.json()).then(d => {
-          if (d.success && d.data) {
-            if (d.data.username) setName(d.data.username)
-            if (d.data.avatar_url) setAvatar(d.data.avatar_url)
-            setProfileOk(true)
-          }
-        }).catch(() => setProfileOk(false))
-      })
+      fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      }).then(r => r.json()).then(d => {
+        if (d.success && d.data) {
+          if (d.data.username) setName(d.data.username)
+          if (d.data.avatar_url) setAvatar(d.data.avatar_url)
+          setProfileOk(true)
+        }
+      }).catch(() => {})
     })
   }, [])
 
-  // Parse MD when content changes
+  // Parse + paginate when md changes
   useEffect(() => {
-    if (md) setBlocks(parseMd(md))
-    else setBlocks([])
+    if (!md) { setBlocks([]); setPages([]); setPreviewImgs([]); return }
+    const bs = parseMd(md)
+    setBlocks(bs)
+    setImages([])
+    // Paginate immediately using heuristics
+    // We'll do proper pixel measurement before convert
+    // For preview, group ~3 blocks at a time as placeholder
+    const chunkSize = 5
+    const pg: Block[][] = []
+    for (let i = 0; i < bs.length; i += chunkSize) {
+      pg.push(bs.slice(i, i + chunkSize))
+    }
+    setPages(pg)
   }, [md])
+
+  // Generate preview images (lightweight approximation)
+  useEffect(() => {
+    if (pages.length === 0 || !name) { setPreviewImgs([]); return }
+    let cancelled = false
+    ;(async () => {
+      const imgs: string[] = []
+      for (const pg of pages) {
+        if (cancelled) break
+        try {
+          const url = await captureCard(pg, avatar, name, date)
+          if (!cancelled) imgs.push(url)
+          setPreviewImgs([...imgs])
+        } catch {}
+      }
+    })()
+    return () => { cancelled = true }
+  }, [pages, avatar, name, date])
 
   const onFile = useCallback((file: File) => {
     if (!file.name.endsWith('.md')) { setError('请上传 .md 文件'); return }
@@ -244,28 +307,23 @@ export default function Md2ImagePage() {
     setImages([])
 
     try {
-      const html = cardHtml(blocks, avatar, name, date)
+      // 1. Measure each block
+      const heights = await measureBlocks(blocks, avatar, name, date)
 
-      // Render in hidden container
-      const root = document.createElement('div')
-      root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;height:${CARD_H}px;overflow:hidden;background:#fff;`
-      root.innerHTML = html
-      document.body.appendChild(root)
-      await new Promise(r => setTimeout(r, 1000))
+      // 2. Header height estimate (avatar row + margin)
+      const headerH = 96 + 36 + 36 + PAD * 2
 
-      const canvas = await html2canvas(root as HTMLElement, {
-        width: CARD_W,
-        height: CARD_H,
-        scale: 1,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        windowWidth: CARD_W,
-        windowHeight: CARD_H,
-      })
+      // 3. Paginate
+      const pg = paginate(blocks, heights, headerH, CARD_H - headerH)
+      console.log(`Pages: ${pg.length}, blocks: ${blocks.length}`)
 
-      document.body.removeChild(root)
-      setImages([canvas.toDataURL('image/png', 1.0)])
+      // 4. Capture each page
+      const imgs: string[] = []
+      for (let i = 0; i < pg.length; i++) {
+        const url = await captureCard(pg[i]!, avatar, name, date)
+        imgs.push(url)
+        setImages([...imgs])
+      }
     } catch (e: unknown) {
       setError('转换失败: ' + (e as Error).message)
     } finally {
@@ -280,22 +338,19 @@ export default function Md2ImagePage() {
     a.click()
   }
 
-  const previewHtml = blocks.length > 0 ? cardHtml(blocks, avatar, name, date) : ''
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-normal text-gray-900">MD转小红书图片</h1>
-        <p className="text-lg text-gray-900">上传 Markdown，生成小红书风格卡片图片</p>
+        <p className="text-lg text-gray-900">上传 Markdown，生成小红书风格卡片图片（自动分页）</p>
       </div>
 
-      {/* 提示设置 profile */}
       {!profileOk && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-center justify-between gap-4">
           <p className="text-base text-gray-900">👋 请先完善个人资料，自动填充昵称和头像</p>
-          <Link href="/profile" className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0">
+          <a href="/profile" className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0">
             去设置 →
-          </Link>
+          </a>
         </div>
       )}
 
@@ -338,27 +393,29 @@ export default function Md2ImagePage() {
         {md && <p className="text-sm text-gray-900 mt-2">{md.split('\n').length} 行 · {blocks.length} 个内容块</p>}
       </div>
 
-      {/* 错误提示 */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-base text-red-600">{error}</div>
       )}
 
-      {/* 预览 */}
-      {previewHtml && (
+      {/* 效果预览（每张卡片独立展示，可滚动） */}
+      {previewImgs.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
-          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-4">效果预览（缩放50%）</h2>
-          <div
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
-            style={{
-              width: CARD_W / 2,
-              height: CARD_H / 2,
-              overflow: 'hidden',
-              transform: 'scale(1)',
-              transformOrigin: 'top left',
-              pointerEvents: 'none',
-              border: '1px solid #e5e7eb',
-            }}
-          />
+          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-4">
+            效果预览（{previewImgs.length} 张卡片）
+          </h2>
+          <div className="space-y-4">
+            {previewImgs.map((img, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                <img
+                  src={img}
+                  alt={`预览${i + 1}`}
+                  className="w-full"
+                  style={{ maxWidth: '540px', display: 'block', margin: '0 auto' }}
+                />
+                <p className="text-center text-sm text-gray-500 py-1">第 {i + 1} 张</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -368,18 +425,18 @@ export default function Md2ImagePage() {
         disabled={converting || !md || !name}
         className="w-full bg-gray-900 text-white py-4 rounded-2xl text-lg font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        {converting ? '转换中...' : '转换为图片'}
+        {converting ? '转换中...' : `转换为图片${pages.length > 0 ? `（预计 ${pages.length} 张）` : ''}`}
       </button>
 
-      {/* 结果下载 */}
+      {/* 最终结果下载 */}
       {images.map((img, i) => (
         <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
-          <img src={img} alt={`card-${i + 1}`} className="w-full rounded-xl" style={{ maxWidth: CARD_W / 2 }} />
+          <img src={img} alt={`card-${i + 1}`} className="w-full rounded-xl" style={{ maxWidth: '540px', margin: '0 auto', display: 'block' }} />
           <button
             onClick={() => download(img, i + 1)}
             className="w-full bg-gray-900 text-white py-2.5 rounded-xl text-base font-medium hover:bg-gray-800 transition-colors"
           >
-            下载图片 {i + 1}
+            下载第 {i + 1} 张
           </button>
         </div>
       ))}
