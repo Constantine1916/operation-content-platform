@@ -87,9 +87,10 @@ export default function ProfilePage() {
         if (updateData.success) {
           setProfile(prev => prev ? { ...prev, avatar_url: data.url } : null);
           setMessage({ type: 'success', text: '头像上传成功' });
+          try { localStorage.setItem('xhs_profile', JSON.stringify({ username, avatar_url: data.url })); } catch {}
+        } else {
+          setMessage({ type: 'error', text: data.error || '上传失败' });
         }
-      } else {
-        setMessage({ type: 'error', text: data.error || '上传失败' });
       }
     } catch {
       setMessage({ type: 'error', text: '上传失败，请重试' });
@@ -120,6 +121,7 @@ export default function ProfilePage() {
       if (data.success) {
         setProfile(prev => prev ? { ...prev, username, full_name: fullName, bio } : null);
         setMessage({ type: 'success', text: '保存成功' });
+        try { localStorage.setItem('xhs_profile', JSON.stringify({ username, avatar_url: avatarUrl })); } catch {}
       } else {
         setMessage({ type: 'error', text: data.error || '保存失败' });
       }

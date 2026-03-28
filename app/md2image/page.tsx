@@ -8,6 +8,7 @@ const CARD_W = 1080
 const CARD_H = 1440
 const PAD = 48
 const BLOCK_GAP = 42
+const PROFILE_KEY = 'xhs_profile'
 
 // ── Block types ─────────────────────────────────────────────────────────
 type Block =
@@ -220,17 +221,34 @@ export default function Md2ImagePage() {
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // Load profile
+  // Load profile: localStorage first (instant), then API (authoritative)
   useEffect(() => {
+    // 1. Instant: restore from localStorage
+    try {
+      const cached = localStorage.getItem(PROFILE_KEY)
+      if (cached) {
+        const { username, avatar_url } = JSON.parse(cached)
+        if (username) setName(username)
+        if (avatar_url) setAvatar(avatar_url)
+        if (username || avatar_url) setProfileOk(true)
+      }
+    } catch {}
+
+    // 2. Background: fetch from API to keep localStorage fresh
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) return
       fetch('/api/profile', {
         headers: { Authorization: `Bearer ${session.access_token}` }
       }).then(r => r.json()).then(d => {
         if (d.success && d.data) {
-          if (d.data.username) setName(d.data.username)
-          if (d.data.avatar_url) setAvatar(d.data.avatar_url)
+          const { username, avatar_url } = d.data
+          if (username) setName(username)
+          if (avatar_url) setAvatar(avatar_url)
           setProfileOk(true)
+          // Persist to localStorage
+          try {
+            localStorage.setItem(PROFILE_KEY, JSON.stringify({ username, avatar_url }))
+          } catch {}
         }
       }).catch(() => {})
     })
