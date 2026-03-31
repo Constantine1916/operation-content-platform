@@ -79,8 +79,6 @@ export default function Overview() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
           <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
-          <QuickLink href="/tags" icon="🏷️" title="标签管理" desc="内容标签" />
-          <QuickLink href="/xhs" icon="📕" title="小红书研究" desc="热门笔记分析" />
         </div>
       </div>
     </div>
