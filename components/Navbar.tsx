@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 const PROFILE_KEY = 'xhs_profile'
@@ -16,6 +17,25 @@ interface Profile {
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    try { localStorage.removeItem(PROFILE_KEY) } catch {}
+    router.push('/login')
+  }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     // 1. Instant: restore from localStorage
@@ -93,30 +113,61 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         {/* 右侧：用户信息 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {profile ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-                {profile.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username || ''}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-medium text-gray-900">
-                    {(profile.username || profile.email || '?').charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              {/* Username */}
-              <span className="text-sm font-medium text-gray-900 max-w-24 truncate hidden sm:inline">
-                {profile.username || profile.email?.split('@')[0] || '未设置用户名'}
-              </span>
-            </Link>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(o => !o)}
+                className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {profile.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.username || ''}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-gray-900">
+                      {(profile.username || profile.email || '?').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                {/* Username */}
+                <span className="text-sm font-medium text-gray-900 max-w-24 truncate hidden sm:inline">
+                  {profile.username || profile.email?.split('@')[0] || '未设置用户名'}
+                </span>
+                <svg className="w-3.5 h-3.5 text-gray-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                  <Link
+                    href="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    个人资料
+                  </Link>
+                  <div className="border-t border-gray-100" />
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    退出登录
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               href="/login"
