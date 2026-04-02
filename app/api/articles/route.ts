@@ -33,6 +33,23 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const stats = searchParams.get('stats');
 
+    // 作者列表模式
+    const authors = searchParams.get('authors');
+    if (authors === 'true') {
+      const { data, error } = await supabaseRead
+        .from('articles')
+        .select('author')
+        .not('author', 'is', null)
+        .order('author');
+
+      if (error) {
+        return NextResponse.json({ error: 'Failed to fetch authors' }, { status: 500 });
+      }
+
+      const unique = [...new Set((data || []).map((r: any) => r.author as string))];
+      return NextResponse.json({ success: true, data: unique });
+    }
+
     // 统计模式
     if (stats === 'true') {
       // 获取总数
