@@ -8,6 +8,9 @@ const PAGE_SIZE = 20;
 const platformNames: Record<string, string> = { xiaohongshu: '小红书', zhihu: '知乎', wechat: '微信公众号', x: 'X', reddit: 'Reddit' };
 const platformColors: Record<string, string> = { xiaohongshu: 'bg-red-50 text-red-600 border-red-100', zhihu: 'bg-blue-50 text-blue-600 border-blue-100', wechat: 'bg-green-50 text-green-600 border-green-100', x: 'bg-gray-50 text-gray-900 border-gray-200', reddit: 'bg-orange-50 text-orange-600 border-orange-100' };
 
+// 所有可能的作者列表
+const allAuthors = ['xiaohongshu-1', 'xiaohongshu-2', 'zhihu-1', 'wechat-1', 'x-1', 'reddit-1'];
+
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -21,13 +24,11 @@ export default function ArticlesPage() {
   const [authors, setAuthors] = useState<string[]>([]);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // 从 API 拉取全量作者列表
+  // 从文章列表中提取所有唯一作者
   useEffect(() => {
-    fetch('/api/articles?authors=true')
-      .then(r => r.json())
-      .then(data => { if (data.success) setAuthors(data.data); })
-      .catch(console.error);
-  }, []);
+    const uniqueAuthors = [...new Set(articles.map(a => a.author).filter(Boolean))] as string[];
+    setAuthors(uniqueAuthors);
+  }, [articles]);
 
   useEffect(() => { setArticles([]); setPage(0); setHasMore(true); fetchArticles(0, true); }, [selectedPlatform, selectedAuthor]);
 
@@ -97,7 +98,7 @@ export default function ArticlesPage() {
       {/* Author Filter */}
       <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => setSelectedAuthor('')} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedAuthor === '' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>全部作者</button>
-        {authors.map((author) => (
+        {allAuthors.map((author) => (
           <button key={author} onClick={() => setSelectedAuthor(author)} className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedAuthor === author ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 border border-gray-200 hover:border-gray-400'}`}>@{author}</button>
         ))}
       </div>
