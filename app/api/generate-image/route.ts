@@ -111,6 +111,15 @@ interface PollResult { task_id: string; status: number; process: number; img_uri
 
 /** 批量轮询，返回已完成任务的结果 */
 async function pollBatch(taskIds: string[]): Promise<PollResult[]> {
+  // debug: 检查 Worker 实际收到哪些 headers
+  const debugRes = await fetch(`https://haiyi-proxy.constantine1916.workers.dev?debug=1`, {
+    method: 'POST',
+    headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
+    body: JSON.stringify({ task_ids: taskIds, ss: 52 }),
+  });
+  const debugJson = await debugRes.json();
+  console.log('DEBUG HEADERS FROM VERCEL:', JSON.stringify(debugJson));
+
   const res = await fetch(proxyUrl('/task/batch-progress'), {
     method: 'POST',
     headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
