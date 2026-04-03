@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 分钟，等待生图完成
+export const maxDuration = 300;
 
 const HAIYI_BASE = 'https://www.haiyi.art/api/v1';
 const COOKIE = process.env.HAIYI_COOKIE!;
@@ -18,6 +19,30 @@ const COMMON_HEADERS = {
   'x-timezone': 'Asia/Shanghai',
   'Cookie': COOKIE,
 };
+
+/** 验证 token 并检查是否为 SVIP，返回 user id 或抛出错误 */
+async function requireSVIP(token: string): Promise<string> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
+  );
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) throw Object.assign(new Error('未登录'), { status: 401 });
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('vip_level')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || profile.vip_level < 2) {
+    throw Object.assign(new Error('需要 SVIP 权限'), { status: 403 });
+  }
+
+  return user.id;
+}
 
 /** 提交单个生图任务，返回 task_id */
 async function submitTask(prompt: string): Promise<string> {
@@ -108,6 +133,16 @@ async function pollBatch(taskIds: string[]): Promise<PollResult[]> {
  */
 export async function POST(request: NextRequest) {
   try {
+    // 鉴权：必须登录且是 SVIP
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
+
+    try {
+      await requireSVIP(token);
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: e.status ?? 403 });
+    }
+
     const body = await request.json();
     const prompts: string[] = body.prompts;
 

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface SidebarProps { className?: string }
 interface Stats { total: number; today_count: number; by_platform: Record<string, number> }
@@ -11,11 +12,23 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isSVIP, setIsSVIP] = useState(false)
 
   useEffect(() => {
     fetch('/api/articles?stats=true').then(r => r.json())
       .then(data => { if (data.success && data.data) setStats(data.data); })
       .catch(console.error).finally(() => setLoading(false));
+  }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const res = await fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (data.success && data.data?.vip_level >= 2) setIsSVIP(true);
+    });
   }, [])
 
   const menuItems = [
@@ -57,6 +70,18 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     },
   ]
 
+  const svipMenuItems = [
+    {
+      title: 'AI 生图',
+      href: '/generate-img',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      ),
+    },
+  ]
+
   return (
     <aside className={`bg-white border-r border-gray-200 h-full flex flex-col ${className}`}>
       <div className="flex-1 flex flex-col min-h-0">
@@ -78,7 +103,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                     : 'text-gray-900 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                {/* icon 和文字尺寸协调：icon w-5, 文字 text-sm */}
                 <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-900'}`}>
                   {item.icon}
                 </span>
@@ -86,6 +110,35 @@ export default function Sidebar({ className = '' }: SidebarProps) {
               </Link>
             );
           })}
+
+          {/* SVIP 专属菜单 */}
+          {isSVIP && (
+            <>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-widest mt-5 mb-3 px-3 flex items-center gap-2">
+                SVIP
+                <span className="text-[9px] bg-gray-900 text-white px-1.5 py-0.5 rounded-full tracking-normal normal-case font-medium">专属</span>
+              </div>
+              {svipMenuItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                      isActive
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-900 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="text-sm font-medium">{item.title}</span>
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* 底部统计 */}

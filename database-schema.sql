@@ -63,9 +63,13 @@ CREATE TABLE IF NOT EXISTS profiles (
   avatar_url TEXT,
   bio TEXT,
   email TEXT,
+  vip_level INTEGER NOT NULL DEFAULT 0, -- 0=普通, 1=VIP, 2=SVIP
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 迁移：已存在的表补加 vip_level 字段
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS vip_level INTEGER NOT NULL DEFAULT 0;
 
 -- RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
