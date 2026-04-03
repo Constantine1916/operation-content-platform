@@ -34,7 +34,7 @@ export default function GenerateImgPage() {
   const tokenRef = useRef<string>('');
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 路由拦截：检查登录 + SVIP
+  // 路由拦截：检查登录 + SVIP，并加载历史任务
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/login'); return; }
@@ -47,6 +47,27 @@ export default function GenerateImgPage() {
         router.replace('/overview');
         return;
       }
+
+      // 加载历史任务
+      const histRes = await fetch('/api/generate-image/history', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const histData = await histRes.json();
+      if (histData.success && histData.tasks?.length > 0) {
+        const loadedTasks: TaskState[] = histData.tasks.map((t: any) => ({
+          prompt: t.prompt,
+          task_id: t.task_id,
+          status: t.status,
+          process: t.process ?? 0,
+          images: t.images ?? [],
+          error: t.error,
+        }));
+        setTasks(loadedTasks);
+        // 如果有未完成的任务，恢复轮询
+        const pending = loadedTasks.filter(t => t.task_id && t.status !== 3 && t.status !== 4);
+        if (pending.length > 0) startPolling(loadedTasks);
+      }
+
       setChecking(false);
     });
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
@@ -116,7 +137,6 @@ export default function GenerateImgPage() {
     if (valid.length === 0) { setError('请至少输入一个 Prompt'); return; }
     setError('');
     setSubmitting(true);
-    setTasks(valid.map(prompt => ({ prompt, task_id: null, status: 0, process: 0, images: [] })));
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
 
     try {
@@ -139,7 +159,8 @@ export default function GenerateImgPage() {
         images: [],
         error: t.error,
       }));
-      setTasks(newTasks);
+      // 新任务追加到历史记录头部
+      setTasks(prev => [...newTasks, ...prev]);
       setSubmitting(false);
       startPolling(newTasks);
     } catch (e: any) {
@@ -158,7 +179,7 @@ export default function GenerateImgPage() {
 
   const isRunning = submitting || polling;
   const completedCount = tasks.filter(t => t.status === 3).length;
-  const totalCount = tasks.filter(t => t.task_id).length;
+  const pendingCount = tasks.filter(t => t.task_id && t.status !== 3 && t.status !== 4).length;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -238,11 +259,11 @@ export default function GenerateImgPage() {
       </div>
 
       {/* 进度总览 */}
-      {tasks.length > 0 && polling && (
+      {polling && pendingCount > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin flex-shrink-0" />
           <span className="text-sm text-gray-700">
-            正在生成中... 已完成 <span className="font-semibold text-gray-900">{completedCount}</span> / {totalCount} 个任务
+            正在生成中... 已完成 <span className="font-semibold text-gray-900">{completedCount}</span> / {tasks.filter(t => t.task_id).length} 个任务
           </span>
         </div>
       )}

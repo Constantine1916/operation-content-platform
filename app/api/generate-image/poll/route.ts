@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+function serviceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
+
 const HAIYI_BASE = 'https://www.haiyi.art/api/v1';
 const CF_PROXY = 'https://haiyi-proxy.constantine1916.workers.dev';
 const COOKIE = process.env.HAIYI_COOKIE!;
@@ -82,17 +89,36 @@ export async function POST(request: NextRequest) {
     const json = await res.json();
     if (json.status?.code !== 10000) throw new Error(`pollBatch error: ${json.status?.msg}`);
 
-    const items = (json.data?.items ?? []).map((item: any) => ({
-      task_id: item.task_id,
-      status: item.status,   // 1=pending 2=processing 3=finish 4=failed
-      process: item.process,
-      images: (item.img_uris ?? []).map((u: any) => ({
-        url: u.url,
-        width: u.width,
-        height: u.height,
-        index: u.index,
-      })),
-    }));
+    const db = serviceClient();
+    const items = await Promise.all(
+      (json.data?.items ?? []).map(async (item: any) => {
+        const images = (item.img_uris ?? []).map((u: any) => ({
+          url: u.url,
+          width: u.width,
+          height: u.height,
+          index: u.index,
+        }));
+
+        // Persist status updates for finished/failed/in-progress tasks
+        if (item.status === 3 || item.status === 4 || item.status === 2) {
+          await db.from('generate_tasks')
+            .update({
+              status: item.status,
+              process: item.process ?? 0,
+              images: item.status === 3 ? images : undefined,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('task_id', item.task_id);
+        }
+
+        return {
+          task_id: item.task_id,
+          status: item.status,   // 1=pending 2=processing 3=finish 4=failed
+          process: item.process,
+          images,
+        };
+      })
+    );
 
     return NextResponse.json({ success: true, items });
   } catch (error: any) {

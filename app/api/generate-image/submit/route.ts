@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+function serviceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
+
 const HAIYI_BASE = 'https://www.haiyi.art/api/v1';
 const CF_PROXY = 'https://haiyi-proxy.constantine1916.workers.dev';
 const COOKIE = process.env.HAIYI_COOKIE!;
@@ -35,7 +42,7 @@ const COMMON_HEADERS = {
   'Cookie': COOKIE,
 };
 
-async function requireSVIP(token: string): Promise<void> {
+async function requireSVIP(token: string): Promise<string> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -48,6 +55,7 @@ async function requireSVIP(token: string): Promise<void> {
     .from('profiles').select('vip_level').eq('id', user.id).single();
   if (!profile || profile.vip_level < 2)
     throw Object.assign(new Error('需要 SVIP 权限'), { status: 403 });
+  return user.id;
 }
 
 async function submitTask(prompt: string): Promise<string> {
@@ -91,10 +99,9 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
-    try { await requireSVIP(token); }
+    let userId: string;
+    try { userId = await requireSVIP(token); }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 403 }); }
-
-    if (!COOKIE) return NextResponse.json({ error: 'HAIYI_COOKIE not set' }, { status: 500 });
 
     const body = await request.json();
     const prompts: string[] = body.prompts;
@@ -103,11 +110,33 @@ export async function POST(request: NextRequest) {
 
     const submissions = await Promise.allSettled(prompts.map(submitTask));
 
-    const tasks = prompts.map((prompt, i) => {
+    const db = serviceClient();
+    const tasks = await Promise.all(prompts.map(async (prompt, i) => {
       const result = submissions[i];
-      if (result.status === 'fulfilled') return { prompt, task_id: result.value };
-      return { prompt, task_id: null, error: result.reason?.message ?? 'submit failed' };
-    });
+      if (result.status === 'fulfilled') {
+        const task_id = result.value;
+        await db.from('generate_tasks').insert({
+          user_id: userId,
+          prompt,
+          task_id,
+          status: 1,
+          process: 0,
+          images: [],
+        });
+        return { prompt, task_id };
+      }
+      const errorMsg = result.reason?.message ?? 'submit failed';
+      await db.from('generate_tasks').insert({
+        user_id: userId,
+        prompt,
+        task_id: null,
+        status: 4,
+        process: 0,
+        images: [],
+        error: errorMsg,
+      });
+      return { prompt, task_id: null, error: errorMsg };
+    }));
 
     return NextResponse.json({ success: true, tasks });
   } catch (error: any) {
