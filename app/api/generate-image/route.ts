@@ -5,7 +5,13 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 const HAIYI_BASE = 'https://www.haiyi.art/api/v1';
+const CF_PROXY = 'https://haiyi-proxy.constantine1916.workers.dev';
 const COOKIE = process.env.HAIYI_COOKIE!;
+
+/** 通过 Cloudflare Worker 代理请求海艺，绕过 Vercel IP 封锁 */
+function proxyUrl(path: string): string {
+  return `${CF_PROXY}?target=${encodeURIComponent(`${HAIYI_BASE}${path}`)}`;
+}
 
 const COMMON_HEADERS = {
   'accept': 'application/json, text/plain, */*',
@@ -87,7 +93,7 @@ async function submitTask(prompt: string): Promise<string> {
     ss: 52,
   };
 
-  const res = await fetch(`${HAIYI_BASE}/task/v2/text-to-img`, {
+  const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
     method: 'POST',
     headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
     body: JSON.stringify(body),
@@ -104,7 +110,7 @@ interface PollResult { task_id: string; status: number; process: number; img_uri
 
 /** 批量轮询，返回已完成任务的结果 */
 async function pollBatch(taskIds: string[]): Promise<PollResult[]> {
-  const res = await fetch(`${HAIYI_BASE}/task/batch-progress`, {
+  const res = await fetch(proxyUrl('/task/batch-progress'), {
     method: 'POST',
     headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
     body: JSON.stringify({ task_ids: taskIds, ss: 52 }),
