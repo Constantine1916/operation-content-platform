@@ -16,6 +16,7 @@ function proxyUrl(path: string): string {
 const COMMON_HEADERS = {
   'accept': 'application/json, text/plain, */*',
   'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
+  'accept-encoding': 'identity',
   'content-type': 'application/json',
   'origin': 'https://www.haiyi.art',
   'referer': 'https://www.haiyi.art/models/detail/d34fe800504g5d28bbhaiyiycanimeimg',
