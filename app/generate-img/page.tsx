@@ -27,6 +27,7 @@ export default function GenerateImgPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [prompts, setPrompts] = useState<string[]>(['']);
+  const [counts, setCounts] = useState<number[]>([1]);
   const [tasks, setTasks] = useState<TaskState[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [polling, setPolling] = useState(false);
@@ -73,10 +74,12 @@ export default function GenerateImgPage() {
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
   }, [router]);
 
-  const addPrompt = () => setPrompts(p => [...p, '']);
-  const removePrompt = (i: number) => setPrompts(p => p.filter((_, idx) => idx !== i));
+  const addPrompt = () => { setPrompts(p => [...p, '']); setCounts(c => [...c, 1]); };
+  const removePrompt = (i: number) => { setPrompts(p => p.filter((_, idx) => idx !== i)); setCounts(c => c.filter((_, idx) => idx !== i)); };
   const updatePrompt = (i: number, val: string) =>
     setPrompts(p => p.map((v, idx) => (idx === i ? val : v)));
+  const updateCount = (i: number, val: number) =>
+    setCounts(c => c.map((v, idx) => (idx === i ? val : v)));
 
   // 轮询函数
   const startPolling = (initialTasks: TaskState[]) => {
@@ -133,11 +136,16 @@ export default function GenerateImgPage() {
   };
 
   const handleSubmit = async () => {
-    const valid = prompts.map(p => p.trim()).filter(Boolean);
-    if (valid.length === 0) { setError('请至少输入一个 Prompt'); return; }
+    const entries = prompts
+      .map((p, i) => ({ prompt: p.trim(), count: counts[i] ?? 1 }))
+      .filter(e => e.prompt);
+    if (entries.length === 0) { setError('请至少输入一个 Prompt'); return; }
     setError('');
     setSubmitting(true);
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+
+    // 展开：每个 prompt 重复 count 次
+    const expanded = entries.flatMap(e => Array.from({ length: e.count }, () => e.prompt));
 
     try {
       const res = await fetch('/api/generate-image/submit', {
@@ -146,7 +154,7 @@ export default function GenerateImgPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${tokenRef.current}`,
         },
-        body: JSON.stringify({ prompts: valid }),
+        body: JSON.stringify({ prompts: expanded }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? '提交失败'); setSubmitting(false); return; }
@@ -159,7 +167,6 @@ export default function GenerateImgPage() {
         images: [],
         error: t.error,
       }));
-      // 新任务追加到历史记录头部
       setTasks(prev => [...newTasks, ...prev]);
       setSubmitting(false);
       startPolling(newTasks);
@@ -217,6 +224,22 @@ export default function GenerateImgPage() {
                 rows={3}
                 className="flex-1 px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl resize-none focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 transition-colors placeholder:text-gray-400"
               />
+              {/* 跑多少次 */}
+              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <span className="text-[10px] text-gray-400">次数</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={counts[i] ?? 1}
+                  onChange={e => {
+                    const v = Math.min(100, Math.max(1, parseInt(e.target.value) || 1));
+                    updateCount(i, v);
+                  }}
+                  disabled={isRunning}
+                  className="w-14 px-2 py-1.5 text-sm text-center text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 transition-colors"
+                />
+              </div>
               {prompts.length > 1 && (
                 <button
                   onClick={() => removePrompt(i)}
@@ -235,7 +258,9 @@ export default function GenerateImgPage() {
         {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
 
         <div className="mt-5 flex items-center justify-between">
-          <span className="text-xs text-gray-400">每个 Prompt 生成 4 张图</span>
+          <span className="text-xs text-gray-400">
+            共 {counts.reduce((s, c) => s + c, 0)} 次任务，每次生成 4 张图
+          </span>
           <button
             onClick={handleSubmit}
             disabled={isRunning}
