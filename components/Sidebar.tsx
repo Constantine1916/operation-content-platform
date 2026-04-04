@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { readVipCache, refreshVipCache } from '@/lib/vip-cache'
 
 interface SidebarProps { className?: string }
 interface Stats { total: number; today_count: number; by_platform: Record<string, number> }
@@ -23,11 +24,16 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
-      const res = await fetch('/api/profile', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const data = await res.json();
-      if (data.success && data.data?.vip_level >= 2) setIsSVIP(true);
+      const userId = session.user.id;
+      const token = session.access_token;
+
+      // 先读缓存，立即渲染（无闪烁）
+      const cached = readVipCache(userId);
+      if (cached !== null) setIsSVIP(cached >= 2);
+
+      // 异步刷新，写回缓存
+      const fresh = await refreshVipCache(userId, token);
+      if (fresh !== null) setIsSVIP(fresh >= 2);
     });
   }, [])
 

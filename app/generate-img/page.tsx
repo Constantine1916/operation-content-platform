@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
 
 interface ImageResult { url: string; width: number; height: number; index: number }
 
@@ -56,34 +57,46 @@ export default function GenerateImgPage() {
   // 本次提交的 task_id 集合，用于进度统计
   const currentBatchIds = useRef<Set<string>>(new Set());
 
+  // 加载历史任务（抽成独立函数，方便缓存命中时直接调用）
+  async function loadHistory(token: string) {
+    const histRes = await fetch('/api/generate-image/history', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const histData = await histRes.json();
+    if (histData.success && histData.tasks?.length > 0) {
+      const histGroups = buildGroupsFromHistory(histData.tasks);
+      setGroups(histGroups);
+      const pendingSubtasks = histGroups.flatMap(g => g.subtasks).filter(t => t.task_id && t.status !== 3 && t.status !== 4);
+      if (pendingSubtasks.length > 0) startPolling(histGroups);
+    }
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/login'); return; }
-      tokenRef.current = session.access_token;
-      const res = await fetch('/api/profile', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const data = await res.json();
-      if (!data.success || data.data?.vip_level < 2) {
-        router.replace('/overview');
+      const userId = session.user.id;
+      const token = session.access_token;
+      tokenRef.current = token;
+
+      // 先读缓存，命中则立即展示页面，后台异步刷新
+      const cached = readVipCache(userId);
+      if (cached !== null) {
+        if (cached < 2) { router.replace('/overview'); return; }
+        setChecking(false);
+        loadHistory(token);
+        // 后台静默刷新缓存，SVIP 过期时下次进入会被拦截
+        refreshVipCache(userId, token).then(fresh => {
+          if (fresh !== null && fresh < 2) router.replace('/overview');
+        });
         return;
       }
 
-      // 加载历史任务，按 prompt 分组
-      const histRes = await fetch('/api/generate-image/history', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const histData = await histRes.json();
-      if (histData.success && histData.tasks?.length > 0) {
-        const histGroups = buildGroupsFromHistory(histData.tasks);
-        setGroups(histGroups);
-        const pendingSubtasks = histGroups.flatMap(g => g.subtasks).filter(t => t.task_id && t.status !== 3 && t.status !== 4);
-        if (pendingSubtasks.length > 0) {
-          startPolling(histGroups);
-        }
-      }
+      // 无缓存：等待鉴权完成
+      const fresh = await refreshVipCache(userId, token);
+      if (fresh === null || fresh < 2) { router.replace('/overview'); return; }
 
       setChecking(false);
+      loadHistory(token);
     });
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
   }, [router]);
