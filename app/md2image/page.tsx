@@ -214,8 +214,8 @@ export default function Md2ImagePage() {
   const [avatar, setAvatar] = useState('')
   const [blocks, setBlocks] = useState<Block[]>([])
   const [profileOk, setProfileOk] = useState(false)
-  const [pages, setPages] = useState<Block[][]>([])
   const [images, setImages] = useState<string[]>([])
+  const [pageCount, setPageCount] = useState(0)
   const [converting, setConverting] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
@@ -268,46 +268,12 @@ export default function Md2ImagePage() {
     if (f) onFile(f)
   }, [onFile])
 
-  // Parse + do Pass 0 (measure) + paginate when md changes
+  // Parse md when it changes (just for block count display)
   useEffect(() => {
-    if (!md) { setBlocks([]); setPages([]); return }
-    const bs = parseMd(md)
-    setBlocks(bs)
+    if (!md) { setBlocks([]); setPageCount(0); return }
+    setBlocks(parseMd(md))
     setImages([])
-
-    let cancelled = false
-    ;(async () => {
-      // Build measure HTML and render to measure each block
-      const mhtml = measureHtml(bs, avatar, name || '未设置', date)
-      const root = document.createElement('div')
-      root.style.cssText = `position:fixed;left:-9999px;top:0;width:${CARD_W}px;`
-      root.innerHTML = mhtml
-      document.body.appendChild(root)
-      await new Promise(r => setTimeout(r, 600))
-
-      if (cancelled) { document.body.removeChild(root); return }
-
-      // Get header height
-      const headerEl = root.querySelector('#chrome-card') as HTMLElement | null
-      const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0
-
-      // Get each block's height
-      const heights: number[] = []
-      for (let i = 0; i < bs.length; i++) {
-        const el = root.querySelector(`#b${i}`) as HTMLElement | null
-        heights.push(el ? el.getBoundingClientRect().height + BLOCK_GAP : 0)
-      }
-
-      document.body.removeChild(root)
-
-      if (cancelled) return
-
-      const availableH = CARD_H - Math.ceil(headerH)
-      const pg = paginate(bs, heights, availableH)
-      setPages(pg)
-    })()
-    return () => { cancelled = true }
-  }, [md, avatar, name, date])
+  }, [md])
 
   const onConvert = async () => {
     if (!md) { setError('请先上传 MD 文件'); return }
@@ -338,6 +304,7 @@ export default function Md2ImagePage() {
 
       const availableH = CARD_H - Math.ceil(headerH)
       const pg = paginate(bs, heights, availableH)
+      setPageCount(pg.length)
 
       // Pass 1: measure natural heights of each page at fixed cardHeight
       const naturalHeights: number[] = []
@@ -438,35 +405,13 @@ export default function Md2ImagePage() {
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-base text-red-600">{error}</div>
       )}
 
-      {/* 预览区域 */}
-      {pages.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-4">
-            效果预览（{pages.length} 张卡片，1080×1440px）
-          </h2>
-          <div className="space-y-4">
-            {pages.map((pg, i) => (
-              <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                <div className="text-xs text-gray-400 px-3 py-1 bg-gray-50 border-b border-gray-100">第 {i + 1} 张</div>
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: cardHtml(pg, avatar, name || '未设置', date, CARD_H, i === pages.length - 1)
-                  }}
-                  style={{ width: '540px', height: '720px', overflow: 'hidden', transform: 'scale(1)', transformOrigin: 'top left', pointerEvents: 'none' }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 转换按钮 */}
       <button
         onClick={onConvert}
         disabled={converting || !md}
         className="w-full bg-gray-900 text-white py-4 rounded-2xl text-lg font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        {converting ? '转换中...' : `转换为图片${pages.length > 0 ? `（${pages.length} 张）` : ''}`}
+        {converting ? '转换中...' : `转换为图片${pageCount > 0 ? `（${pageCount} 张）` : ''}`}
       </button>
 
       {/* 最终结果下载 */}
