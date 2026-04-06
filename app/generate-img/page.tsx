@@ -131,6 +131,36 @@ export default function GenerateImgPage() {
   const updateCount = (i: number, val: number) =>
     setCounts(c => c.map((v, idx) => (idx === i ? val : v)));
 
+  const csvInputRef = useRef<HTMLInputElement>(null);
+  const handleCsvUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target?.result as string;
+      // 解析 CSV：取第一列，跳过空行，自动识别有无表头
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return;
+
+      // 判断第一行是否是表头（常见表头词）
+      const HEADER_WORDS = ['prompt', 'text', '提示词', '内容', '描述', 'description'];
+      const firstCell = lines[0]!.split(',')[0]!.replace(/^"|"$/g, '').trim().toLowerCase();
+      const hasHeader = HEADER_WORDS.some(w => firstCell.includes(w));
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+
+      const parsed = dataLines
+        .map(line => {
+          // 处理 CSV 引号转义
+          const firstCol = line.match(/^"((?:[^"]|"")*)"|^([^,]*)/)?.[0] ?? '';
+          return firstCol.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+        })
+        .filter(Boolean);
+
+      if (parsed.length === 0) return;
+      setPrompts(parsed);
+      setCounts(parsed.map(() => 1));
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+
   const startPolling = (currentGroups: PromptGroup[]) => {
     const pendingIds = currentGroups
       .flatMap(g => g.subtasks)
@@ -274,16 +304,35 @@ export default function GenerateImgPage() {
       <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium text-gray-900">Prompt 列表</span>
-          <button
-            onClick={addPrompt}
-            disabled={submitting || polling}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-40 transition-all"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            添加 Prompt
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              ref={csvInputRef}
+              type="file"
+              accept=".csv,.tsv,.txt"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleCsvUpload(f); e.target.value = ''; }}
+            />
+            <button
+              onClick={() => csvInputRef.current?.click()}
+              disabled={submitting || polling}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-40 transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              导入 CSV
+            </button>
+            <button
+              onClick={addPrompt}
+              disabled={submitting || polling}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-40 transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              添加 Prompt
+            </button>
+          </div>
         </div>
 
         <div className="space-y-3">
