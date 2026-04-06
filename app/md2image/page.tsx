@@ -197,7 +197,7 @@ async function capture(html: string, w: number, h: number): Promise<string> {
   const canvas = await html2canvas(root as HTMLElement, {
     width: w, height: h, scale: 1,
     useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
-    windowWidth: w, windowHeight: h,
+    windowWidth: window.innerWidth, windowHeight: window.innerHeight,
   })
   document.body.removeChild(root)
   return canvas.toDataURL('image/png', 1.0)
