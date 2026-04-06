@@ -22,6 +22,8 @@ interface PromptGroup {
   subtasks: SubTask[];
   // 是否来自历史（历史的不计入本次进度）
   fromHistory: boolean;
+  // 该组最新任务的创建时间（用于排序）
+  latestAt: number;
 }
 
 const STATUS_LABEL: Record<number, string> = {
@@ -101,24 +103,25 @@ export default function GenerateImgPage() {
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
   }, [router]);
 
-  // 历史任务：同 prompt 的合并成一组（每组按 created_at 最新在前，但同 prompt 聚合）
+  // 历史任务：同 prompt 的合并成一组，组按最新任务时间降序排列
   function buildGroupsFromHistory(tasks: any[]): PromptGroup[] {
-    const map = new Map<string, SubTask[]>();
+    const map = new Map<string, { subtasks: SubTask[]; latestAt: number }>();
     for (const t of tasks) {
-      if (!map.has(t.prompt)) map.set(t.prompt, []);
-      map.get(t.prompt)!.push({
+      if (!map.has(t.prompt)) map.set(t.prompt, { subtasks: [], latestAt: 0 });
+      const entry = map.get(t.prompt)!;
+      entry.subtasks.push({
         task_id: t.task_id,
         status: t.status,
         process: t.process ?? 0,
         images: t.images ?? [],
         error: t.error,
       });
+      const ts = t.created_at ? new Date(t.created_at).getTime() : 0;
+      if (ts > entry.latestAt) entry.latestAt = ts;
     }
-    return Array.from(map.entries()).map(([prompt, subtasks]) => ({
-      prompt,
-      subtasks,
-      fromHistory: true,
-    }));
+    return Array.from(map.entries())
+      .map(([prompt, { subtasks, latestAt }]) => ({ prompt, subtasks, fromHistory: true, latestAt }))
+      .sort((a, b) => b.latestAt - a.latestAt);
   }
 
   const addPrompt = () => { setPrompts(p => [...p, '']); setCounts(c => [...c, 1]); };
@@ -244,6 +247,7 @@ export default function GenerateImgPage() {
       );
 
       // 按 prompt 聚合成 PromptGroup（同 prompt 的 subtasks 合在一起）
+      const submitTime = Date.now();
       const newGroupMap = new Map<string, SubTask[]>();
       for (const t of data.tasks) {
         if (!newGroupMap.has(t.prompt)) newGroupMap.set(t.prompt, []);
@@ -259,15 +263,20 @@ export default function GenerateImgPage() {
         prompt,
         subtasks,
         fromHistory: false,
+        latestAt: submitTime,
       }));
 
-      // 新任务放顶部，历史任务放后面
-      setGroups(prev => [...newGroups, ...prev.map(g => ({ ...g, fromHistory: true }))]);
+      // 合并后按时间降序排列
+      setGroups(prev => {
+        const merged = [...newGroups, ...prev.map(g => ({ ...g, fromHistory: true }))];
+        return merged.sort((a, b) => b.latestAt - a.latestAt);
+      });
       setSubmitting(false);
 
       // 用新 groups + 现有历史一起轮询
       setGroups(current => {
-        const merged = [...newGroups, ...current.filter(g => g.fromHistory)];
+        const merged = [...newGroups, ...current.filter(g => g.fromHistory)]
+          .sort((a, b) => b.latestAt - a.latestAt);
         startPolling(merged);
         return merged;
       });
