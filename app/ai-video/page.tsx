@@ -10,7 +10,7 @@ interface VideoItem {
   author_url?: string;
   platform: string;
   model?: string;
-  tags: string[];
+
   source_url?: string;
   created_at: string;
 }
@@ -136,13 +136,7 @@ export default function AiVideoPage() {
                           <a href={video.source_url} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-900 hover:text-gray-700 ml-1">↗ source</a>
                         )}
                       </div>
-                      {video.tags && video.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          {video.tags.map(tag => (
-                            <span key={tag} className="text-[10px] bg-gray-50 text-gray-900 px-2 py-0.5 rounded border border-gray-100">#{tag}</span>
-                          ))}
-                        </div>
-                      )}
+                      
                     </div>
                   </div>
 
