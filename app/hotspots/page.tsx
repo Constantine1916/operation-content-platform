@@ -8,7 +8,6 @@ interface HotspotGroup { timeKey: string; label: string; items: Hotspot[]; }
 const PAGE_SIZE = 100;
 
 function toBeijingLabel(date: string, time: string): string {
-  // collected_time 存储的是北京时间 (UTC+8)，直接展示即可
   if (!time) return date;
   const [hours, minutes] = time.split(':');
   return `${date.slice(5)} ${hours}:${minutes}`;
@@ -29,8 +28,6 @@ function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
 
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -38,7 +35,7 @@ export default function HotspotsPage() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true); }, [selectedCategory]);
+  useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true); }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
@@ -48,14 +45,10 @@ export default function HotspotsPage() {
     return () => obs.disconnect();
   }, [hasMore, loading, loadingMore, page]);
 
-  useEffect(() => { fetchCategories(); }, []);
-
   const fetchHotspots = async (pageNum: number, isFirst = false) => {
     if (isFirst) setLoading(true); else setLoadingMore(true);
     try {
-      const url = selectedCategory
-        ? `/api/hotspots?category=${encodeURIComponent(selectedCategory)}&limit=${PAGE_SIZE}&page=${pageNum + 1}`
-        : `/api/hotspots?limit=${PAGE_SIZE}&page=${pageNum + 1}`;
+      const url = `/api/hotspots?limit=${PAGE_SIZE}&page=${pageNum + 1}`;
       const result = await fetch(url).then(r => r.json());
       const items: Hotspot[] = result.data || [];
       if (items.length < PAGE_SIZE) setHasMore(false);
@@ -64,14 +57,7 @@ export default function HotspotsPage() {
     finally { setLoading(false); setLoadingMore(false); }
   };
 
-  const loadMore = useCallback(() => { const n = page + 1; setPage(n); fetchHotspots(n, false); }, [page, selectedCategory]);
-
-  const fetchCategories = async () => {
-    const data = await fetch('/api/hotspots?limit=1000').then(r => r.json());
-    const cats = new Set<string>();
-    data.data?.forEach((h: Hotspot) => { if (h.category) cats.add(h.category); });
-    setCategories(Array.from(cats).sort());
-  };
+  const loadMore = useCallback(() => { const n = page + 1; setPage(n); fetchHotspots(n, false); }, [page]);
 
   const toggleCollapse = (key: string) => {
     setCollapsed(prev => {
@@ -88,20 +74,6 @@ export default function HotspotsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">热点资讯</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Hotspot News</p>
-      </div>
-
-      {/* 分类筛选 */}
-      <div className="mb-6 flex gap-2 flex-wrap">
-        <button onClick={() => setSelectedCategory('')}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === '' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-600 hover:text-gray-900'}`}>
-          全部
-        </button>
-        {categories.slice(0, 12).map(cat => (
-          <button key={cat} onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-600 hover:text-gray-900'}`}>
-            {cat}
-          </button>
-        ))}
       </div>
 
       {loading ? (
