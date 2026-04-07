@@ -18,9 +18,3 @@
 - [ ] 3.1 数据库 view：`xhs_notes_with_engagement`（notes JOIN engagement_snapshots）
 - [ ] 3.2 趋势图：同一关键词多次搜索的排名/互动变化
 - [ ] 3.3 导入到 articles 时自动打 tag + 设置 platform=xiaohongshu
-
-## AI 视频
-- [x] 3.1 侧边栏添加「AI视频」导航入口
-- [x] 3.2 创建 /ai-video 页面框架 + /api/ai-video 接口
-- [ ] 3.3 爬取 video prompt 网站内容入库
-- [ ] 3.4 创建 ai_videos 数据库表
