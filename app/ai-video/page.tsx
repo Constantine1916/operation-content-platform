@@ -10,7 +10,7 @@ interface VideoItem {
   author_url?: string;
   platform: string;
   model?: string;
-
+  video_url?: string;
   source_url?: string;
   created_at: string;
 }
@@ -102,7 +102,7 @@ export default function AiVideoPage() {
 
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-          <h2 className="text-lg tracking-[0.2em] text-gray-900 uppercase">Prompt 列表</h2>
+          <h2 className="text-lg tracking-[0.2em] text-gray-900 uppercase">视频列表</h2>
           <span className="text-sm text-gray-900">{videos.length} 条</span>
         </div>
 
@@ -135,26 +135,42 @@ export default function AiVideoPage() {
                         {video.source_url && (
                           <a href={video.source_url} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-900 hover:text-gray-700 ml-1">↗ source</a>
                         )}
+                        {video.video_url && (
+                          <a href={video.video_url} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-900 hover:text-gray-700 ml-1">▶ 观看视频</a>
+                        )}
                       </div>
-                      
                     </div>
                   </div>
 
-                  {!isExpanded ? (
-                    <div className="mt-2 ml-9 text-xs text-gray-900 bg-gray-50 rounded-xl p-3 cursor-pointer hover:bg-gray-100 transition-colors line-clamp-3" onClick={() => toggleExpand(video.id)}>
-                      <pre className="whitespace-pre-wrap font-sans">{video.prompt.slice(0, 200)}{video.prompt.length > 200 ? '...' : ''}</pre>
-                      {video.prompt.length > 200 && <div className="text-center text-xs text-gray-900 mt-1 opacity-60">点击展开 ↓</div>}
-                    </div>
-                  ) : (
-                    <div className="mt-2 ml-9">
+                  {/* 展开后显示视频 + Prompt */}
+                  {isExpanded ? (
+                    <div className="mt-2 ml-9 space-y-3">
+                      {/* 视频播放器 */}
+                      {video.video_url && (
+                        <div className="rounded-xl overflow-hidden bg-black">
+                          <video
+                            src={video.video_url}
+                            controls
+                            playsInline
+                            className="w-full max-h-[400px]"
+                          />
+                        </div>
+                      )}
                       <div className="text-xs text-gray-900 bg-gray-50 rounded-xl p-3">
                         <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed">{video.prompt}</pre>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center justify-between">
                         <button onClick={() => toggleExpand(video.id)} className="text-xs text-gray-900 hover:text-gray-700">收起 ↑</button>
                         <button onClick={() => copyPrompt(video.id, video.prompt)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${copied.has(video.id) ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-900 text-white hover:bg-gray-700'}`}>
                           {copied.has(video.id) ? '✅ 已复制' : '📋 复制 Prompt'}
                         </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 ml-9 text-xs text-gray-900 bg-gray-50 rounded-xl p-3 cursor-pointer hover:bg-gray-100 transition-colors line-clamp-3" onClick={() => toggleExpand(video.id)}>
+                      <pre className="whitespace-pre-wrap font-sans">{video.prompt.slice(0, 200)}{video.prompt.length > 200 ? '...' : ''}</pre>
+                      <div className="text-center text-xs text-gray-900 mt-1 opacity-60">
+                        {video.video_url ? '▶ 点击播放视频 + 查看完整Prompt ↓' : '点击展开Prompt ↓'}
                       </div>
                     </div>
                   )}
@@ -166,7 +182,7 @@ export default function AiVideoPage() {
           <div className="px-6 py-16 text-center">
             <div className="text-4xl mb-4">🎬</div>
             <p className="text-lg text-gray-900 mb-2">暂无 AI 视频数据</p>
-            <p className="text-base text-gray-900">运行 scripts/seed-ai-videos.cjs 导入数据</p>
+            <p className="text-base text-gray-900">运行 scripts/crawl-ai-videos.cjs 导入数据</p>
           </div>
         )}
       </div>
