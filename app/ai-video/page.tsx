@@ -133,12 +133,12 @@ export default function AiVideoPage() {
                         loop
                         playsInline
                         className="w-full h-full object-cover transition-opacity duration-300"
-                        style={{ opacity: hoveredId === video.id ? 1 : 0.35 }}
+                        style={{ opacity: 1 }}
                       />
                       {/* Play icon */}
                       <div
                         className="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
-                        style={{ opacity: hoveredId === video.id ? 1 : 0 }}
+                        style={{ opacity: hoveredId === video.id ? 0 : 1, pointerEvents: hoveredId === video.id ? 'none' : 'auto' }}
                       >
                         <div className="w-12 h-12 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-sm">
                           <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
