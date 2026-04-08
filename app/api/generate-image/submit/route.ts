@@ -108,35 +108,27 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(prompts) || prompts.length === 0)
       return NextResponse.json({ error: 'prompts must be a non-empty array' }, { status: 400 });
 
-    const submissions = await Promise.allSettled(prompts.map(submitTask));
-
     const db = serviceClient();
-    const tasks = await Promise.all(prompts.map(async (prompt, i) => {
-      const result = submissions[i];
-      if (result.status === 'fulfilled') {
-        const task_id = result.value;
+    const tasks: { prompt: string; task_id: string | null; error?: string }[] = [];
+
+    for (let i = 0; i < prompts.length; i++) {
+      const prompt = prompts[i]!;
+      try {
+        const task_id = await submitTask(prompt);
         await db.from('generate_tasks').insert({
-          user_id: userId,
-          prompt,
-          task_id,
-          status: 1,
-          process: 0,
-          images: [],
+          user_id: userId, prompt, task_id, status: 1, process: 0, images: [],
         });
-        return { prompt, task_id };
+        tasks.push({ prompt, task_id });
+      } catch (e: any) {
+        const errorMsg = e?.message ?? 'submit failed';
+        await db.from('generate_tasks').insert({
+          user_id: userId, prompt, task_id: null, status: 4, process: 0, images: [], error: errorMsg,
+        });
+        tasks.push({ prompt, task_id: null, error: errorMsg });
       }
-      const errorMsg = result.reason?.message ?? 'submit failed';
-      await db.from('generate_tasks').insert({
-        user_id: userId,
-        prompt,
-        task_id: null,
-        status: 4,
-        process: 0,
-        images: [],
-        error: errorMsg,
-      });
-      return { prompt, task_id: null, error: errorMsg };
-    }));
+      // 串行提交间隔 300ms，避免触发平台限流
+      if (i < prompts.length - 1) await new Promise(r => setTimeout(r, 300));
+    }
 
     return NextResponse.json({ success: true, tasks });
   } catch (error: any) {
