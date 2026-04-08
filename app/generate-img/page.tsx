@@ -27,6 +27,7 @@ interface PromptGroup {
 }
 
 const STATUS_LABEL: Record<number, string> = {
+  0: '等待中',
   1: '排队中',
   2: '生成中',
   3: '完成',
@@ -37,7 +38,8 @@ function groupStatus(subtasks: SubTask[]): number {
   if (subtasks.every(t => t.status === 3)) return 3;
   if (subtasks.some(t => t.status === 4 && subtasks.every(t2 => t2.status === 3 || t2.status === 4))) return 4;
   if (subtasks.some(t => t.status === 2)) return 2;
-  return 1;
+  if (subtasks.some(t => t.status === 1)) return 1;
+  return 0;
 }
 
 function groupProcess(subtasks: SubTask[]): number {
@@ -68,7 +70,7 @@ export default function GenerateImgPage() {
     if (histData.success && histData.tasks?.length > 0) {
       const histGroups = buildGroupsFromHistory(histData.tasks);
       setGroups(histGroups);
-      const pendingSubtasks = histGroups.flatMap(g => g.subtasks).filter(t => t.task_id && t.status !== 3 && t.status !== 4);
+      const pendingSubtasks = histGroups.flatMap(g => g.subtasks).filter(t => t.status !== 3 && t.status !== 4);
       if (pendingSubtasks.length > 0) startPolling(histGroups);
     }
   }
@@ -169,43 +171,60 @@ export default function GenerateImgPage() {
       .flatMap(g => g.subtasks)
       .filter(t => t.task_id && t.status !== 3 && t.status !== 4)
       .map(t => t.task_id as string);
+    // 有待提交(status=0)的任务也需要继续轮询（等补提）
+    const hasQueued = currentGroups.flatMap(g => g.subtasks).some(t => t.status === 0);
 
-    if (pendingIds.length === 0) { setPolling(false); return; }
+    if (pendingIds.length === 0 && !hasQueued) { setPolling(false); return; }
     setPolling(true);
 
     const doPoll = async (gs: PromptGroup[]) => {
       const ids = gs.flatMap(g => g.subtasks)
         .filter(t => t.task_id && t.status !== 3 && t.status !== 4)
         .map(t => t.task_id as string);
-      if (ids.length === 0) { setPolling(false); return; }
+      const stillHasQueued = gs.flatMap(g => g.subtasks).some(t => t.status === 0);
+
+      if (ids.length === 0 && !stillHasQueued) { setPolling(false); return; }
+
+      // 如果没有进行中的 task_id 但有排队中的，发一个空占位轮询触发补提
+      const pollIds = ids.length > 0 ? ids : ['__queue_check__'];
 
       try {
         const res = await fetch('/api/generate-image/poll', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
-          body: JSON.stringify({ task_ids: ids }),
+          body: JSON.stringify({ task_ids: pollIds }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        const updated = gs.map(g => ({
+        // 更新已有 task_id 的任务状态
+        let updated = gs.map(g => ({
           ...g,
           subtasks: g.subtasks.map(sub => {
             if (!sub.task_id) return sub;
             const item = data.items?.find((it: any) => it.task_id === sub.task_id);
             if (!item) return sub;
-            return {
-              ...sub,
-              status: item.status,
-              process: item.process,
-              images: item.images?.length ? item.images : sub.images,
-            };
+            return { ...sub, status: item.status, process: item.process, images: item.images?.length ? item.images : sub.images };
           }),
         }));
 
+        // 把 promoted（刚从 status=0 升为 status=1 的）更新到对应 subtask
+        if (data.promoted?.length > 0) {
+          updated = updated.map(g => ({
+            ...g,
+            subtasks: g.subtasks.map(sub => {
+              if (sub.status !== 0) return sub;
+              const p = data.promoted.find((pr: any) => pr.prompt === g.prompt);
+              if (!p) return sub;
+              // 从 promoted 里找一个匹配此 prompt 且还没消耗的
+              return { ...sub, task_id: p.task_id, status: 1 };
+            }),
+          }));
+        }
+
         setGroups(updated);
 
-        const stillPending = updated.flatMap(g => g.subtasks).filter(t => t.task_id && t.status !== 3 && t.status !== 4);
+        const stillPending = updated.flatMap(g => g.subtasks).filter(t => t.status !== 3 && t.status !== 4);
         if (stillPending.length > 0) {
           pollTimerRef.current = setTimeout(() => doPoll(updated), 3000);
         } else {
@@ -253,7 +272,7 @@ export default function GenerateImgPage() {
         if (!newGroupMap.has(t.prompt)) newGroupMap.set(t.prompt, []);
         newGroupMap.get(t.prompt)!.push({
           task_id: t.task_id,
-          status: t.error ? 4 : 1,
+          status: t.queued ? 0 : t.error ? 4 : 1,
           process: 0,
           images: [],
           error: t.error,
@@ -299,6 +318,8 @@ export default function GenerateImgPage() {
   const batchSubtasks = groups.flatMap(g => g.subtasks).filter(t => t.task_id && batchIds.has(t.task_id as string));
   const batchTotal = batchSubtasks.length;
   const batchDone = batchSubtasks.filter(t => t.status === 3 || t.status === 4).length;
+  // status=0 的排队任务不在 batchIds 里（没有 task_id），单独统计
+  const batchQueued = groups.filter(g => !g.fromHistory).flatMap(g => g.subtasks).filter(t => t.status === 0).length;
 
   const totalRuns = counts.reduce((s, c) => s + c, 0);
 
@@ -415,11 +436,12 @@ export default function GenerateImgPage() {
       </div>
 
       {/* 本次批次进度 */}
-      {polling && batchTotal > 0 && batchDone < batchTotal && (
+      {polling && (batchTotal > 0 || batchQueued > 0) && batchDone < batchTotal + batchQueued && (
         <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin flex-shrink-0" />
           <span className="text-sm text-gray-700">
-            本次任务进度：已完成 <span className="font-semibold text-gray-900">{batchDone}</span> / <span className="font-semibold text-gray-900">{batchTotal}</span> 次
+            本次任务进度：已完成 <span className="font-semibold text-gray-900">{batchDone}</span> / <span className="font-semibold text-gray-900">{batchTotal + batchQueued}</span> 次
+            {batchQueued > 0 && <span className="text-gray-400 ml-2">（{batchQueued} 个等待提交）</span>}
           </span>
         </div>
       )}
@@ -462,6 +484,7 @@ export default function GenerateImgPage() {
                       status === 3 ? 'bg-green-50 text-green-700 border border-green-200' :
                       status === 4 ? 'bg-red-50 text-red-600 border border-red-200' :
                       status === 2 ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                      status === 0 ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' :
                       'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
                       {STATUS_LABEL[status] ?? '未知'}

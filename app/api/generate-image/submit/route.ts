@@ -109,16 +109,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'prompts must be a non-empty array' }, { status: 400 });
 
     const db = serviceClient();
-    const tasks: { prompt: string; task_id: string | null; error?: string }[] = [];
+
+    // 查当前用户进行中的任务数（status 1=排队 2=生成中）
+    const { count: activeCount } = await db
+      .from('generate_tasks')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', [1, 2]);
+    let slots = Math.max(0, 10 - (activeCount ?? 0));
+
+    const tasks: { prompt: string; task_id: string | null; queued?: boolean; error?: string }[] = [];
 
     for (let i = 0; i < prompts.length; i++) {
       const prompt = prompts[i]!;
+
+      if (slots <= 0) {
+        // 超出配额：存为 status=0（待提交），不调海艺接口
+        await db.from('generate_tasks').insert({
+          user_id: userId, prompt, task_id: null, status: 0, process: 0, images: [],
+        });
+        tasks.push({ prompt, task_id: null, queued: true });
+        continue;
+      }
+
       try {
         const task_id = await submitTask(prompt);
         await db.from('generate_tasks').insert({
           user_id: userId, prompt, task_id, status: 1, process: 0, images: [],
         });
         tasks.push({ prompt, task_id });
+        slots--;
       } catch (e: any) {
         const errorMsg = e?.message ?? 'submit failed';
         await db.from('generate_tasks').insert({
@@ -127,7 +147,7 @@ export async function POST(request: NextRequest) {
         tasks.push({ prompt, task_id: null, error: errorMsg });
       }
       // 串行提交间隔 300ms，避免触发平台限流
-      if (i < prompts.length - 1) await new Promise(r => setTimeout(r, 300));
+      if (i < prompts.length - 1 && slots > 0) await new Promise(r => setTimeout(r, 300));
     }
 
     return NextResponse.json({ success: true, tasks });

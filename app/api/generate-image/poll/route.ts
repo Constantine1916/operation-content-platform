@@ -42,7 +42,7 @@ const COMMON_HEADERS = {
   'Cookie': COOKIE,
 };
 
-async function requireSVIP(token: string): Promise<void> {
+async function requireSVIP(token: string): Promise<string> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -55,19 +55,51 @@ async function requireSVIP(token: string): Promise<void> {
     .from('profiles').select('vip_level').eq('id', user.id).single();
   if (!profile || profile.vip_level < 2)
     throw Object.assign(new Error('需要 SVIP 权限'), { status: 403 });
+  return user.id;
+}
+
+async function submitTask(prompt: string): Promise<string> {
+  const body = {
+    model_no: 'd34fe800504g5d28bbhaiyiycanimeimg',
+    model_ver_no: 'e45g335365865c5aa2haiyiycanimeimg',
+    meta: {
+      n_iter: 4, lora_models: null, embeddings: null,
+      original_translated_meta_prompt: '', extra_prompt: '',
+      prompt, local_prompt: '', width: 828, height: 1472,
+      steps: 0, init_images: null, seed: 0, hi_res_arg: null,
+      smart_edit: null, guidance_scale: 0, left_margin: 0, up_margin: 0,
+      image: '', images: null, vae: 'None', refiner_mode: 0, lcm_mode: 0,
+      generate: { anime_enhance: 2, mode: 0, prompt_magic_mode: 2, gen_mode: 0 },
+    },
+    ss: 52,
+  };
+  const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
+    method: 'POST',
+    headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
+  }
+  const json = await res.json();
+  if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
+  return json.data.id as string;
 }
 
 /**
  * POST /api/generate-image/poll
  * Body: { task_ids: string[] }
- * Response: { success: true, items: [{ task_id, status, process, images }] }
+ * Response: { success: true, items: [...], promoted: [...] }
+ *   promoted: tasks that were queued (status=0) and just submitted
  */
 export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
-    try { await requireSVIP(token); }
+    let userId: string;
+    try { userId = await requireSVIP(token); }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 403 }); }
 
     const body = await request.json();
@@ -120,7 +152,43 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ success: true, items });
+    // 统计当前进行中任务数，把 status=0 的队列任务补提
+    const { count: activeCount } = await db
+      .from('generate_tasks')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', [1, 2]);
+    const slots = Math.max(0, 10 - (activeCount ?? 0));
+
+    const promoted: { task_id: string; db_id: string; prompt: string }[] = [];
+    if (slots > 0) {
+      const { data: queued } = await db
+        .from('generate_tasks')
+        .select('id, prompt')
+        .eq('user_id', userId)
+        .eq('status', 0)
+        .order('created_at', { ascending: true })
+        .limit(slots);
+
+      for (const row of queued ?? []) {
+        try {
+          const task_id = await submitTask(row.prompt);
+          await db.from('generate_tasks')
+            .update({ task_id, status: 1, updated_at: new Date().toISOString() })
+            .eq('id', row.id);
+          promoted.push({ task_id, db_id: row.id, prompt: row.prompt });
+        } catch (e: any) {
+          await db.from('generate_tasks')
+            .update({ status: 4, error: e?.message ?? 'submit failed', updated_at: new Date().toISOString() })
+            .eq('id', row.id);
+        }
+        if ((queued ?? []).indexOf(row) < (queued ?? []).length - 1) {
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, items, promoted });
   } catch (error: any) {
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
   }
