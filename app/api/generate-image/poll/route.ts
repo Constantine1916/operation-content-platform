@@ -73,18 +73,34 @@ async function submitTask(prompt: string): Promise<string> {
     },
     ss: 52,
   };
-  const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
-    method: 'POST',
-    headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
+
+  // 最多重试 4 次，指数退避：2s → 4s → 8s → 16s
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
+
+    const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
+      method: 'POST',
+      headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 403) {
+      if (attempt < 3) continue;
+      const errText = await res.text();
+      throw new Error(`submitTask HTTP 403: ${errText.substring(0, 200)}`);
+    }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
+    }
+
+    const json = await res.json();
+    if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
+    return json.data.id as string;
   }
-  const json = await res.json();
-  if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
-  return json.data.id as string;
+
+  throw new Error('submitTask: max retries exceeded');
 }
 
 /**
@@ -183,7 +199,7 @@ export async function POST(request: NextRequest) {
             .eq('id', row.id);
         }
         if ((queued ?? []).indexOf(row) < (queued ?? []).length - 1) {
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 800));
         }
       }
     }

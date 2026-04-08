@@ -74,19 +74,33 @@ async function submitTask(prompt: string): Promise<string> {
     ss: 52,
   };
 
-  const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
-    method: 'POST',
-    headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
-    body: JSON.stringify(body),
-  });
+  // 最多重试 4 次，指数退避：2s → 4s → 8s → 16s
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
+    const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
+      method: 'POST',
+      headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 403) {
+      if (attempt < 3) continue; // 退避后重试
+      const errText = await res.text();
+      throw new Error(`submitTask HTTP 403: ${errText.substring(0, 200)}`);
+    }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
+    }
+
+    const json = await res.json();
+    if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
+    return json.data.id as string;
   }
-  const json = await res.json();
-  if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
-  return json.data.id as string;
+
+  throw new Error('submitTask: max retries exceeded');
 }
 
 /**
@@ -146,8 +160,8 @@ export async function POST(request: NextRequest) {
         });
         tasks.push({ prompt, task_id: null, error: errorMsg });
       }
-      // 串行提交间隔 300ms，避免触发平台限流
-      if (i < prompts.length - 1 && slots > 0) await new Promise(r => setTimeout(r, 300));
+      // 串行提交间隔 800ms，减少触发平台限流的概率
+      if (i < prompts.length - 1 && slots > 0) await new Promise(r => setTimeout(r, 800));
     }
 
     return NextResponse.json({ success: true, tasks });
