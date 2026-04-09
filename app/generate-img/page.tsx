@@ -179,6 +179,8 @@ export default function GenerateImgPage() {
       console.error('delete failed', e);
     }
   };
+
+  const startPolling = (currentGroups: PromptGroup[]) => {
     const pendingIds = currentGroups
       .flatMap(g => g.subtasks)
       .filter(t => t.task_id && t.status !== 3 && t.status !== 4)
