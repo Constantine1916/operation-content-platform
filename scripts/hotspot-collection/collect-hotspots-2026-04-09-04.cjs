@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Hotspot collection script - 2026-04-09 04:00 UTC (12:00 Beijing)
+// Hotspot collection script - 2026-04-09 02:00 UTC (12:00 Beijing)
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
@@ -128,12 +128,13 @@ async function collectTwitter() {
       const res = await fetch(`${RSSHUB}/twitter/user/${acct.account}`, 8000);
       const tweetMatches = res.match(/<item>[\s\S]*?<\/item>/gi) || [];
       for (let i = 0; i < Math.min(3, tweetMatches.length); i++) {
-        const titleMatch = tweetMatches[i].match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
+        // Support both CDATA and plain text formats
+        const titleMatch = tweetMatches[i].match(/<title>(?:<!\[CDATA\[([\s\S]*?)\]\]>|(.*?))<\/title>/);
         const linkMatch = tweetMatches[i].match(/<link>([\s\S]*?)<\/link>/);
-        const descMatch = tweetMatches[i].match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
-        const title = titleMatch ? titleMatch[1] : '';
-        const link = linkMatch ? linkMatch[1].replace('<![CDATA[','').replace(']]>','') : '';
-        const desc = descMatch ? descMatch[1].replace(/<[^>]+>/g,'').trim().substring(0,200) : '';
+        const descMatch = tweetMatches[i].match(/<description>(?:<!\[CDATA\[([\s\S]*?)\]\]>|(.*?))<\/description>/);
+        const title = titleMatch ? (titleMatch[1] || titleMatch[2]) : '';
+        const link = linkMatch ? linkMatch[1] : '';
+        const desc = descMatch ? (descMatch[1] || descMatch[2] || '').replace(/<[^>]+>/g,'').trim().substring(0,200) : '';
         if (title && !title.includes('RssHub') && !title.startsWith('http://x.com/i/article')) {
           addItem(
             `[${acct.name}] ${title}`.substring(0, 150),
@@ -153,7 +154,7 @@ async function collectTwitter() {
 }
 
 async function main() {
-  console.log('Starting hotspot collection for', DATE, TIME, '(10:00 Beijing)...');
+  console.log('Starting hotspot collection for', DATE, TIME, '(12:00 Beijing)...');
   
   await collectHN();
   await new Promise(r => setTimeout(r, 500));
@@ -171,7 +172,7 @@ async function main() {
   };
 
   const outDir = '/root/.openclaw/workspace/coding-agent-team/agents/pm/operation-content-platform/data/daily_hotspots';
-  const outFile = path.join(outDir, `${DATE}_02.json`);
+  const outFile = path.join(outDir, `${DATE}_04.json`);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify(data, null, 2), 'utf-8');
   console.log(`✅ Saved ${items.length} items to ${outFile}`);
@@ -180,8 +181,8 @@ async function main() {
   // Also save to radar workspace
   const radarDir = '/root/.openclaw/workspace-radar/data/daily_hotspots';
   if (fs.existsSync(radarDir)) {
-    fs.writeFileSync(path.join(radarDir, `${DATE}_02.json`), JSON.stringify(data, null, 2), 'utf-8');
-    console.log(`✅ Synced to radar: ${path.join(radarDir, `${DATE}_02.json`)}`);
+    fs.writeFileSync(path.join(radarDir, `${DATE}_04.json`), JSON.stringify(data, null, 2), 'utf-8');
+    console.log(`✅ Synced to radar: ${path.join(radarDir, `${DATE}_04.json`)}`);
   }
 }
 

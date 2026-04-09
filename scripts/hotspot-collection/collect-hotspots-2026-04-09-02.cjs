@@ -128,12 +128,13 @@ async function collectTwitter() {
       const res = await fetch(`${RSSHUB}/twitter/user/${acct.account}`, 8000);
       const tweetMatches = res.match(/<item>[\s\S]*?<\/item>/gi) || [];
       for (let i = 0; i < Math.min(3, tweetMatches.length); i++) {
-        const titleMatch = tweetMatches[i].match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
+        // Support both CDATA and plain text formats
+        const titleMatch = tweetMatches[i].match(/<title>(?:<!\[CDATA\[([\s\S]*?)\]\]>|(.*?))<\/title>/);
         const linkMatch = tweetMatches[i].match(/<link>([\s\S]*?)<\/link>/);
-        const descMatch = tweetMatches[i].match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
-        const title = titleMatch ? titleMatch[1] : '';
-        const link = linkMatch ? linkMatch[1].replace('<![CDATA[','').replace(']]>','') : '';
-        const desc = descMatch ? descMatch[1].replace(/<[^>]+>/g,'').trim().substring(0,200) : '';
+        const descMatch = tweetMatches[i].match(/<description>(?:<!\[CDATA\[([\s\S]*?)\]\]>|(.*?))<\/description>/);
+        const title = titleMatch ? (titleMatch[1] || titleMatch[2]) : '';
+        const link = linkMatch ? linkMatch[1] : '';
+        const desc = descMatch ? (descMatch[1] || descMatch[2] || '').replace(/<[^>]+>/g,'').trim().substring(0,200) : '';
         if (title && !title.includes('RssHub') && !title.startsWith('http://x.com/i/article')) {
           addItem(
             `[${acct.name}] ${title}`.substring(0, 150),
