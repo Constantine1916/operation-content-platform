@@ -26,6 +26,13 @@ function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
   });
 }
 
+type SourceTab = 'all' | 'web' | 'twitter';
+
+function classifySource(source: string): 'web' | 'twitter' {
+  const s = source.toLowerCase();
+  return s.includes('twitter') || s.includes('@') ? 'twitter' : 'web';
+}
+
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +40,7 @@ export default function HotspotsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [sourceTab, setSourceTab] = useState<SourceTab>('all');
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true); }, []);
@@ -67,13 +75,32 @@ export default function HotspotsPage() {
     });
   };
 
-  const groups = groupByTime(hotspots);
+  const filteredHotspots = sourceTab === 'all' ? hotspots
+    : hotspots.filter(h => classifySource(h.source) === (sourceTab === 'twitter' ? 'twitter' : 'web'));
+  const groups = groupByTime(filteredHotspots);
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">热点资讯</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Hotspot News</p>
+      </div>
+
+      {/* Source filter tabs */}
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+        {([['all', '全部'], ['web', '网站资讯'], ['twitter', 'Twitter']] as [SourceTab, string][]).map(([tab, label]) => (
+          <button
+            key={tab}
+            onClick={() => setSourceTab(tab)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              sourceTab === tab
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -94,7 +121,7 @@ export default function HotspotsPage() {
           ))}
         </div>
       ) : groups.length === 0 ? (
-        <div className="text-center py-20 text-gray-500 text-sm">暂无数据</div>
+        <div className="text-center py-20 text-gray-500 text-sm">{hotspots.length === 0 ? '暂无数据' : '该分类暂无数据'}</div>
       ) : (
         <>
           <div className="space-y-5">
@@ -190,7 +217,7 @@ export default function HotspotsPage() {
             {!hasMore && hotspots.length > 0 && (
               <div className="flex items-center gap-3 justify-center py-8">
                 <div className="flex-1 h-px bg-gray-100"></div>
-                <span className="text-xs text-gray-400">已加载全部 {hotspots.length} 条热点</span>
+                <span className="text-xs text-gray-400">已加载全部 {filteredHotspots.length} 条热点</span>
                 <div className="flex-1 h-px bg-gray-100"></div>
               </div>
             )}
