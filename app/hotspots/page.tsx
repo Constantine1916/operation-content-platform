@@ -166,11 +166,6 @@ export default function HotspotsPage() {
                                   🔥 {hotspot.热度}
                                 </span>
                               )}
-                              {hotspot.category && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                                  {hotspot.category}
-                                </span>
-                              )}
                             </div>
                             <h3 className="text-sm font-semibold text-gray-900 group-hover:text-black line-clamp-2">
                               {hotspot.title}
