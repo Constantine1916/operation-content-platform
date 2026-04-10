@@ -28,11 +28,6 @@ function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
 
 type SourceTab = 'all' | 'web' | 'twitter';
 
-function classifySource(source: string): 'web' | 'twitter' {
-  const s = source.toLowerCase();
-  return s.includes('twitter') || s.includes('@') ? 'twitter' : 'web';
-}
-
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +38,7 @@ export default function HotspotsPage() {
   const [sourceTab, setSourceTab] = useState<SourceTab>('all');
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true); }, []);
+  useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true, sourceTab); }, [sourceTab]);
 
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
@@ -53,11 +48,12 @@ export default function HotspotsPage() {
     return () => obs.disconnect();
   }, [hasMore, loading, loadingMore, page]);
 
-  const fetchHotspots = async (pageNum: number, isFirst = false) => {
+  const fetchHotspots = async (pageNum: number, isFirst = false, tab: SourceTab = sourceTab) => {
     if (isFirst) setLoading(true); else setLoadingMore(true);
     try {
-      const url = `/api/hotspots?limit=${PAGE_SIZE}&page=${pageNum + 1}`;
-      const result = await fetch(url).then(r => r.json());
+      const params = new URLSearchParams({ limit: String(PAGE_SIZE), page: String(pageNum + 1) });
+      if (tab !== 'all') params.set('source_type', tab);
+      const result = await fetch(`/api/hotspots?${params}`).then(r => r.json());
       const items: Hotspot[] = result.data || [];
       if (items.length < PAGE_SIZE) setHasMore(false);
       setHotspots(prev => pageNum === 0 ? items : [...prev, ...items]);
@@ -65,7 +61,7 @@ export default function HotspotsPage() {
     finally { setLoading(false); setLoadingMore(false); }
   };
 
-  const loadMore = useCallback(() => { const n = page + 1; setPage(n); fetchHotspots(n, false); }, [page]);
+  const loadMore = useCallback(() => { const n = page + 1; setPage(n); fetchHotspots(n, false); }, [page, sourceTab]);
 
   const toggleCollapse = (key: string) => {
     setCollapsed(prev => {
@@ -75,9 +71,7 @@ export default function HotspotsPage() {
     });
   };
 
-  const filteredHotspots = sourceTab === 'all' ? hotspots
-    : hotspots.filter(h => classifySource(h.source) === (sourceTab === 'twitter' ? 'twitter' : 'web'));
-  const groups = groupByTime(filteredHotspots);
+  const groups = groupByTime(hotspots);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -121,7 +115,7 @@ export default function HotspotsPage() {
           ))}
         </div>
       ) : groups.length === 0 ? (
-        <div className="text-center py-20 text-gray-500 text-sm">{hotspots.length === 0 ? '暂无数据' : '该分类暂无数据'}</div>
+        <div className="text-center py-20 text-gray-500 text-sm">暂无数据</div>
       ) : (
         <>
           <div className="space-y-5">
@@ -212,7 +206,7 @@ export default function HotspotsPage() {
             {!hasMore && hotspots.length > 0 && (
               <div className="flex items-center gap-3 justify-center py-8">
                 <div className="flex-1 h-px bg-gray-100"></div>
-                <span className="text-xs text-gray-400">已加载全部 {filteredHotspots.length} 条热点</span>
+                <span className="text-xs text-gray-400">已加载全部 {hotspots.length} 条热点</span>
                 <div className="flex-1 h-px bg-gray-100"></div>
               </div>
             )}

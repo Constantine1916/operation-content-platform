@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const date = searchParams.get('date');
+    const source_type = searchParams.get('source_type'); // 'web' | 'twitter' | null
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -37,6 +38,13 @@ export async function GET(request: NextRequest) {
     // 分类筛选
     if (category && category !== 'all') {
       query = query.eq('category', category);
+    }
+
+    // 来源类型筛选
+    if (source_type === 'twitter') {
+      query = query.or('source.ilike.%twitter%,source.ilike.%@%');
+    } else if (source_type === 'web') {
+      query = query.not('source', 'ilike', '%twitter%').not('source', 'ilike', '%@%');
     }
 
     // 日期筛选
