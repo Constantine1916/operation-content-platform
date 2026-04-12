@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const { data: tasks, error } = await db
       .from('generate_tasks')
-      .select('task_id, prompt, images, created_at')
+      .select('task_id, prompt, images, created_at, user_id, profiles(username, avatar_url)')
       .eq('status', 3)
       .not('images', 'is', null)
       .order('created_at', { ascending: false })
@@ -51,8 +51,9 @@ export async function GET(request: NextRequest) {
 
     if (error) throw new Error(error.message);
 
-    const items = (tasks ?? []).flatMap((task: any) =>
-      (task.images ?? []).map((img: any) => ({
+    const items = (tasks ?? []).flatMap((task: any) => {
+      const profile = task.profiles as { username: string | null; avatar_url: string | null } | null;
+      return (task.images ?? []).map((img: any) => ({
         task_id: task.task_id,
         prompt: task.prompt as string,
         url: img.url as string,
@@ -60,8 +61,11 @@ export async function GET(request: NextRequest) {
         height: img.height as number,
         index: img.index as number,
         created_at: task.created_at as string,
-      }))
-    );
+        user_id: task.user_id as string,
+        username: profile?.username ?? null,
+        avatar_url: profile?.avatar_url ?? null,
+      }));
+    });
 
     const { count } = await db
       .from('generate_tasks')

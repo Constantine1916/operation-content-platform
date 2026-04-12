@@ -12,10 +12,13 @@ export interface GalleryImage {
   height: number;
   index: number;
   created_at: string;
+  user_id: string;
+  username: string | null;
+  avatar_url: string | null;
 }
 
 const PAGE_LIMIT = 50;
-const BREAKPOINTS = { default: 3, 1024: 3, 768: 2, 640: 1 };
+const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
 
 export default function AiGalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -177,6 +180,12 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
         </div>
         <div className="px-3 py-2.5">
           <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">{image.prompt}</p>
+          <div className="flex items-center gap-1.5 mt-2">
+            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+            <span className="text-[10px] text-gray-400 truncate">
+              {image.username ?? image.user_id.slice(0, 8)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -188,6 +197,18 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
         />
       )}
     </>
+  );
+}
+
+function Avatar({ user_id, username, avatar_url }: { user_id: string; username: string | null; avatar_url: string | null }) {
+  const initial = (username ?? user_id).charAt(0).toUpperCase();
+  if (avatar_url) {
+    return <img src={avatar_url} alt={initial} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />;
+  }
+  return (
+    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+      <span className="text-[8px] font-semibold text-gray-500">{initial}</span>
+    </div>
   );
 }
 

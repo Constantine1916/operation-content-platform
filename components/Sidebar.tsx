@@ -76,7 +76,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
-      title: 'AI视频',
+      title: 'AI 视频',
       href: '/ai-video',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
