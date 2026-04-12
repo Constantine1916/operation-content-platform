@@ -705,52 +705,68 @@ function GenerateImgPageInner() {
 
       {/* 管理模式底部浮动操作栏 */}
       {isManaging && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl">
-          <span className="text-sm font-medium tabular-nums min-w-[56px]">
-            已选 <span className="text-yellow-300 font-semibold">{selected.size}</span> 张
-          </span>
-          <div className="w-px h-4 bg-white/20" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-2xl shadow-lg shadow-gray-200/80">
+          {/* 已选计数 */}
+          <div className="flex items-center gap-1.5 pr-3 border-r border-gray-100">
+            {selected.size > 0 ? (
+              <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center tabular-nums">
+                {selected.size}
+              </span>
+            ) : (
+              <span className="w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center" />
+            )}
+            <span className="text-xs text-gray-500 whitespace-nowrap">已选图片</span>
+          </div>
+
+          {/* 公开 */}
           <button
             onClick={() => handleSetVisibility(true)}
             disabled={actionLoading || selected.size === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-500 hover:bg-green-400 rounded-full disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-900 hover:text-gray-900 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            批量公开
+            公开
           </button>
+
+          {/* 私密 */}
           <button
             onClick={() => handleSetVisibility(false)}
             disabled={actionLoading || selected.size === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-600 hover:bg-gray-500 rounded-full disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-900 hover:text-gray-900 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
             </svg>
-            批量私密
+            私密
           </button>
+
+          {/* 删除 */}
           <button
             onClick={handleDeleteSelected}
             disabled={actionLoading || selected.size === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-500 hover:bg-red-400 rounded-full disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 border border-red-100 rounded-full hover:border-red-300 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            批量删除
+            删除
           </button>
-          <div className="w-px h-4 bg-white/20" />
+
+          <div className="w-px h-4 bg-gray-100 mx-1" />
+
+          {/* 取消 */}
           <button
             onClick={exitManage}
             disabled={actionLoading}
-            className="text-xs text-white/60 hover:text-white transition-colors disabled:opacity-40"
+            className="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40"
           >
             取消
           </button>
           {actionLoading && (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
           )}
         </div>
       )}
