@@ -4,34 +4,30 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
+import { App } from 'antd';
 
-interface ImageResult { url: string; width: number; height: number; index: number }
+interface ImageResult { url: string; width: number; height: number; index: number; is_public?: boolean }
 
-// 后台实际任务（一个 task_id 对应一次执行）
 interface SubTask {
   task_id: string | null;
-  status: number; // 1=排队 2=生成中 3=完成 4=失败
+  status: number; // 0=排队等待 1=排队中 2=生成中 3=完成 4=失败
   process: number;
   images: ImageResult[];
   error?: string;
 }
 
-// 前端展示单元：一个 prompt 的所有执行合并为一个 PromptGroup
 interface PromptGroup {
   prompt: string;
   subtasks: SubTask[];
-  // 是否来自历史（历史的不计入本次进度）
   fromHistory: boolean;
-  // 该组最新任务的创建时间（用于排序）
   latestAt: number;
 }
 
+// 选中 key: `${task_id}::${image_index}`
+type SelectedKey = string;
+
 const STATUS_LABEL: Record<number, string> = {
-  0: '等待中',
-  1: '排队中',
-  2: '生成中',
-  3: '完成',
-  4: '失败',
+  0: '等待中', 1: '排队中', 2: '生成中', 3: '完成', 4: '失败',
 };
 
 function groupStatus(subtasks: SubTask[]): number {
@@ -47,7 +43,7 @@ function groupProcess(subtasks: SubTask[]): number {
   return Math.round(subtasks.reduce((s, t) => s + (t.status === 3 ? 100 : t.process), 0) / subtasks.length);
 }
 
-export default function GenerateImgPage() {
+function GenerateImgPageInner() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [prompts, setPrompts] = useState<string[]>(['']);
@@ -58,10 +54,18 @@ export default function GenerateImgPage() {
   const [error, setError] = useState('');
   const tokenRef = useRef<string>('');
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 本次提交的 task_id 集合，用于进度统计
   const currentBatchIds = useRef<Set<string>>(new Set());
 
-  // 加载历史任务（抽成独立函数，方便缓存命中时直接调用）
+  // 全局管理模式（跨任务选图）
+  const [isManaging, setIsManaging] = useState(false);
+  const [selected, setSelected] = useState<Set<SelectedKey>>(new Set());
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const { modal } = App.useApp();
+
+  // 所有有图片的任务数量
+  const totalImagesCount = groups.flatMap(g => g.subtasks).flatMap(s => s.images).length;
+
   async function loadHistory(token: string) {
     const histRes = await fetch('/api/generate-image/history', {
       headers: { Authorization: `Bearer ${token}` },
@@ -82,30 +86,25 @@ export default function GenerateImgPage() {
       const token = session.access_token;
       tokenRef.current = token;
 
-      // 先读缓存，命中则立即展示页面，后台异步刷新
       const cached = readVipCache(userId);
       if (cached !== null) {
         if (cached < 2) { router.replace('/overview'); return; }
         setChecking(false);
         loadHistory(token);
-        // 后台静默刷新缓存，SVIP 过期时下次进入会被拦截
         refreshVipCache(userId, token).then(fresh => {
           if (fresh !== null && fresh < 2) router.replace('/overview');
         });
         return;
       }
 
-      // 无缓存：等待鉴权完成
       const fresh = await refreshVipCache(userId, token);
       if (fresh === null || fresh < 2) { router.replace('/overview'); return; }
-
       setChecking(false);
       loadHistory(token);
     });
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
   }, [router]);
 
-  // 历史任务：同 prompt 的合并成一组，组按最新任务时间降序排列
   function buildGroupsFromHistory(tasks: any[]): PromptGroup[] {
     const map = new Map<string, { subtasks: SubTask[]; latestAt: number }>();
     for (const t of tasks) {
@@ -141,24 +140,18 @@ export default function GenerateImgPage() {
     const reader = new FileReader();
     reader.onload = e => {
       const text = e.target?.result as string;
-      // 解析 CSV：取第一列，跳过空行，自动识别有无表头
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (lines.length === 0) return;
-
-      // 判断第一行是否是表头（常见表头词）
       const HEADER_WORDS = ['prompt', 'text', '提示词', '内容', '描述', 'description'];
       const firstCell = lines[0]!.split(',')[0]!.replace(/^"|"$/g, '').trim().toLowerCase();
       const hasHeader = HEADER_WORDS.some(w => firstCell.includes(w));
       const dataLines = hasHeader ? lines.slice(1) : lines;
-
       const parsed = dataLines
         .map(line => {
-          // 处理 CSV 引号转义
           const firstCol = line.match(/^"((?:[^"]|"")*)"|^([^,]*)/)?.[0] ?? '';
           return firstCol.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
         })
         .filter(Boolean);
-
       if (parsed.length === 0) return;
       setPrompts(parsed);
       setCounts(parsed.map(() => 1));
@@ -166,27 +159,35 @@ export default function GenerateImgPage() {
     reader.readAsText(file, 'utf-8');
   };
 
-  const handleDeleteGroup = async (prompt: string) => {
-    // 乐观更新：先从前端移除
-    setGroups(prev => prev.filter(g => g.prompt !== prompt));
-    try {
-      await fetch('/api/generate-image/delete', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
-        body: JSON.stringify({ prompt }),
-      });
-    } catch (e) {
-      console.error('delete failed', e);
-    }
+  // 删除整个任务组（带二次确认）
+  const handleDeleteGroup = (prompt: string) => {
+    modal.confirm({
+      title: '确认删除任务',
+      content: '确定要删除该任务及其所有图片吗？此操作不可恢复。',
+      okText: '删除',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: async () => {
+        setGroups(prev => prev.filter(g => g.prompt !== prompt));
+        try {
+          await fetch('/api/generate-image/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
+            body: JSON.stringify({ prompt }),
+          });
+        } catch (e) {
+          console.error('delete failed', e);
+        }
+      },
+    });
   };
 
   const startPolling = (currentGroups: PromptGroup[]) => {
+    const hasQueued = currentGroups.flatMap(g => g.subtasks).some(t => t.status === 0);
     const pendingIds = currentGroups
       .flatMap(g => g.subtasks)
       .filter(t => t.task_id && t.status !== 3 && t.status !== 4)
       .map(t => t.task_id as string);
-    // 有待提交(status=0)的任务也需要继续轮询（等补提）
-    const hasQueued = currentGroups.flatMap(g => g.subtasks).some(t => t.status === 0);
 
     if (pendingIds.length === 0 && !hasQueued) { setPolling(false); return; }
     setPolling(true);
@@ -196,12 +197,9 @@ export default function GenerateImgPage() {
         .filter(t => t.task_id && t.status !== 3 && t.status !== 4)
         .map(t => t.task_id as string);
       const stillHasQueued = gs.flatMap(g => g.subtasks).some(t => t.status === 0);
-
       if (ids.length === 0 && !stillHasQueued) { setPolling(false); return; }
 
-      // 如果没有进行中的 task_id 但有排队中的，发一个空占位轮询触发补提
       const pollIds = ids.length > 0 ? ids : ['__queue_check__'];
-
       try {
         const res = await fetch('/api/generate-image/poll', {
           method: 'POST',
@@ -211,7 +209,6 @@ export default function GenerateImgPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        // 更新已有 task_id 的任务状态
         let updated = gs.map(g => ({
           ...g,
           subtasks: g.subtasks.map(sub => {
@@ -222,7 +219,6 @@ export default function GenerateImgPage() {
           }),
         }));
 
-        // 把 promoted（刚从 status=0 升为 status=1 的）更新到对应 subtask
         if (data.promoted?.length > 0) {
           updated = updated.map(g => ({
             ...g,
@@ -230,14 +226,12 @@ export default function GenerateImgPage() {
               if (sub.status !== 0) return sub;
               const p = data.promoted.find((pr: any) => pr.prompt === g.prompt);
               if (!p) return sub;
-              // 从 promoted 里找一个匹配此 prompt 且还没消耗的
               return { ...sub, task_id: p.task_id, status: 1 };
             }),
           }));
         }
 
         setGroups(updated);
-
         const stillPending = updated.flatMap(g => g.subtasks).filter(t => t.status !== 3 && t.status !== 4);
         if (stillPending.length > 0) {
           pollTimerRef.current = setTimeout(() => doPoll(updated), 3000);
@@ -262,7 +256,6 @@ export default function GenerateImgPage() {
     setSubmitting(true);
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
 
-    // 展开：每个 prompt 重复 count 次
     const expanded = entries.flatMap(e => Array.from({ length: e.count }, () => e.prompt));
 
     try {
@@ -274,12 +267,10 @@ export default function GenerateImgPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? '提交失败'); setSubmitting(false); return; }
 
-      // 记录本次批次的所有 task_id
       currentBatchIds.current = new Set(
         data.tasks.filter((t: any) => t.task_id).map((t: any) => t.task_id)
       );
 
-      // 按 prompt 聚合成 PromptGroup（同 prompt 的 subtasks 合在一起）
       const submitTime = Date.now();
       const newGroupMap = new Map<string, SubTask[]>();
       for (const t of data.tasks) {
@@ -293,20 +284,15 @@ export default function GenerateImgPage() {
         });
       }
       const newGroups: PromptGroup[] = Array.from(newGroupMap.entries()).map(([prompt, subtasks]) => ({
-        prompt,
-        subtasks,
-        fromHistory: false,
-        latestAt: submitTime,
+        prompt, subtasks, fromHistory: false, latestAt: submitTime,
       }));
 
-      // 合并后按时间降序排列
       setGroups(prev => {
         const merged = [...newGroups, ...prev.map(g => ({ ...g, fromHistory: true }))];
         return merged.sort((a, b) => b.latestAt - a.latestAt);
       });
       setSubmitting(false);
 
-      // 用新 groups + 现有历史一起轮询
       setGroups(current => {
         const merged = [...newGroups, ...current.filter(g => g.fromHistory)]
           .sort((a, b) => b.latestAt - a.latestAt);
@@ -319,6 +305,93 @@ export default function GenerateImgPage() {
     }
   };
 
+  // 管理模式
+  const enterManage = () => { setIsManaging(true); setSelected(new Set()); };
+  const exitManage = () => { setIsManaging(false); setSelected(new Set()); };
+
+  const toggleSelect = (key: SelectedKey) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  // 解析 selected → Map<task_id, number[]>
+  const parseSelected = () => {
+    const map = new Map<string, number[]>();
+    for (const key of selected) {
+      const idx = key.indexOf('::');
+      if (idx === -1) continue;
+      const task_id = key.slice(0, idx);
+      const imgIdx = parseInt(key.slice(idx + 2));
+      if (!map.has(task_id)) map.set(task_id, []);
+      map.get(task_id)!.push(imgIdx);
+    }
+    return map;
+  };
+
+  const handleSetVisibility = async (is_public: boolean) => {
+    if (selected.size === 0) return;
+    setActionLoading(true);
+    const taskMap = parseSelected();
+    try {
+      await Promise.all(Array.from(taskMap.entries()).map(([task_id, image_indexes]) =>
+        fetch('/api/generate-image/images', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
+          body: JSON.stringify({ task_id, image_indexes, is_public }),
+        })
+      ));
+      setGroups(prev => prev.map(g => ({
+        ...g,
+        subtasks: g.subtasks.map(sub => {
+          if (!sub.task_id || !taskMap.has(sub.task_id)) return sub;
+          const idxSet = new Set(taskMap.get(sub.task_id));
+          return { ...sub, images: sub.images.map(img => idxSet.has(img.index) ? { ...img, is_public } : img) };
+        }),
+      })));
+      setSelected(new Set());
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selected.size === 0) return;
+    modal.confirm({
+      title: '确认删除图片',
+      content: `确定要删除选中的 ${selected.size} 张图片吗？此操作不可恢复。`,
+      okText: '删除',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: async () => {
+        setActionLoading(true);
+        const taskMap = parseSelected();
+        try {
+          await Promise.all(Array.from(taskMap.entries()).map(([task_id, image_indexes]) =>
+            fetch('/api/generate-image/images', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
+              body: JSON.stringify({ task_id, image_indexes }),
+            })
+          ));
+          setGroups(prev => prev.map(g => ({
+            ...g,
+            subtasks: g.subtasks.map(sub => {
+              if (!sub.task_id || !taskMap.has(sub.task_id)) return sub;
+              const idxSet = new Set(taskMap.get(sub.task_id));
+              return { ...sub, images: sub.images.filter(img => !idxSet.has(img.index)) };
+            }),
+          })));
+          setSelected(new Set());
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
   if (checking) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -327,14 +400,11 @@ export default function GenerateImgPage() {
     );
   }
 
-  // 只统计本次提交的任务进度
   const batchIds = currentBatchIds.current;
   const batchSubtasks = groups.flatMap(g => g.subtasks).filter(t => t.task_id && batchIds.has(t.task_id as string));
   const batchTotal = batchSubtasks.length;
   const batchDone = batchSubtasks.filter(t => t.status === 3 || t.status === 4).length;
-  // status=0 的排队任务不在 batchIds 里（没有 task_id），单独统计
   const batchQueued = groups.filter(g => !g.fromHistory).flatMap(g => g.subtasks).filter(t => t.status === 0).length;
-
   const totalRuns = counts.reduce((s, c) => s + c, 0);
 
   return (
@@ -424,9 +494,7 @@ export default function GenerateImgPage() {
         {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
 
         <div className="mt-5 flex items-center justify-between">
-          <span className="text-xs text-gray-400">
-            共 {totalRuns} 次任务，每次生成 4 张图
-          </span>
+          <span className="text-xs text-gray-400">共 {totalRuns} 次任务，每次生成 4 张图</span>
           <button
             onClick={handleSubmit}
             disabled={submitting || polling}
@@ -460,113 +528,240 @@ export default function GenerateImgPage() {
         </div>
       )}
 
-      {/* 任务结果列表（每个 PromptGroup 一张卡） */}
+      {/* 任务列表 */}
       {groups.length > 0 && (
-        <div className="space-y-6">
-          {groups.map((group, gi) => {
-            const status = groupStatus(group.subtasks);
-            const process = groupProcess(group.subtasks);
-            // 所有子任务的图片拼在一起，按子任务顺序分排
-            const allImages = group.subtasks.flatMap(st => st.images);
-            const hasAnyImages = allImages.length > 0;
-            const isPending = status === 1 || status === 2;
+        <>
+          {/* 任务列表顶部操作栏 */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs text-gray-400">{groups.length} 个任务</span>
+            {totalImagesCount > 0 && (
+              isManaging ? (
+                <button
+                  onClick={exitManage}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50 transition-all"
+                >
+                  退出管理
+                </button>
+              ) : (
+                <button
+                  onClick={enterManage}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-all"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  管理图片
+                </button>
+              )
+            )}
+          </div>
 
-            return (
-              <div key={gi} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-                {/* 标题行 */}
-                <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3">
-                  <span className="flex-shrink-0 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center mt-0.5">
-                    {gi + 1}
-                  </span>
-                  <p className="text-sm text-gray-700 leading-relaxed flex-1 line-clamp-2">{group.prompt}</p>
-                  <div className="flex-shrink-0 flex items-center gap-2">
-                    {group.subtasks.length > 1 && (
-                      <span className="text-[10px] text-gray-400">×{group.subtasks.length}</span>
-                    )}
-                    {status === 2 && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gray-900 rounded-full transition-all duration-500"
-                            style={{ width: `${process}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">{process}%</span>
-                      </div>
-                    )}
-                    <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
-                      status === 3 ? 'bg-green-50 text-green-700 border border-green-200' :
-                      status === 4 ? 'bg-red-50 text-red-600 border border-red-200' :
-                      status === 2 ? 'bg-blue-50 text-blue-600 border border-blue-200' :
-                      status === 0 ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' :
-                      'bg-gray-100 text-gray-500 border border-gray-200'
-                    }`}>
-                      {STATUS_LABEL[status] ?? '未知'}
+          <div className="space-y-6">
+            {groups.map((group, gi) => {
+              const status = groupStatus(group.subtasks);
+              const process = groupProcess(group.subtasks);
+
+              return (
+                <div key={gi} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  {/* 标题行 */}
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3">
+                    <span className="flex-shrink-0 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center mt-0.5">
+                      {gi + 1}
                     </span>
-                    <button
-                      onClick={() => handleDeleteGroup(group.prompt)}
-                      className="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
-                      title="删除"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    <p className="text-sm text-gray-700 leading-relaxed flex-1 line-clamp-2">{group.prompt}</p>
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                      {group.subtasks.length > 1 && (
+                        <span className="text-[10px] text-gray-400">×{group.subtasks.length}</span>
+                      )}
+                      {status === 2 && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gray-900 rounded-full transition-all duration-500"
+                              style={{ width: `${process}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-500">{process}%</span>
+                        </div>
+                      )}
+                      <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
+                        status === 3 ? 'bg-green-50 text-green-700 border border-green-200' :
+                        status === 4 ? 'bg-red-50 text-red-600 border border-red-200' :
+                        status === 2 ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                        status === 0 ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' :
+                        'bg-gray-100 text-gray-500 border border-gray-200'
+                      }`}>
+                        {STATUS_LABEL[status] ?? '未知'}
+                      </span>
+                      {/* 删除任务按钮（带二次确认） */}
+                      <button
+                        onClick={() => handleDeleteGroup(group.prompt)}
+                        className="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                        title="删除任务"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 图片区 */}
+                  <div className="p-4 space-y-3">
+                    {group.subtasks.map((sub, si) => (
+                      <div key={si}>
+                        {group.subtasks.length > 1 && (
+                          <p className="text-[10px] text-gray-400 mb-1.5 ml-1">第 {si + 1} 次</p>
+                        )}
+                        {sub.images.length > 0 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {sub.images.map((img, j) => {
+                              const selKey = `${sub.task_id}::${img.index}`;
+                              const isSelected = selected.has(selKey);
+                              return (
+                                <div
+                                  key={j}
+                                  className={`group relative aspect-[9/16] rounded-xl overflow-hidden border transition-all ${
+                                    isManaging
+                                      ? isSelected
+                                        ? 'border-gray-900 ring-2 ring-gray-900 cursor-pointer'
+                                        : 'border-gray-200 cursor-pointer hover:border-gray-400'
+                                      : 'border-gray-100 hover:border-gray-300'
+                                  }`}
+                                  onClick={() => {
+                                    if (isManaging && sub.task_id) toggleSelect(selKey);
+                                  }}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={img.url}
+                                    alt={`第${si + 1}次 图片${j + 1}`}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  />
+
+                                  {/* 管理模式：勾选圆圈 */}
+                                  {isManaging && (
+                                    <div className={`absolute top-2 left-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      isSelected ? 'bg-gray-900 border-gray-900' : 'bg-white/80 border-gray-300'
+                                    }`}>
+                                      {isSelected && (
+                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* 公开标记 */}
+                                  {img.is_public && (
+                                    <div className="absolute top-2 right-2 text-[9px] text-white bg-green-500/80 px-1.5 py-0.5 rounded-full">
+                                      公开
+                                    </div>
+                                  )}
+
+                                  {/* 非管理模式：hover 链接 */}
+                                  {!isManaging && (
+                                    <>
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                        <a
+                                          href={img.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={e => e.stopPropagation()}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          </svg>
+                                        </a>
+                                      </div>
+                                      <div className="absolute bottom-2 right-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
+                                        {img.width}×{img.height}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : sub.status === 1 || sub.status === 2 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {[1, 2, 3, 4].map(j => (
+                              <div key={j} className="aspect-[9/16] rounded-xl bg-gray-100 animate-pulse" />
+                            ))}
+                          </div>
+                        ) : sub.error ? (
+                          <div className="py-3 text-xs text-red-500">{sub.error}</div>
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
-                {/* 图片区：每个子任务一排（4张），未完成的子任务显示骨架屏 */}
-                <div className="p-4 space-y-3">
-                  {group.subtasks.map((sub, si) => (
-                    <div key={si}>
-                      {/* 多次时显示第几次 */}
-                      {group.subtasks.length > 1 && (
-                        <p className="text-[10px] text-gray-400 mb-1.5 ml-1">第 {si + 1} 次</p>
-                      )}
-                      {sub.images.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {sub.images.map((img, j) => (
-                            <a
-                              key={j}
-                              href={img.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group relative block aspect-[9/16] rounded-xl overflow-hidden border border-gray-100 hover:border-gray-300 transition-all"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={img.url}
-                                alt={`第${si + 1}次 图片${j + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                              </div>
-                              <div className="absolute bottom-2 right-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
-                                {img.width}×{img.height}
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      ) : sub.status === 1 || sub.status === 2 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {[1, 2, 3, 4].map(j => (
-                            <div key={j} className="aspect-[9/16] rounded-xl bg-gray-100 animate-pulse" />
-                          ))}
-                        </div>
-                      ) : sub.error ? (
-                        <div className="py-3 text-xs text-red-500">{sub.error}</div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+      {/* 管理模式底部浮动操作栏 */}
+      {isManaging && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl">
+          <span className="text-sm font-medium tabular-nums min-w-[56px]">
+            已选 <span className="text-yellow-300 font-semibold">{selected.size}</span> 张
+          </span>
+          <div className="w-px h-4 bg-white/20" />
+          <button
+            onClick={() => handleSetVisibility(true)}
+            disabled={actionLoading || selected.size === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-500 hover:bg-green-400 rounded-full disabled:opacity-40 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            批量公开
+          </button>
+          <button
+            onClick={() => handleSetVisibility(false)}
+            disabled={actionLoading || selected.size === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-600 hover:bg-gray-500 rounded-full disabled:opacity-40 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+            批量私密
+          </button>
+          <button
+            onClick={handleDeleteSelected}
+            disabled={actionLoading || selected.size === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-500 hover:bg-red-400 rounded-full disabled:opacity-40 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            批量删除
+          </button>
+          <div className="w-px h-4 bg-white/20" />
+          <button
+            onClick={exitManage}
+            disabled={actionLoading}
+            className="text-xs text-white/60 hover:text-white transition-colors disabled:opacity-40"
+          >
+            取消
+          </button>
+          {actionLoading && (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+export default function GenerateImgPage() {
+  return (
+    <App>
+      <GenerateImgPageInner />
+    </App>
   );
 }

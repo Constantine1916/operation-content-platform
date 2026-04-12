@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     const items = (tasks ?? []).flatMap((task: any) => {
       const profile = profileMap[task.user_id] ?? { username: null, avatar_url: null };
-      return (task.images ?? []).map((img: any) => ({
+      return (task.images ?? []).filter((img: any) => img.is_public === true).map((img: any) => ({
         task_id: task.task_id,
         prompt: task.prompt as string,
         url: img.url as string,
