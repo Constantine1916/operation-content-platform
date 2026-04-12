@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import Masonry from 'react-masonry-css';
 
@@ -153,10 +153,13 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
 function ImageCard({ image, allImages }: { image: GalleryImage; allImages: GalleryImage[] }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const siblings = allImages
-    .filter(img => img.task_id === image.task_id)
-    .sort((a, b) => a.index - b.index);
-  const startIndex = siblings.findIndex(img => img.index === image.index);
+  const { siblings, startIndex } = useMemo(() => {
+    const siblings = allImages
+      .filter(img => img.task_id === image.task_id)
+      .sort((a, b) => a.index - b.index);
+    const startIndex = siblings.findIndex(img => img.index === image.index);
+    return { siblings, startIndex };
+  }, [allImages, image.task_id, image.index]);
 
   return (
     <>
@@ -226,11 +229,36 @@ function Lightbox({ images, initialIndex, onClose }: {
           </svg>
         </button>
 
-        <img
-          src={img.url}
-          alt={img.prompt}
-          className="rounded-xl max-h-[75vh] w-auto object-contain"
-        />
+        <div className="relative">
+          <img
+            src={img.url}
+            alt={img.prompt}
+            className="rounded-xl max-h-[75vh] w-auto object-contain"
+          />
+
+          {images.length > 1 && (
+            <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none">
+              <button
+                onClick={() => setCurrent(i => Math.max(0, i - 1))}
+                disabled={current === 0}
+                className="pointer-events-auto w-9 h-9 flex items-center justify-center rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white disabled:opacity-20 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setCurrent(i => Math.min(images.length - 1, i + 1))}
+                disabled={current === images.length - 1}
+                className="pointer-events-auto w-9 h-9 flex items-center justify-center rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white disabled:opacity-20 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 w-full bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
           <p className="text-white/90 text-sm leading-relaxed">{img.prompt}</p>
@@ -239,28 +267,6 @@ function Lightbox({ images, initialIndex, onClose }: {
           )}
         </div>
 
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={() => setCurrent(i => Math.max(0, i - 1))}
-              disabled={current === 0}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setCurrent(i => Math.min(images.length - 1, i + 1))}
-              disabled={current === images.length - 1}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
     </div>
   );
