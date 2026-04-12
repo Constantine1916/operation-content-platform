@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
     const db = serviceClient();
     const from = (page - 1) * limit;
 
-    // 只查含有至少一张公开图片的任务（JSONB @> 包含查询）
+    // 只查含有至少一张公开图片的任务
     const { data: tasks, error } = await db
       .from('generate_tasks')
       .select('task_id, prompt, images, created_at, user_id')
       .eq('status', 3)
-      .contains('images', [{ is_public: true }])
+      .filter('images', 'cs', '[{"is_public":true}]')
       .order('created_at', { ascending: false })
       .range(from, from + limit - 1);
 
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       .from('generate_tasks')
       .select('id', { count: 'exact', head: true })
       .eq('status', 3)
-      .contains('images', [{ is_public: true }]);
+      .filter('images', 'cs', '[{"is_public":true}]');
 
     const hasMore = from + limit < (count ?? 0);
 
