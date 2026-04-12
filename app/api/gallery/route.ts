@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const { data: tasks, error } = await db
       .from('generate_tasks')
-      .select('task_id, prompt, images, created_at, user_id, profiles(username, avatar_url)')
+      .select('task_id, prompt, images, created_at, user_id')
       .eq('status', 3)
       .not('images', 'is', null)
       .order('created_at', { ascending: false })
@@ -51,8 +51,21 @@ export async function GET(request: NextRequest) {
 
     if (error) throw new Error(error.message);
 
+    // 批量查询涉及的用户 profile
+    const userIds = [...new Set((tasks ?? []).map((t: any) => t.user_id).filter(Boolean))];
+    const profileMap: Record<string, { username: string | null; avatar_url: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await db
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+      for (const p of profiles ?? []) {
+        profileMap[p.id] = { username: p.username ?? null, avatar_url: p.avatar_url ?? null };
+      }
+    }
+
     const items = (tasks ?? []).flatMap((task: any) => {
-      const profile = task.profiles as { username: string | null; avatar_url: string | null } | null;
+      const profile = profileMap[task.user_id] ?? { username: null, avatar_url: null };
       return (task.images ?? []).map((img: any) => ({
         task_id: task.task_id,
         prompt: task.prompt as string,
@@ -62,8 +75,8 @@ export async function GET(request: NextRequest) {
         index: img.index as number,
         created_at: task.created_at as string,
         user_id: task.user_id as string,
-        username: profile?.username ?? null,
-        avatar_url: profile?.avatar_url ?? null,
+        username: profile.username,
+        avatar_url: profile.avatar_url,
       }));
     });
 
