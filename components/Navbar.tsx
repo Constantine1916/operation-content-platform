@@ -105,7 +105,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               <span className="text-lg font-medium text-gray-900">OP</span>
             </div>
             <span className="text-base font-medium text-gray-900 tracking-[0.15em] truncate max-w-32 sm:max-w-none">
-              内容运营平台
+              AI树洞
             </span>
           </Link>
         </div>

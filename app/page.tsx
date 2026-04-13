@@ -34,7 +34,7 @@ export default function LandingPage() {
               <div className="w-10 h-10 border border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
                 <span className="text-lg font-medium text-gray-900">OP</span>
               </div>
-              <span className="text-lg font-medium tracking-[0.15em] text-gray-900">内容运营平台</span>
+              <span className="text-lg font-medium tracking-[0.15em] text-gray-900">AI树洞</span>
             </div>
             
             <div className="hidden md:flex items-center gap-10">
@@ -77,7 +77,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-lg text-gray-900 leading-relaxed max-w-xl mx-auto mb-16 font-normal">
-              一站式解决从热点采集、数据分析，内容创作、自动化发布到效果优化的全链路运营需求，让运营更高效
+              汇聚 AI 原创内容，连接创作者与用户
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -170,7 +170,7 @@ export default function LandingPage() {
         <div className="max-w-2xl mx-auto px-8 text-center">
           <h2 className="text-3xl font-normal mb-6 tracking-wide text-gray-900">开启智能运营之旅</h2>
           <p className="text-lg text-gray-900 mb-12 font-normal">
-            立即体验一站式内容运营平台，让运营更高效
+            发现、创作、分享 AI 资源
           </p>
           <Link
             href="/register"
@@ -189,10 +189,10 @@ export default function LandingPage() {
               <div className="w-8 h-8 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50">
                 <span className="text-lg font-medium text-gray-900">OP</span>
               </div>
-              <span className="text-lg text-gray-900 tracking-widest uppercase">内容运营平台</span>
+              <span className="text-lg text-gray-900 tracking-widest uppercase">AI树洞</span>
             </div>
             <p className="text-[10px] text-gray-900 tracking-widest uppercase">
-              © 2026 内容运营平台. All rights reserved.
+              © 2026 AI树洞. All rights reserved.
             </p>
           </div>
         </div>

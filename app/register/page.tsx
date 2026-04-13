@@ -56,7 +56,7 @@ export default function RegisterPage() {
       <div className="max-w-md w-full">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">内容运营平台</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">AI树洞</h1>
           <p className="gray-700">创建您的账户</p>
         </div>
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="text-center text-gray-900 text-lg mt-8">
-          © 2026 内容运营平台. All rights reserved.
+          © 2026 AI树洞. All rights reserved.
         </p>
       </div>
     </div>

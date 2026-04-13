@@ -83,7 +83,7 @@ export default function ArticlesPage() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">文章管理</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">AI 文章</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Article Management</p>
       </div>
 

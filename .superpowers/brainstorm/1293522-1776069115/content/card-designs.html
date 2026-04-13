@@ -1,0 +1,208 @@
+<h2>AI 图片卡片设计方案</h2>
+<p class="subtitle">三种解决「图片与作者割裂感」的设计方向，点击选择你喜欢的</p>
+
+<style>
+.design-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+.design-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+.design-card:hover { border-color: #9ca3af; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.design-card.selected { border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,0.15); }
+.design-label {
+  padding: 12px 16px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.design-label .badge {
+  font-size: 10px;
+  background: #111827;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+.design-desc {
+  padding: 0 16px 12px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ---- 方案 A：作者浮在图片底部 ---- */
+.card-a {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  margin: 0 16px 16px;
+  background: #f3f4f6;
+}
+.card-a-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 40%, #a5b4fc 100%);
+  position: relative;
+}
+.card-a-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  padding: 32px 12px 12px;
+}
+.card-a-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #6366f1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: white;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.4);
+}
+.card-a-name { font-size: 12px; color: rgba(255,255,255,0.9); font-weight: 500; }
+
+/* ---- 方案 B：无边框沉浸式，作者在图片内右下角 ---- */
+.card-b {
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 16px 16px;
+  position: relative;
+}
+.card-b-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 40%, #f9a8d4 100%);
+  position: relative;
+}
+.card-b-badge {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  border-radius: 99px;
+  padding: 4px 8px 4px 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-b-badge .avatar { width: 18px; height: 18px; font-size: 8px; border: none; background: #8b5cf6; }
+.card-b-badge span { font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 500; }
+
+/* ---- 方案 C：卡片整体无白底，圆角图片+作者紧贴下方 ---- */
+.card-c {
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 16px 16px;
+  background: transparent;
+}
+.card-c-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 40%, #6ee7b7 100%);
+  border-radius: 12px;
+}
+.card-c-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px 4px;
+}
+.card-c-footer .avatar { background: #059669; }
+.card-c-footer span { font-size: 12px; color: #374151; font-weight: 500; }
+</style>
+
+<div class="design-cards">
+
+  <!-- 方案 A -->
+  <div class="design-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="design-label">
+      方案 A
+      <span class="badge">推荐</span>
+    </div>
+    <div class="design-desc">作者信息叠在图片底部渐变层上，图片与作者完全融为一体，无割裂感</div>
+    <div class="card-a">
+      <div class="card-a-img">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.3">
+          <svg width="48" height="48" fill="none" stroke="#6366f1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="card-a-overlay">
+          <div class="card-a-author">
+            <div class="avatar">K</div>
+            <span class="card-a-name">kiro_user</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 16px 16px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#6b7280">✓ 无割裂感</span>
+        <span style="font-size:11px;color:#6b7280">✓ 图片占满卡片</span>
+        <span style="font-size:11px;color:#6b7280">✓ 简洁</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 B -->
+  <div class="design-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="design-label">方案 B</div>
+    <div class="design-desc">作者以毛玻璃胶囊形式悬浮在图片右下角，极简沉浸，不占额外空间</div>
+    <div class="card-b">
+      <div class="card-b-img">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.3">
+          <svg width="48" height="48" fill="none" stroke="#ec4899" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="card-b-badge">
+          <div class="avatar card-b-badge">K</div>
+          <span>kiro_user</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 16px 16px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#6b7280">✓ 最沉浸</span>
+        <span style="font-size:11px;color:#6b7280">✓ 图片最大化</span>
+        <span style="font-size:11px;color:#f59e0b">△ 作者不够醒目</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 C -->
+  <div class="design-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="design-label">方案 C</div>
+    <div class="design-desc">去掉白色卡片背景，图片圆角独立，作者信息紧贴图片下方，背景透明融入页面</div>
+    <div class="card-c" style="padding:0 16px 16px">
+      <div class="card-c-img">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.3">
+          <svg width="48" height="48" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+      </div>
+      <div class="card-c-footer">
+        <div class="avatar" style="background:#059669">K</div>
+        <span class="card-c-footer" style="font-size:12px;color:#374151;font-weight:500">kiro_user</span>
+      </div>
+    </div>
+    <div style="padding:0 16px 16px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#6b7280">✓ 轻盈通透</span>
+        <span style="font-size:11px;color:#6b7280">✓ 符合 gray-50 背景</span>
+        <span style="font-size:11px;color:#f59e0b">△ 作者区仍在图片外</span>
+      </div>
+    </div>
+  </div>
+
+</div>

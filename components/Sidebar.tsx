@@ -48,7 +48,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
-      title: '热点资讯',
+      title: 'AI 资讯',
       href: '/hotspots',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
-      title: '文章管理',
+      title: 'AI 文章',
       href: '/articles',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

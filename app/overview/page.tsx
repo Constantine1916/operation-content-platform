@@ -58,7 +58,7 @@ export default function Overview() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <StatCard title="热点资讯" count={hotspotsCount} icon="📰" />
+        <StatCard title="AI 资讯" count={hotspotsCount} icon="📰" />
         <StatCard title="文章总数" count={totalArticles} icon="📝" />
         <StatCard title="运营Agents" count={6} icon="🤖" />
       </div>
@@ -77,8 +77,8 @@ export default function Overview() {
       <div>
         <h2 className="text-base font-semibold text-gray-900 uppercase tracking-[0.15em] mb-4">快捷访问</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <QuickLink href="/hotspots" icon="📰" title="热点资讯" desc={`${hotspotsCount} 条资讯`} />
-          <QuickLink href="/articles" icon="📝" title="文章管理" desc={`${totalArticles} 篇文章`} />
+          <QuickLink href="/hotspots" icon="📰" title="AI 资讯" desc={`${hotspotsCount} 条资讯`} />
+          <QuickLink href="/articles" icon="📝" title="AI 文章" desc={`${totalArticles} 篇文章`} />
         </div>
       </div>
     </div>
