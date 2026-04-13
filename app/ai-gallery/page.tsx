@@ -205,10 +205,10 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
   return (
     <>
       <div
-        className="group rounded-xl overflow-hidden bg-white cursor-pointer transition-shadow hover:shadow-lg"
+        className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg"
         onClick={() => setLightboxOpen(true)}
       >
-        {/* 图片 + hover overlay */}
+        {/* 图片 + 常驻底部渐变（作者信息） + hover 时显示 prompt */}
         <div className="relative overflow-hidden">
           <img
             src={image.url}
@@ -216,21 +216,25 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
             className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
-          {/* hover 时显示 prompt + 复制按钮 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-            <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-2">{image.prompt}</p>
-            <div className="flex justify-end">
-              <CopyButton text={image.prompt} />
+
+          {/* 常驻底部渐变 + 作者信息 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
+            {/* hover 时浮出 prompt + 复制按钮 */}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-2.5 pointer-events-auto">
+              <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
+              <div className="flex justify-end">
+                <CopyButton text={image.prompt} />
+              </div>
+            </div>
+
+            {/* 作者信息：始终可见 */}
+            <div className="flex items-center gap-2 pointer-events-auto">
+              <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+              <span className="text-xs text-white/90 font-medium truncate">
+                {image.username ?? image.user_id.slice(0, 8)}
+              </span>
             </div>
           </div>
-        </div>
-
-        {/* 底部：头像 + 用户名 */}
-        <div className="px-3 py-2.5 flex items-center gap-2">
-          <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-          <span className="text-xs text-gray-600 font-medium truncate">
-            {image.username ?? image.user_id.slice(0, 8)}
-          </span>
         </div>
       </div>
 
@@ -248,11 +252,11 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
 function Avatar({ user_id, username, avatar_url }: { user_id: string; username: string | null; avatar_url: string | null }) {
   const initial = (username ?? user_id).charAt(0).toUpperCase();
   if (avatar_url) {
-    return <img src={avatar_url} alt={initial} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />;
+    return <img src={avatar_url} alt={initial} className="w-6 h-6 rounded-full object-cover flex-shrink-0 ring-1 ring-white/40" />;
   }
   return (
-    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-      <span className="text-[10px] font-semibold text-gray-500">{initial}</span>
+    <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/40 flex items-center justify-center flex-shrink-0">
+      <span className="text-[10px] font-semibold text-white">{initial}</span>
     </div>
   );
 }
