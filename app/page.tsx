@@ -36,11 +36,11 @@ export default function LandingPage() {
 
       {/* Hero — 全屏，一句话 */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <p className="text-xs tracking-[0.35em] text-gray-400 uppercase mb-8">aicave.cn</p>
-        <h1 className="text-[clamp(2.8rem,8vw,6rem)] font-semibold leading-[1.08] tracking-tight text-gray-900 mb-8 max-w-3xl">
+        <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-8">aicave.cn</p>
+        <h1 className="text-[3.5rem] md:text-[4rem] font-semibold leading-[1.1] tracking-tight text-gray-900 mb-6 max-w-2xl">
           发现 AI 时代<br />最好的原创内容
         </h1>
-        <p className="text-lg text-gray-400 max-w-md leading-relaxed mb-14">
+        <p className="text-[1.0625rem] text-gray-400 max-w-md leading-relaxed mb-12">
           资讯、图片、视频、课程——每天自动更新，由创作者与 AI 共同生产
         </p>
         <Link
@@ -88,7 +88,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="max-w-xl">
             <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-8">创作者</p>
-            <h2 className="text-3xl font-semibold text-gray-900 leading-snug mb-6">
+            <h2 className="text-[1.75rem] font-semibold text-gray-900 leading-snug mb-6">
               上传你的作品<br />让更多人看见
             </h2>
             <p className="text-base text-gray-500 leading-relaxed mb-10">
@@ -115,7 +115,7 @@ export default function LandingPage() {
       {/* CTA — 极简，一句话 + 一个按钮 */}
       <section className="py-32 border-t border-gray-100 text-center">
         <div className="max-w-xl mx-auto px-6">
-          <h2 className="text-4xl font-semibold text-gray-900 mb-6 leading-snug">
+          <h2 className="text-[1.75rem] font-semibold text-gray-900 mb-5 leading-snug">
             现在就开始
           </h2>
           <p className="text-base text-gray-400 mb-12">免费注册，立即探索所有 AI 内容</p>
@@ -149,8 +149,8 @@ export default function LandingPage() {
 function Stat({ number, label }: { number: string; label: string }) {
   return (
     <div className="text-center py-8 px-4">
-      <div className="text-4xl font-semibold text-gray-900 mb-2">{number}</div>
-      <div className="text-xs text-gray-400 tracking-wide">{label}</div>
+      <div className="text-[2rem] font-semibold text-gray-900 mb-2">{number}</div>
+      <div className="text-[0.8125rem] text-gray-400 tracking-wide">{label}</div>
     </div>
   );
 }
