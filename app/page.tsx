@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function LandingPage() {
@@ -12,211 +12,133 @@ export default function LandingPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) router.push('/overview');
-      setTimeout(() => setLoaded(true), 100);
+      setTimeout(() => setLoaded(true), 80);
     });
   }, [router]);
 
   return (
-    <div className={`min-h-screen bg-[#fafafa] transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-white transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
 
-      {/* 背景光晕 */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-gray-100 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-radial from-gray-50 to-transparent rounded-full blur-3xl" />
-      </div>
-
-      {/* 导航 */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-8 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50">
-              <span className="text-sm font-bold text-gray-900">AI</span>
-            </div>
-            <span className="text-base font-semibold tracking-wide text-gray-900">AI树洞</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#resources" className="text-sm tracking-widest text-gray-500 hover:text-gray-900 transition-colors uppercase">资源</a>
-            <a href="#creators" className="text-sm tracking-widest text-gray-500 hover:text-gray-900 transition-colors uppercase">创作者</a>
-            <a href="#about" className="text-sm tracking-widest text-gray-500 hover:text-gray-900 transition-colors uppercase">关于</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 border border-gray-200 rounded-full hover:border-gray-400">
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <span className="text-sm font-semibold tracking-wide text-gray-900">AI树洞</span>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-4 py-1.5">
               登录
             </Link>
-            <Link href="/register" className="text-sm bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-gray-700 transition-all font-medium">
-              免费注册
+            <Link href="/register" className="text-sm bg-gray-900 text-white px-4 py-1.5 rounded-full hover:bg-gray-700 transition-colors font-medium">
+              注册
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-44 pb-28">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <div className="inline-block mb-8">
-            <span className="text-[10px] tracking-[0.4em] text-gray-500 uppercase border border-gray-200 px-5 py-2 rounded-full">
-              aicave.cn · AI 原创资源平台
-            </span>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-light leading-[1.15] tracking-tight mb-6 text-gray-900">
-            <span className="block">AI 时代的</span>
-            <span className="block font-semibold">原创资源树洞</span>
-          </h1>
-          <p className="text-base text-gray-500 leading-relaxed max-w-lg mx-auto mb-4">
-            每天自动更新 AI 资讯与文章，汇聚创作者的 AI 图片、视频与课程
-          </p>
-          <p className="text-sm text-gray-400 mb-12">
-            发现好内容 · 支持好创作者 · 共建 AI 资源生态
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/register" className="px-8 py-3.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-700 transition-all">
-              免费开始探索
-            </Link>
-            <a href="#resources" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors group">
-              <span>了解更多</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </a>
+      {/* Hero — 全屏，一句话 */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+        <p className="text-xs tracking-[0.35em] text-gray-400 uppercase mb-8">aicave.cn</p>
+        <h1 className="text-[clamp(2.8rem,8vw,6rem)] font-semibold leading-[1.08] tracking-tight text-gray-900 mb-8 max-w-3xl">
+          发现 AI 时代<br />最好的原创内容
+        </h1>
+        <p className="text-lg text-gray-400 max-w-md leading-relaxed mb-14">
+          资讯、图片、视频、课程——每天自动更新，由创作者与 AI 共同生产
+        </p>
+        <Link
+          href="/register"
+          className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-8 py-3.5 rounded-full hover:bg-gray-700 transition-all hover:gap-3"
+        >
+          免费开始
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+        {/* 向下滚动提示 */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce">
+          <div className="w-px h-8 bg-gradient-to-b from-transparent to-gray-300" />
+        </div>
+      </section>
+
+      {/* 数字 — 用数据说话 */}
+      <section className="py-24 border-t border-gray-100">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
+            <Stat number="2h" label="资讯更新间隔" />
+            <Stat number="5+" label="内容类型" />
+            <Stat number="∞" label="创作者可上传" />
           </div>
         </div>
       </section>
 
-      {/* 资源类型 */}
-      <section id="resources" className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-8">
-          <div className="text-center mb-16">
-            <span className="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Resources</span>
-            <h2 className="text-2xl font-semibold mt-3 text-gray-900">多样的 AI 资源</h2>
-            <p className="text-sm text-gray-400 mt-2">由 AI Agent 自动生产 + 创作者原创上传，持续更新</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ResourceCard
-              icon="📡"
-              tag="每 2 小时更新"
-              title="AI 资讯"
-              description="Agent 自动采集全网 AI 热点，第一时间掌握模型发布、工具动态、行业趋势"
-              accent="bg-blue-50 text-blue-600 border-blue-100"
-            />
-            <ResourceCard
-              icon="📝"
-              tag="每 2 小时更新"
-              title="AI 文章"
-              description="基于热点资讯，Agent 自动撰写深度文章，创作者也可发布原创 AI 内容"
-              accent="bg-purple-50 text-purple-600 border-purple-100"
-            />
-            <ResourceCard
-              icon="🖼️"
-              tag="创作者上传"
-              title="AI 图片"
-              description="创作者分享 AI 生成图片作品，支持公开展示与下载，瀑布流画廊浏览"
-              accent="bg-pink-50 text-pink-600 border-pink-100"
-            />
-            <ResourceCard
-              icon="🎬"
-              tag="创作者上传"
-              title="AI 视频"
-              description="汇聚 AI 生成视频内容，创作者上传原创作品，用户发现优质 AI 视频资源"
-              accent="bg-orange-50 text-orange-600 border-orange-100"
-            />
-            <ResourceCard
-              icon="📚"
-              tag="即将上线"
-              title="AI 课程"
-              description="创作者录制 AI 工具使用教程与实战课程，帮助用户快速掌握 AI 技能"
-              accent="bg-green-50 text-green-600 border-green-100"
-            />
-            <ResourceCard
-              icon="⚡"
-              tag="持续扩展"
-              title="更多资源"
-              description="Prompt 模板、AI 工具评测、工作流分享……AI 树洞持续引入更多资源类型"
-              accent="bg-gray-50 text-gray-500 border-gray-200"
-            />
+      {/* 内容类型 — 极简列表，不是卡片 */}
+      <section className="py-24 border-t border-gray-100">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-16">内容</p>
+          <div className="space-y-0 divide-y divide-gray-100">
+            <ContentRow icon="📡" title="AI 资讯" desc="全网热点，每 2 小时自动采集" tag="自动更新" />
+            <ContentRow icon="📝" title="AI 文章" desc="基于资讯深度生成，也接受创作者投稿" tag="自动更新" />
+            <ContentRow icon="🖼️" title="AI 图片" desc="创作者上传 AI 生成作品，瀑布流展示" tag="创作者" />
+            <ContentRow icon="🎬" title="AI 视频" desc="AI 生成视频合集，持续扩充" tag="创作者" />
+            <ContentRow icon="📚" title="AI 课程" desc="工具教程与实战课，帮你快速上手" tag="即将上线" />
           </div>
         </div>
       </section>
 
-      {/* 创作者生态 */}
-      <section id="creators" className="py-24 bg-gray-50">
-        <div className="max-w-5xl mx-auto px-8">
-          <div className="text-center mb-16">
-            <span className="text-[10px] tracking-[0.4em] text-gray-400 uppercase">Creators</span>
-            <h2 className="text-2xl font-semibold mt-3 text-gray-900">创作者生态</h2>
-            <p className="text-sm text-gray-400 mt-2">分层体系，按贡献获得差异化权益与收益</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <CreatorTierCard
-              tier="普通创作者"
-              desc="上传 AI 资源，公开展示，积累粉丝与曝光"
-              perks={['资源公开展示', '基础数据统计', '社区互动']}
-              style="border-gray-200 bg-white"
-            />
-            <CreatorTierCard
-              tier="认证创作者"
-              desc="通过质量审核，享受更高曝光与收益分成"
-              perks={['优先推荐位', '收益分成资格', '专属认证标识']}
-              style="border-gray-900 bg-white"
-              highlight
-            />
-            <CreatorTierCard
-              tier="合作创作者"
-              desc="深度合作，共建平台内容生态，享受最高权益"
-              perks={['最高分成比例', '定制化推广', '联合运营支持']}
-              style="border-gray-200 bg-white"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 用户获取资源方式 */}
-      <section className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <span className="text-[10px] tracking-[0.4em] text-gray-400 uppercase">For Users</span>
-          <h2 className="text-2xl font-semibold mt-3 mb-4 text-gray-900">两种方式，畅享资源</h2>
-          <p className="text-sm text-gray-400 mb-12">免费用户看广告解锁，会员无限畅享所有资源</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <div className="border border-gray-200 rounded-2xl p-8 text-left hover:border-gray-400 transition-all">
-              <div className="text-2xl mb-4">🆓</div>
-              <h3 className="font-semibold text-gray-900 mb-2">免费用户</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">浏览所有公开内容，观看短广告后下载资源，无需付费即可体验平台核心功能</p>
-            </div>
-            <div className="border border-gray-900 rounded-2xl p-8 text-left bg-gray-900 text-white">
-              <div className="text-2xl mb-4">👑</div>
-              <h3 className="font-semibold mb-2">会员用户</h3>
-              <p className="text-sm text-white/60 leading-relaxed">无限下载全部资源，无广告打扰，优先体验新功能，支持创作者持续创作</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-2xl mx-auto px-8 text-center">
-          <h2 className="text-2xl font-semibold mb-3 text-gray-900">加入 AI 树洞</h2>
-          <p className="text-sm text-gray-400 mb-10">
-            无论你是 AI 爱好者、内容创作者，还是想学习 AI 技能的用户<br />这里都有你需要的资源
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register" className="px-10 py-3.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-700 transition-all">
-              免费注册
-            </Link>
-            <Link href="/login" className="px-10 py-3.5 border border-gray-200 text-gray-600 text-sm rounded-full hover:border-gray-900 hover:text-gray-900 transition-all">
-              已有账号，登录
+      {/* 创作者 — 一段话，不是三列卡片 */}
+      <section className="py-24 border-t border-gray-100 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="max-w-xl">
+            <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-8">创作者</p>
+            <h2 className="text-3xl font-semibold text-gray-900 leading-snug mb-6">
+              上传你的作品<br />让更多人看见
+            </h2>
+            <p className="text-base text-gray-500 leading-relaxed mb-10">
+              普通创作者免费上传，认证创作者享受优先推荐与收益分成，合作创作者获得最高权益与联合运营支持。
+            </p>
+            <Link href="/register" className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 border border-gray-900 px-6 py-2.5 rounded-full hover:bg-gray-900 hover:text-white transition-all">
+              成为创作者
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* 用户权益 — 两行对比，不是两个大卡片 */}
+      <section className="py-24 border-t border-gray-100">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-16">获取资源</p>
+          <div className="space-y-0 divide-y divide-gray-100">
+            <AccessRow type="免费用户" desc="浏览全部内容，观看短广告后下载资源" />
+            <AccessRow type="会员" desc="无限下载，无广告，优先体验新功能" highlight />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA — 极简，一句话 + 一个按钮 */}
+      <section className="py-32 border-t border-gray-100 text-center">
+        <div className="max-w-xl mx-auto px-6">
+          <h2 className="text-4xl font-semibold text-gray-900 mb-6 leading-snug">
+            现在就开始
+          </h2>
+          <p className="text-base text-gray-400 mb-12">免费注册，立即探索所有 AI 内容</p>
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-10 py-4 rounded-full hover:bg-gray-700 transition-all text-base"
+          >
+            免费注册
+          </Link>
+          <p className="mt-6 text-xs text-gray-400">
+            已有账号？
+            <Link href="/login" className="text-gray-600 hover:text-gray-900 ml-1 underline underline-offset-2">
+              登录
+            </Link>
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="about" className="py-10 border-t border-gray-200 bg-white">
-        <div className="max-w-6xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 border border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
-              <span className="text-xs font-bold text-gray-900">AI</span>
-            </div>
-            <span className="text-sm font-semibold text-gray-900">AI树洞</span>
-            <span className="text-xs text-gray-400">aicave.cn</span>
-          </div>
-          <p className="text-xs text-gray-400">© 2026 AI树洞. All rights reserved.</p>
+      <footer className="py-8 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-900">AI树洞</span>
+          <p className="text-xs text-gray-400">© 2026 aicave.cn</p>
         </div>
       </footer>
 
@@ -224,43 +146,44 @@ export default function LandingPage() {
   );
 }
 
-function ResourceCard({ icon, tag, title, description, accent }: {
-  icon: string; tag: string; title: string; description: string; accent: string;
-}) {
+function Stat({ number, label }: { number: string; label: string }) {
   return (
-    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-gray-300 hover:bg-white transition-all duration-300 group">
-      <div className="flex items-start justify-between mb-4">
-        <span className="text-2xl">{icon}</span>
-        <span className={`text-[10px] font-medium px-2.5 py-1 rounded-full border ${accent}`}>{tag}</span>
-      </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+    <div className="text-center py-8 px-4">
+      <div className="text-4xl font-semibold text-gray-900 mb-2">{number}</div>
+      <div className="text-xs text-gray-400 tracking-wide">{label}</div>
     </div>
   );
 }
 
-function CreatorTierCard({ tier, desc, perks, style, highlight }: {
-  tier: string; desc: string; perks: string[]; style: string; highlight?: boolean;
+function ContentRow({ icon, title, desc, tag }: {
+  icon: string; title: string; desc: string; tag: string;
 }) {
   return (
-    <div className={`rounded-2xl border p-6 ${style} transition-all`}>
-      {highlight && (
-        <div className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-3">推荐</div>
-      )}
-      <h3 className={`text-base font-semibold mb-2 ${highlight ? 'text-gray-900' : 'text-gray-900'}`}>{tier}</h3>
-      <p className="text-sm text-gray-500 mb-5 leading-relaxed">{desc}</p>
-      <ul className="space-y-2">
-        {perks.map((p, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-2.5 h-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-            {p}
-          </li>
-        ))}
-      </ul>
+    <div className="flex items-center gap-6 py-6 group">
+      <span className="text-2xl w-8 flex-shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-3 mb-1">
+          <span className="text-base font-medium text-gray-900">{title}</span>
+          <span className="text-xs text-gray-400">{desc}</span>
+        </div>
+      </div>
+      <span className="text-[11px] text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full flex-shrink-0">{tag}</span>
+    </div>
+  );
+}
+
+function AccessRow({ type, desc, highlight }: {
+  type: string; desc: string; highlight?: boolean;
+}) {
+  return (
+    <div className={`flex items-center justify-between py-6 ${highlight ? '' : ''}`}>
+      <div className="flex items-center gap-4">
+        <span className={`text-sm font-semibold ${highlight ? 'text-gray-900' : 'text-gray-500'}`}>{type}</span>
+        {highlight && (
+          <span className="text-[10px] bg-gray-900 text-white px-2 py-0.5 rounded-full">推荐</span>
+        )}
+      </div>
+      <span className="text-sm text-gray-500 text-right max-w-xs">{desc}</span>
     </div>
   );
 }
