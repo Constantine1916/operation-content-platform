@@ -32,7 +32,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 border border-gray-200 rounded-2xl flex items-center justify-center bg-gray-50">
-                <span className="text-lg font-medium text-gray-900">OP</span>
+                <span className="text-lg font-medium text-gray-900">AI</span>
               </div>
               <span className="text-lg font-medium tracking-[0.15em] text-gray-900">AI树洞</span>
             </div>
@@ -67,13 +67,13 @@ export default function LandingPage() {
           <div className="text-center">
             <div className="inline-block mb-10">
               <span className="text-[10px] tracking-[0.4em] text-gray-900 uppercase border border-gray-200 px-5 py-2 rounded-full">
-                智能内容运营解决方案
+                AI 原创资源平台
               </span>
             </div>
             
             <h1 className="text-6xl md:text-7xl font-normal leading-[1.1] tracking-tight mb-8 text-gray-900">
-              <span className="block">聚合多平台内容</span>
-              <span className="block text-gray-900">智能高效运营</span>
+              <span className="block">汇聚 AI 原创内容</span>
+              <span className="block text-gray-900">创作者与用户的树洞</span>
             </h1>
             
             <p className="text-lg text-gray-900 leading-relaxed max-w-xl mx-auto mb-16 font-normal">
@@ -110,33 +110,33 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <FeatureCard
               number="01"
-              title="热点数据采集"
-              description="实时聚合全网热点，跨平台监控小红书、知乎、微信、X、Reddit 等平台热门内容"
+              title="AI 资讯聚合"
+              description="实时聚合全网 AI 热点资讯，掌握最新模型发布、工具动态、行业趋势"
             />
             <FeatureCard
               number="02"
-              title="热点数据分析"
-              description="深度分析热点趋势、用户画像，内容画像，挖掘潜在爆款因子"
+              title="AI 图片画廊"
+              description="创作者上传 AI 生成图片，支持公开展示，消费者可浏览、下载高质量 AI 图像"
             />
             <FeatureCard
               number="03"
-              title="智能内容创作"
-              description="基于热点洞察，AI 辅助生成高质量文章和帖子，批量产出运营内容"
+              title="AI 文章创作"
+              description="AI 辅助生成高质量文章，创作者一键发布，打造专属 AI 内容矩阵"
             />
             <FeatureCard
               number="04"
-              title="自动化发布"
-              description="一键分发多平台，定时发布，解放双手，显著提升运营效率"
+              title="AI 视频资源"
+              description="汇聚 AI 生成视频内容，创作者分享作品，用户发现优质 AI 视频资源"
             />
             <FeatureCard
               number="05"
-              title="账号数据分析"
-              description="全维度追踪账号表现，阅读量、互动率、粉丝增长等核心指标尽在掌握"
+              title="创作者分层"
+              description="多级创作者体系，按贡献与质量分层，享受差异化权益与收益分成"
             />
             <FeatureCard
               number="06"
-              title="AI 效果优化"
-              description="基于数据反馈持续调优 AI 生成策略，形成数据驱动的增长闭环"
+              title="会员与变现"
+              description="消费者看广告或开会员下载资源，平台与创作者共享收益，形成良性生态"
             />
           </div>
         </div>
@@ -147,20 +147,20 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className="text-center mb-16">
             <span className="text-[10px] tracking-[0.4em] text-gray-900 uppercase">Workflow</span>
-            <h2 className="text-3xl font-normal mt-4 tracking-wide text-gray-900">运营闭环</h2>
-            <p className="gray-600 text-lg mt-3">从发现到优化，全链路自动化</p>
+            <h2 className="text-3xl font-normal mt-4 tracking-wide text-gray-900">资源流转</h2>
+            <p className="gray-600 text-lg mt-3">从创作到变现，完整的 AI 资源生态</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <WorkflowStep step={1} title="数据采集" icon="📊" delay={0} />
+            <WorkflowStep step={1} title="创作者上传" icon="✍️" delay={0} />
             <WorkflowArrow />
-            <WorkflowStep step={2} title="智能分析" icon="🔍" delay={1} />
+            <WorkflowStep step={2} title="平台审核" icon="🔍" delay={1} />
             <WorkflowArrow />
-            <WorkflowStep step={3} title="内容创作" icon="✍️" delay={2} />
+            <WorkflowStep step={3} title="公开展示" icon="🖼️" delay={2} />
             <WorkflowArrow />
-            <WorkflowStep step={4} title="自动发布" icon="🚀" delay={3} />
+            <WorkflowStep step={4} title="用户下载" icon="⬇️" delay={3} />
             <WorkflowArrow />
-            <WorkflowStep step={5} title="效果优化" icon="⚡" delay={4} />
+            <WorkflowStep step={5} title="收益分成" icon="💰" delay={4} />
           </div>
         </div>
       </section>
@@ -168,7 +168,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-32 bg-white">
         <div className="max-w-2xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-normal mb-6 tracking-wide text-gray-900">开启智能运营之旅</h2>
+          <h2 className="text-3xl font-normal mb-6 tracking-wide text-gray-900">加入 AI 树洞</h2>
           <p className="text-lg text-gray-900 mb-12 font-normal">
             发现、创作、分享 AI 资源
           </p>
@@ -187,7 +187,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50">
-                <span className="text-lg font-medium text-gray-900">OP</span>
+                <span className="text-lg font-medium text-gray-900">AI</span>
               </div>
               <span className="text-lg text-gray-900 tracking-widest uppercase">AI树洞</span>
             </div>

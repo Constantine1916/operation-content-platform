@@ -60,7 +60,7 @@ export default function Overview() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <StatCard title="AI 资讯" count={hotspotsCount} icon="📰" />
         <StatCard title="文章总数" count={totalArticles} icon="📝" />
-        <StatCard title="运营Agents" count={6} icon="🤖" />
+        <StatCard title="AI Agents" count={6} icon="🤖" />
       </div>
 
       <div className="mb-10">

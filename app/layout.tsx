@@ -3,8 +3,8 @@ import './globals.css'
 import AuthLayout from '@/components/AuthLayout'
 
 export const metadata: Metadata = {
-  title: '运营内容管理平台',
-  description: '聚合小红书/知乎/微信/X/Reddit的热点内容',
+  title: 'AI树洞',
+  description: '汇聚 AI 原创内容，连接创作者与用户',
 }
 
 export default function RootLayout({
