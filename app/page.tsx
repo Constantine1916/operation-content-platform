@@ -22,12 +22,12 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-sm font-semibold tracking-wide text-gray-900">AI树洞</span>
+          <span className="text-[1.0625rem] font-semibold tracking-wide text-gray-900">AI树洞</span>
           <div className="flex items-center gap-2">
-            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-4 py-1.5">
+            <Link href="/login" className="text-[0.9375rem] text-gray-500 hover:text-gray-900 transition-colors px-4 py-1.5">
               登录
             </Link>
-            <Link href="/register" className="text-sm bg-gray-900 text-white px-4 py-1.5 rounded-full hover:bg-gray-700 transition-colors font-medium">
+            <Link href="/register" className="text-[0.9375rem] bg-gray-900 text-white px-4 py-1.5 rounded-full hover:bg-gray-700 transition-colors font-medium">
               注册
             </Link>
           </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 border-t border-gray-100">
         <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-900">AI树洞</span>
+          <span className="text-[0.9375rem] font-semibold text-gray-900">AI树洞</span>
           <p className="text-xs text-gray-400">© 2026 aicave.cn</p>
         </div>
       </footer>
