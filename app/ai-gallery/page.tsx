@@ -153,6 +153,44 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
   );
 }
 
+function CopyButton({ text, className = '' }: { text: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={copy}
+      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+        copied
+          ? 'bg-gray-900 text-white'
+          : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
+      } ${className}`}
+      title="复制 Prompt"
+    >
+      {copied ? (
+        <>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          已复制
+        </>
+      ) : (
+        <>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          复制
+        </>
+      )}
+    </button>
+  );
+}
+
 function ImageCard({ image, allImages }: { image: GalleryImage; allImages: GalleryImage[] }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -170,22 +208,29 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
         className="group rounded-xl overflow-hidden bg-white cursor-pointer transition-shadow hover:shadow-lg"
         onClick={() => setLightboxOpen(true)}
       >
-        <div className="overflow-hidden">
+        {/* 图片 + hover overlay */}
+        <div className="relative overflow-hidden">
           <img
             src={image.url}
             alt={image.prompt}
             className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
-        </div>
-        <div className="px-3 py-2.5">
-          <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">{image.prompt}</p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-            <span className="text-[10px] text-gray-400 truncate">
-              {image.username ?? image.user_id.slice(0, 8)}
-            </span>
+          {/* hover 时显示 prompt + 复制按钮 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+            <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-2">{image.prompt}</p>
+            <div className="flex justify-end">
+              <CopyButton text={image.prompt} />
+            </div>
           </div>
+        </div>
+
+        {/* 底部：头像 + 用户名 */}
+        <div className="px-3 py-2.5 flex items-center gap-2">
+          <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+          <span className="text-xs text-gray-600 font-medium truncate">
+            {image.username ?? image.user_id.slice(0, 8)}
+          </span>
         </div>
       </div>
 
@@ -203,11 +248,11 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
 function Avatar({ user_id, username, avatar_url }: { user_id: string; username: string | null; avatar_url: string | null }) {
   const initial = (username ?? user_id).charAt(0).toUpperCase();
   if (avatar_url) {
-    return <img src={avatar_url} alt={initial} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />;
+    return <img src={avatar_url} alt={initial} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />;
   }
   return (
-    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-      <span className="text-[8px] font-semibold text-gray-500">{initial}</span>
+    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+      <span className="text-[10px] font-semibold text-gray-500">{initial}</span>
     </div>
   );
 }
@@ -282,9 +327,12 @@ function Lightbox({ images, initialIndex, onClose }: {
         </div>
 
         <div className="mt-4 w-full bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
-          <p className="text-white/90 text-sm leading-relaxed">{img.prompt}</p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-white/90 text-sm leading-relaxed flex-1">{img.prompt}</p>
+            <CopyButton text={img.prompt} className="flex-shrink-0 mt-0.5" />
+          </div>
           {images.length > 1 && (
-            <p className="text-white/40 text-xs mt-1">{current + 1} / {images.length}</p>
+            <p className="text-white/40 text-xs mt-2">{current + 1} / {images.length}</p>
           )}
         </div>
 
