@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function LandingPage() {
@@ -12,68 +12,78 @@ export default function LandingPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) router.push('/overview');
-      setTimeout(() => setLoaded(true), 80);
+      setTimeout(() => setLoaded(true), 100);
     });
   }, [router]);
 
   return (
-    <div className={`min-h-screen bg-white transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="min-h-screen bg-[#fafafa]">
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-[1.0625rem] font-semibold tracking-wide text-gray-900">AI树洞</span>
-          <div className="flex items-center gap-2">
-            <Link href="/login" className="text-[0.9375rem] text-gray-500 hover:text-gray-900 transition-colors px-4 py-1.5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#fafafa]/95 backdrop-blur-sm">
+        <div className="max-w-[1400px] mx-auto px-8 h-16 flex items-center justify-between border-b border-black/5">
+          <span className="text-[15px] font-semibold tracking-[0.02em] text-black">AI树洞</span>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-[14px] text-black/50 hover:text-black transition-colors px-4 py-1.5">
               登录
             </Link>
-            <Link href="/register" className="text-[0.9375rem] bg-gray-900 text-white px-4 py-1.5 rounded-full hover:bg-gray-700 transition-colors font-medium">
+            <Link href="/register" className="text-[14px] bg-black text-white px-5 py-2 hover:bg-black/80 transition-all font-medium">
               注册
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero — 全屏，一句话 */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-8">aicave.cn</p>
-        <h1 className="text-[3.5rem] md:text-[4rem] font-semibold leading-[1.1] tracking-tight text-gray-900 mb-6 max-w-2xl">
-          发现 AI 时代<br />最好的原创内容
-        </h1>
-        <p className="text-[1.0625rem] text-gray-400 max-w-md leading-relaxed mb-12">
-          资讯、图片、视频、课程——每天自动更新，由创作者与 AI 共同生产
-        </p>
-        <Link
-          href="/register"
-          className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-8 py-3.5 rounded-full hover:bg-gray-700 transition-all hover:gap-3"
-        >
-          免费开始
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-        {/* 向下滚动提示 */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce">
-          <div className="w-px h-8 bg-gradient-to-b from-transparent to-gray-300" />
-        </div>
-      </section>
-
-      {/* 数字 — 用数据说话 */}
-      <section className="py-24 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
-            <Stat number="2h" label="资讯更新间隔" />
-            <Stat number="5+" label="内容类型" />
-            <Stat number="∞" label="创作者可上传" />
+      {/* Hero — 左对齐，非对称 */}
+      <section className="pt-32 pb-24 px-8">
+        <div className="max-w-[1400px] mx-auto">
+          <div className={`max-w-[720px] transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <p className="text-[11px] tracking-[0.25em] text-black/30 uppercase mb-6 font-medium">aicave.cn</p>
+            <h1 className="text-[clamp(3rem,5.5vw,5rem)] font-bold leading-[1.05] tracking-[-0.02em] text-black mb-8">
+              发现 AI 时代<br />
+              最好的原创内容
+            </h1>
+            <p className="text-[17px] text-black/50 leading-[1.6] mb-12 max-w-[520px]">
+              资讯、图片、视频、课程——每天自动更新，<br className="hidden sm:block" />
+              由创作者与 AI 共同生产
+            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-7 py-3.5 hover:bg-black/80 transition-all group"
+              >
+                免费开始
+                <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <Link href="#content" className="text-[15px] text-black/50 hover:text-black transition-colors">
+                了解更多
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 内容类型 — 极简列表，不是卡片 */}
-      <section className="py-24 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-16">内容</p>
-          <div className="space-y-0 divide-y divide-gray-100">
+      {/* Stats — 极简数字行 */}
+      <section className="py-16 px-8 border-t border-black/5">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-3 gap-12">
+            <StatItem number="2h" label="资讯更新间隔" />
+            <StatItem number="5+" label="内容类型" />
+            <StatItem number="∞" label="创作者可上传" />
+          </div>
+        </div>
+      </section>
+
+      {/* Content Types — 表格式列表 */}
+      <section id="content" className="py-24 px-8 border-t border-black/5">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="mb-16">
+            <p className="text-[11px] tracking-[0.25em] text-black/30 uppercase mb-3 font-medium">内容</p>
+            <h2 className="text-[32px] font-bold text-black tracking-[-0.01em]">多样的 AI 资源</h2>
+          </div>
+          <div className="space-y-0">
             <ContentRow icon="📡" title="AI 资讯" desc="全网热点，每 2 小时自动采集" tag="自动更新" />
             <ContentRow icon="📝" title="AI 文章" desc="基于资讯深度生成，也接受创作者投稿" tag="自动更新" />
             <ContentRow icon="🖼️" title="AI 图片" desc="创作者上传 AI 生成作品，瀑布流展示" tag="创作者" />
@@ -83,51 +93,66 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 创作者 — 一段话，不是三列卡片 */}
-      <section className="py-24 border-t border-gray-100 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="max-w-xl">
-            <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-8">创作者</p>
-            <h2 className="text-[1.75rem] font-semibold text-gray-900 leading-snug mb-6">
+      {/* Creator — 左右分栏 */}
+      <section className="py-24 px-8 border-t border-black/5 bg-white">
+        <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <p className="text-[11px] tracking-[0.25em] text-black/30 uppercase mb-6 font-medium">创作者</p>
+            <h2 className="text-[36px] font-bold text-black leading-[1.15] tracking-[-0.01em] mb-6">
               上传你的作品<br />让更多人看见
             </h2>
-            <p className="text-base text-gray-500 leading-relaxed mb-10">
+            <p className="text-[16px] text-black/50 leading-[1.65] mb-8">
               普通创作者免费上传，认证创作者享受优先推荐与收益分成，合作创作者获得最高权益与联合运营支持。
             </p>
-            <Link href="/register" className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 border border-gray-900 px-6 py-2.5 rounded-full hover:bg-gray-900 hover:text-white transition-all">
+            <Link href="/register" className="inline-flex items-center gap-2 text-[15px] font-medium text-black border border-black px-6 py-3 hover:bg-black hover:text-white transition-all">
               成为创作者
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* 用户权益 — 两行对比，不是两个大卡片 */}
-      <section className="py-24 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-xs tracking-[0.3em] text-gray-400 uppercase mb-16">获取资源</p>
-          <div className="space-y-0 divide-y divide-gray-100">
-            <AccessRow type="免费用户" desc="浏览全部内容，观看短广告后下载资源" />
-            <AccessRow type="会员" desc="无限下载，无广告，优先体验新功能" highlight />
+          <div className="hidden md:block">
+            <div className="aspect-square bg-gradient-to-br from-black/5 to-black/10 rounded-sm" />
           </div>
         </div>
       </section>
 
-      {/* CTA — 极简，一句话 + 一个按钮 */}
-      <section className="py-32 border-t border-gray-100 text-center">
-        <div className="max-w-xl mx-auto px-6">
-          <h2 className="text-[1.75rem] font-semibold text-gray-900 mb-5 leading-snug">
+      {/* Access — 对比表格 */}
+      <section className="py-24 px-8 border-t border-black/5">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="mb-16">
+            <p className="text-[11px] tracking-[0.25em] text-black/30 uppercase mb-3 font-medium">获取资源</p>
+            <h2 className="text-[32px] font-bold text-black tracking-[-0.01em]">两种方式，畅享内容</h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 max-w-[900px]">
+            <AccessCard
+              type="免费用户"
+              desc="浏览全部内容，观看短广告后下载资源"
+              features={['浏览所有公开内容', '观看广告后下载', '基础功能体验']}
+            />
+            <AccessCard
+              type="会员"
+              desc="无限下载，无广告，优先体验新功能"
+              features={['无限下载全部资源', '无广告打扰', '优先体验新功能']}
+              highlight
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-32 px-8 border-t border-black/5 text-center">
+        <div className="max-w-[600px] mx-auto">
+          <h2 className="text-[40px] font-bold text-black mb-5 leading-[1.15] tracking-[-0.01em]">
             现在就开始
           </h2>
-          <p className="text-base text-gray-400 mb-12">免费注册，立即探索所有 AI 内容</p>
+          <p className="text-[16px] text-black/50 mb-10">免费注册，立即探索所有 AI 内容</p>
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-10 py-4 rounded-full hover:bg-gray-700 transition-all text-base"
+            className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-10 py-4 hover:bg-black/80 transition-all"
           >
             免费注册
           </Link>
-          <p className="mt-6 text-xs text-gray-400">
+          <p className="mt-6 text-[13px] text-black/40">
             已有账号？
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 ml-1 underline underline-offset-2">
+            <Link href="/login" className="text-black/60 hover:text-black ml-1.5 underline underline-offset-2">
               登录
             </Link>
           </p>
@@ -135,10 +160,10 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-gray-100">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
-          <span className="text-[0.9375rem] font-semibold text-gray-900">AI树洞</span>
-          <p className="text-xs text-gray-400">© 2026 aicave.cn</p>
+      <footer className="py-10 px-8 border-t border-black/5">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+          <span className="text-[15px] font-semibold text-black">AI树洞</span>
+          <p className="text-[13px] text-black/30">© 2026 aicave.cn</p>
         </div>
       </footer>
 
@@ -146,11 +171,11 @@ export default function LandingPage() {
   );
 }
 
-function Stat({ number, label }: { number: string; label: string }) {
+function StatItem({ number, label }: { number: string; label: string }) {
   return (
-    <div className="text-center py-8 px-4">
-      <div className="text-[2rem] font-semibold text-gray-900 mb-2">{number}</div>
-      <div className="text-[0.8125rem] text-gray-400 tracking-wide">{label}</div>
+    <div>
+      <div className="text-[48px] font-bold text-black mb-2 tracking-[-0.02em]">{number}</div>
+      <div className="text-[13px] text-black/40 tracking-wide">{label}</div>
     </div>
   );
 }
@@ -159,31 +184,43 @@ function ContentRow({ icon, title, desc, tag }: {
   icon: string; title: string; desc: string; tag: string;
 }) {
   return (
-    <div className="flex items-center gap-6 py-6 group">
-      <span className="text-2xl w-8 flex-shrink-0">{icon}</span>
+    <div className="flex items-center gap-8 py-6 border-b border-black/5 last:border-0 group hover:bg-black/[0.02] transition-colors px-4 -mx-4">
+      <span className="text-[28px] w-10 flex-shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-3 mb-1">
-          <span className="text-base font-medium text-gray-900">{title}</span>
-          <span className="text-xs text-gray-400">{desc}</span>
+        <div className="flex items-baseline gap-4 mb-1">
+          <span className="text-[17px] font-semibold text-black">{title}</span>
+          <span className="text-[14px] text-black/40 hidden sm:inline">{desc}</span>
         </div>
       </div>
-      <span className="text-[11px] text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full flex-shrink-0">{tag}</span>
+      <span className="text-[12px] text-black/30 border border-black/10 px-3 py-1.5 flex-shrink-0 font-medium">{tag}</span>
     </div>
   );
 }
 
-function AccessRow({ type, desc, highlight }: {
-  type: string; desc: string; highlight?: boolean;
+function AccessCard({ type, desc, features, highlight }: {
+  type: string; desc: string; features: string[]; highlight?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between py-6 ${highlight ? '' : ''}`}>
-      <div className="flex items-center gap-4">
-        <span className={`text-sm font-semibold ${highlight ? 'text-gray-900' : 'text-gray-500'}`}>{type}</span>
+    <div className={`border p-8 transition-all hover:shadow-lg ${
+      highlight ? 'border-black bg-black text-white' : 'border-black/10 bg-white hover:border-black/20'
+    }`}>
+      <div className="flex items-center gap-3 mb-4">
+        <h3 className={`text-[20px] font-bold ${highlight ? 'text-white' : 'text-black'}`}>{type}</h3>
         {highlight && (
-          <span className="text-[10px] bg-gray-900 text-white px-2 py-0.5 rounded-full">推荐</span>
+          <span className="text-[11px] bg-white text-black px-2.5 py-1 font-medium">推荐</span>
         )}
       </div>
-      <span className="text-sm text-gray-500 text-right max-w-xs">{desc}</span>
+      <p className={`text-[14px] mb-6 leading-[1.6] ${highlight ? 'text-white/60' : 'text-black/50'}`}>{desc}</p>
+      <ul className="space-y-3">
+        {features.map((f, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-[14px]">
+            <svg className={`w-4 h-4 mt-0.5 flex-shrink-0 ${highlight ? 'text-white/80' : 'text-black/40'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className={highlight ? 'text-white/80' : 'text-black/60'}>{f}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
