@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     const hasMore = from + limit < (count ?? 0);
 
-    return NextResponse.json({ success: true, items, hasMore });
+    return NextResponse.json({ success: true, items, hasMore, total: count ?? 0 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
   }
