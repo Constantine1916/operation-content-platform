@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
-import { App } from 'antd';
+import { App, Tooltip } from 'antd';
 
 interface ImageResult { url: string; width: number; height: number; index: number; is_public?: boolean }
 
@@ -60,6 +60,7 @@ function GenerateImgPageInner() {
   const [isManaging, setIsManaging] = useState(false);
   const [selected, setSelected] = useState<Set<SelectedKey>>(new Set());
   const [actionLoading, setActionLoading] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
 
   const { modal } = App.useApp();
 
@@ -568,8 +569,36 @@ function GenerateImgPageInner() {
                     <span className="flex-shrink-0 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center mt-0.5">
                       {gi + 1}
                     </span>
-                    <p className="text-sm text-gray-700 leading-relaxed flex-1 line-clamp-2">{group.prompt}</p>
+                    <Tooltip
+                      title={group.prompt}
+                      placement="bottomLeft"
+                      overlayStyle={{ maxWidth: 480 }}
+                      overlayInnerStyle={{ fontSize: 12, lineHeight: '1.6', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}
+                    >
+                      <p className="text-sm text-gray-700 leading-relaxed flex-1 line-clamp-2 cursor-default">{group.prompt}</p>
+                    </Tooltip>
                     <div className="flex-shrink-0 flex items-center gap-2">
+                      {/* 复制提示词按钮 */}
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(group.prompt).then(() => {
+                            setCopiedPrompt(group.prompt);
+                            setTimeout(() => setCopiedPrompt(null), 2000);
+                          });
+                        }}
+                        className="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:text-gray-700 hover:bg-gray-100 transition-all flex-shrink-0"
+                        title="复制提示词"
+                      >
+                        {copiedPrompt === group.prompt ? (
+                          <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </button>
                       {group.subtasks.length > 1 && (
                         <span className="text-[10px] text-gray-400">×{group.subtasks.length}</span>
                       )}
