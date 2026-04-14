@@ -16,11 +16,17 @@ export async function GET(request: NextRequest) {
     const platform = searchParams.get('platform');
     const model = searchParams.get('model');
     const sort = searchParams.get('sort') || 'latest';
+    const date = searchParams.get('date'); // YYYY-MM-DD
 
     let query = supabase.from('ai_videos').select('*', { count: 'exact' });
 
     if (platform) query = query.eq('platform', platform);
     if (model) query = query.eq('model', model);
+    if (date) {
+      query = query
+        .gte('created_at', `${date}T00:00:00`)
+        .lt('created_at', `${date}T23:59:59`);
+    }
 
     if (sort === 'oldest') {
       query = query.order('created_at', { ascending: true });

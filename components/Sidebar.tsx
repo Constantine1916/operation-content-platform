@@ -30,7 +30,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       const [hotspotsData, articlesData, videoData, galleryData] = await Promise.all([
         fetch(`/api/hotspots?date=${today}&limit=1`).then(r => r.json()),
         fetch(`/api/articles?stats=true`).then(r => r.json()),
-        fetch(`/api/ai-video?limit=1`).then(r => r.json()),
+        fetch(`/api/ai-video?date=${today}&limit=1`).then(r => r.json()),
         token
           ? fetch(`/api/gallery?date=${today}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
           : Promise.resolve({ total: 0 }),
