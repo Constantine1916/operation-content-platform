@@ -12,3 +12,10 @@ scripts/
 # Superpowers / AI tooling (local only)
 .superpowers/
 docs/superpowers/
+
+# Dev artifacts
+*.backup
+tsconfig.tsbuildinfo
+test-api.js
+REBUILD
+TODO.md
