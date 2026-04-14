@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -101,9 +102,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </svg>
           </button>
           <Link href="/overview" className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 border border-gray-200 rounded-xl flex items-center justify-center bg-gray-50 flex-shrink-0">
-              <span className="text-lg font-medium text-gray-900">OP</span>
-            </div>
+            <Image
+              src="/assets/logo.png"
+              alt="AI树洞"
+              width={32}
+              height={32}
+              className="rounded-xl flex-shrink-0"
+            />
             <span className="text-base font-medium text-gray-900 tracking-[0.15em] truncate max-w-32 sm:max-w-none">
               AI树洞
             </span>
