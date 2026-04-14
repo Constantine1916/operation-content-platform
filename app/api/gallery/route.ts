@@ -81,16 +81,22 @@ export async function GET(request: NextRequest) {
       }));
     });
 
-    // count 也只统计含公开图片的任务
-    const { count } = await db
+    // 统计所有公开图片张数（展开每个任务的 images 数组）
+    const { data: allTasks } = await db
       .from('generate_tasks')
-      .select('id', { count: 'exact', head: true })
+      .select('images')
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]');
 
-    const hasMore = from + limit < (count ?? 0);
+    const totalImages = (allTasks ?? []).reduce((sum: number, task: any) => {
+      const publicCount = (task.images ?? []).filter((img: any) => img.is_public === true).length;
+      return sum + publicCount;
+    }, 0);
 
-    return NextResponse.json({ success: true, items, hasMore, total: count ?? 0 });
+    const taskCount = allTasks?.length ?? 0;
+    const hasMore = from + limit < taskCount;
+
+    return NextResponse.json({ success: true, items, hasMore, total: totalImages });
   } catch (error: any) {
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
   }
