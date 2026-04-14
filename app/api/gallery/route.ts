@@ -91,12 +91,20 @@ export async function GET(request: NextRequest) {
       }));
     });
 
-    // 统计所有公开图片张数（展开每个任务的 images 数组）
-    const { data: allTasks } = await db
+    // 统计公开图片张数（与查询条件一致，含日期过滤）
+    let countQuery = db
       .from('generate_tasks')
       .select('images')
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]');
+
+    if (date) {
+      countQuery = countQuery
+        .gte('created_at', `${date}T00:00:00`)
+        .lt('created_at', `${date}T23:59:59`);
+    }
+
+    const { data: allTasks } = await countQuery;
 
     const totalImages = (allTasks ?? []).reduce((sum: number, task: any) => {
       const publicCount = (task.images ?? []).filter((img: any) => img.is_public === true).length;
