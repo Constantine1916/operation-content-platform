@@ -91,27 +91,16 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed top-0 z-50" style={{ left: '16rem', width: 'calc(100vw - 16rem)' }}>
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-        {/* 左侧：汉堡菜单 + Logo */}
+        {/* 左侧：Logo */}
         <div className="flex items-center gap-2 min-w-0">
-          <button
-            onClick={onMenuClick}
-            className="flex-shrink-0 p-2 rounded-full text-gray-900 hover:bg-gray-100 transition-colors"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <Link href="/overview" className="flex items-center gap-2 min-w-0">
+          <Link href="/overview" className="flex items-center min-w-0">
             <Image
               src="/assets/logo.png"
-              alt="AI树洞"
-              width={32}
-              height={32}
-              className="rounded-xl flex-shrink-0"
+              alt="AICAVE"
+              width={96}
+              height={36}
+              className="flex-shrink-0 object-contain"
             />
-            <span className="text-base font-medium text-gray-900 tracking-[0.15em] truncate max-w-32 sm:max-w-none">
-              AI树洞
-            </span>
           </Link>
         </div>
 
