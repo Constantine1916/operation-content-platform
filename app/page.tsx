@@ -22,12 +22,12 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#fafafa]/95 backdrop-blur-sm">
         <div className="max-w-[1400px] mx-auto px-8 h-16 flex items-center justify-between border-b border-black/5">
-          <span className="text-[15px] font-semibold tracking-[0.02em] text-black">AI树洞</span>
+          <span className="text-[17px] font-semibold tracking-[0.02em] text-black">AI树洞</span>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-[14px] text-black/50 hover:text-black transition-colors px-4 py-1.5">
+            <Link href="/login" className="text-[15px] text-black/50 hover:text-black transition-colors px-4 py-1.5">
               登录
             </Link>
-            <Link href="/register" className="text-[14px] bg-black text-white px-5 py-2 hover:bg-black/80 transition-all font-medium">
+            <Link href="/register" className="text-[15px] bg-black text-white px-5 py-2 rounded-full hover:bg-black/80 transition-all font-medium">
               注册
             </Link>
           </div>
@@ -50,7 +50,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-4">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-7 py-3.5 hover:bg-black/80 transition-all group"
+                className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-7 py-3.5 rounded-full hover:bg-black/80 transition-all group"
               >
                 免费开始
                 <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,17 +104,17 @@ export default function LandingPage() {
             <p className="text-[16px] text-black/50 leading-[1.65] mb-8">
               普通创作者免费上传，认证创作者享受优先推荐与收益分成，合作创作者获得最高权益与联合运营支持。
             </p>
-            <Link href="/register" className="inline-flex items-center gap-2 text-[15px] font-medium text-black border border-black px-6 py-3 hover:bg-black hover:text-white transition-all">
+            <Link href="/register" className="inline-flex items-center gap-2 text-[15px] font-medium text-black border border-black px-6 py-3 rounded-full hover:bg-black hover:text-white transition-all">
               成为创作者
             </Link>
           </div>
           <div className="hidden md:block">
-            <div className="aspect-square bg-gradient-to-br from-black/5 to-black/10 rounded-sm" />
+            <div className="aspect-square bg-gradient-to-br from-black/5 to-black/10 rounded-2xl" />
           </div>
         </div>
       </section>
 
-      {/* Access — 对比表格 */}
+      {/* Access — 对比卡片 */}
       <section className="py-24 px-8 border-t border-black/5">
         <div className="max-w-[1400px] mx-auto">
           <div className="mb-16">
@@ -146,7 +146,7 @@ export default function LandingPage() {
           <p className="text-[16px] text-black/50 mb-10">免费注册，立即探索所有 AI 内容</p>
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-10 py-4 hover:bg-black/80 transition-all"
+            className="inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-10 py-4 rounded-full hover:bg-black/80 transition-all"
           >
             免费注册
           </Link>
@@ -192,7 +192,7 @@ function ContentRow({ icon, title, desc, tag }: {
           <span className="text-[14px] text-black/40 hidden sm:inline">{desc}</span>
         </div>
       </div>
-      <span className="text-[12px] text-black/30 border border-black/10 px-3 py-1.5 flex-shrink-0 font-medium">{tag}</span>
+      <span className="text-[12px] text-black/30 border border-black/10 px-3 py-1.5 rounded-full flex-shrink-0 font-medium">{tag}</span>
     </div>
   );
 }
@@ -201,13 +201,13 @@ function AccessCard({ type, desc, features, highlight }: {
   type: string; desc: string; features: string[]; highlight?: boolean;
 }) {
   return (
-    <div className={`border p-8 transition-all hover:shadow-lg ${
+    <div className={`rounded-2xl border p-8 transition-all hover:shadow-lg ${
       highlight ? 'border-black bg-black text-white' : 'border-black/10 bg-white hover:border-black/20'
     }`}>
       <div className="flex items-center gap-3 mb-4">
         <h3 className={`text-[20px] font-bold ${highlight ? 'text-white' : 'text-black'}`}>{type}</h3>
         {highlight && (
-          <span className="text-[11px] bg-white text-black px-2.5 py-1 font-medium">推荐</span>
+          <span className="text-[11px] bg-white text-black px-2.5 py-1 rounded-full font-medium">推荐</span>
         )}
       </div>
       <p className={`text-[14px] mb-6 leading-[1.6] ${highlight ? 'text-white/60' : 'text-black/50'}`}>{desc}</p>
