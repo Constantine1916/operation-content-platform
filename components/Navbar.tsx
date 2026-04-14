@@ -97,8 +97,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <Image
               src="/assets/logo.png"
               alt="AICAVE"
-              width={96}
-              height={36}
+              width={140}
+              height={52}
               className="flex-shrink-0 object-contain"
             />
           </Link>
