@@ -37,18 +37,28 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')));
+    const date = searchParams.get('date'); // YYYY-MM-DD
 
     const db = serviceClient();
     const from = (page - 1) * limit;
 
     // 只查含有至少一张公开图片的任务
-    const { data: tasks, error } = await db
+    let taskQuery = db
       .from('generate_tasks')
       .select('task_id, prompt, images, created_at, user_id')
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]')
       .order('created_at', { ascending: false })
-      .range(from, from + limit - 1);
+
+    if (date) {
+      taskQuery = taskQuery
+        .gte('created_at', `${date}T00:00:00`)
+        .lt('created_at', `${date}T23:59:59`)
+    } else {
+      taskQuery = taskQuery.range(from, from + limit - 1)
+    }
+
+    const { data: tasks, error } = await taskQuery;
 
     if (error) throw new Error(error.message);
 

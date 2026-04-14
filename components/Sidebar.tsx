@@ -7,18 +7,45 @@ import { supabase } from '@/lib/supabase'
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache'
 
 interface SidebarProps { className?: string }
-interface Stats { total: number; today_count: number; by_platform: Record<string, number> }
+interface TodayStats {
+  hotspots: number
+  articles: number
+  images: number
+  videos: number
+}
 
 export default function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSVIP, setIsSVIP] = useState(false)
 
   useEffect(() => {
-    fetch('/api/articles?stats=true').then(r => r.json())
-      .then(data => { if (data.success && data.data) setStats(data.data); })
-      .catch(console.error).finally(() => setLoading(false));
+    const today = new Date().toISOString().split('T')[0]
+
+    async function fetchStats() {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const [hotspotsData, articlesData, videoData, galleryData] = await Promise.all([
+        fetch(`/api/hotspots?date=${today}&limit=1`).then(r => r.json()),
+        fetch(`/api/articles?stats=true`).then(r => r.json()),
+        fetch(`/api/ai-video?limit=1`).then(r => r.json()),
+        token
+          ? fetch(`/api/gallery?date=${today}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+          : Promise.resolve({ total: 0 }),
+      ])
+
+      setTodayStats({
+        hotspots: hotspotsData.pagination?.total ?? 0,
+        articles: articlesData.data?.today_count ?? 0,
+        images: galleryData.total ?? 0,
+        videos: videoData.pagination?.total ?? 0,
+      })
+      setLoading(false)
+    }
+
+    fetchStats().catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -168,16 +195,20 @@ export default function Sidebar({ className = '' }: SidebarProps) {
 
         {/* 底部统计 */}
         <div className="px-4 py-4 border-t border-gray-200 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">总文章数</span>
-            <span className="text-xs font-bold text-gray-900">{loading ? '—' : stats?.total || 0}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">今日更新</span>
-            <span className="text-xs font-bold text-gray-900">
-              {loading ? '—' : (stats?.today_count || 0) > 0 ? `+${stats?.today_count}` : '0'}
-            </span>
-          </div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">今日更新</div>
+          {[
+            { label: '资讯', value: todayStats?.hotspots },
+            { label: '文章', value: todayStats?.articles },
+            { label: '图片', value: todayStats?.images },
+            { label: '视频', value: todayStats?.videos },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">{label}</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {loading ? '—' : value != null && value > 0 ? `+${value}` : '0'}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </aside>
