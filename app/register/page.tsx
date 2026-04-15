@@ -4,9 +4,12 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+const USERNAME_RE = /^[\w.-]{2,30}$/;
+
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +20,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     setSuccess('');
-    
+
+    if (!USERNAME_RE.test(username)) {
+      setError('用户名需 2-30 个字符，只能包含字母、数字、下划线、点和连字符');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('两次输入的密码不一致');
       return;
@@ -31,19 +39,39 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (error) {
-        setError(error.message);
-      } {
-        setSuccess('注册成功！请前往邮箱验证链接（如果已配置邮件），或直接登录');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
       }
+
+      // Save username — use the session token if available (no email confirmation),
+      // otherwise fall back to the service-role API route which accepts user_id directly.
+      const token = data.session?.access_token;
+      if (token) {
+        await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ username }),
+        });
+      } else if (data.user) {
+        // Email confirmation required — profile row may not exist yet.
+        // Username will be saved when the user logs in for the first time.
+        // Store it in sessionStorage so the post-login flow can pick it up.
+        sessionStorage.setItem('pending_username', username);
+      }
+
+      setSuccess('注册成功！请前往邮箱验证链接（如果已配置邮件），或直接登录');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } catch (err: any) {
       setError(err.message || '注册失败');
     } finally {
@@ -74,6 +102,22 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all"
                 placeholder="your@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="username" className="block text-lg font-medium black mb-2">
+                用户名
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all"
+                placeholder="2-30个字符，字母数字下划线"
+                maxLength={30}
                 required
               />
             </div>
