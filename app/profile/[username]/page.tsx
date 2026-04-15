@@ -29,35 +29,19 @@ export default async function PublicProfilePage({
 
   if (profileError || !profile) return notFound();
 
-  // 2. Fetch first page of public images
+  // 2. Fetch first page of public images (fetch PAGE_LIMIT + 1 to detect hasMore)
   const { data: tasks, error: tasksError } = await db
     .from('generate_tasks')
     .select('task_id, prompt, images, created_at, user_id')
     .eq('status', 3)
     .eq('user_id', profile.id)
     .filter('images', 'cs', '[{"is_public":true}]')
-    .order('created_at', { ascending: false })
-    .range(0, PAGE_LIMIT - 1);
+    .order('created_at', { ascending: false });
 
   if (tasksError) throw tasksError;
 
-  // 3. Count total public images for display
-  const { data: allTasks, error: allTasksError } = await db
-    .from('generate_tasks')
-    .select('images')
-    .eq('status', 3)
-    .eq('user_id', profile.id)
-    .filter('images', 'cs', '[{"is_public":true}]');
-
-  if (allTasksError) throw allTasksError;
-
-  const totalImages = (allTasks ?? []).reduce((sum: number, task: any) => {
-    const publicCount = (task.images ?? []).filter((img: any) => img.is_public === true).length;
-    return sum + publicCount;
-  }, 0);
-
-  // 4. Flatten images
-  const initialImages: ProfileImage[] = (tasks ?? []).flatMap((task: any) =>
+  // 3. Flatten all public images, then slice for the first page
+  const allImages: ProfileImage[] = (tasks ?? []).flatMap((task: any) =>
     (task.images ?? [])
       .filter((img: any) => img.is_public === true)
       .map((img: any) => ({
@@ -74,7 +58,9 @@ export default async function PublicProfilePage({
       }))
   );
 
-  const hasMore = (tasks ?? []).length === PAGE_LIMIT;
+  const totalImages = allImages.length;
+  const initialImages = allImages.slice(0, PAGE_LIMIT);
+  const hasMore = totalImages > PAGE_LIMIT;
   const initial = (profile.username ?? profile.id).charAt(0).toUpperCase();
 
   return (

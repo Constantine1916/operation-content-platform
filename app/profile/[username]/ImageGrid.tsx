@@ -1,9 +1,8 @@
 // app/profile/[username]/ImageGrid.tsx
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Masonry from 'react-masonry-css';
-import { supabase } from '@/lib/supabase';
 
 export interface ProfileImage {
   task_id: string;
@@ -33,22 +32,10 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const [loadingMore, setLoadingMore] = useState(false);
   const [paginationError, setPaginationError] = useState<string | null>(null);
   const pageRef = useRef(1);
-  const tokenRef = useRef<string | null>(null);
   const loadingMoreRef = useRef(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      tokenRef.current = session?.access_token ?? null;
-    });
-  }, []);
 
   const fetchMore = useCallback(async () => {
     if (!hasMore || loadingMoreRef.current) return;
-    if (!tokenRef.current) {
-      // Token not yet loaded — surface a retryable error rather than silently skipping
-      setPaginationError('请先登录后再加载更多图片');
-      return;
-    }
     loadingMoreRef.current = true;
     setLoadingMore(true);
     setPaginationError(null);
@@ -56,7 +43,6 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
       const nextPage = pageRef.current + 1;
       const res = await fetch(
         `/api/gallery?user_id=${encodeURIComponent(userId)}&page=${nextPage}&limit=${PAGE_LIMIT}`,
-        { headers: { Authorization: `Bearer ${tokenRef.current}` } }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();

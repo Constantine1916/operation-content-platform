@@ -28,44 +28,44 @@ async function requireUser(token: string): Promise<string> {
  */
 export async function GET(request: NextRequest) {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
-
-    try { await requireUser(token); }
-    catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 401 }); }
-
     const { searchParams } = request.nextUrl;
+    const userIdRaw = searchParams.get('user_id'); // optional UUID filter
+    const userId = userIdRaw && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userIdRaw) ? userIdRaw : null;
+
+    // Public profile browsing (user_id provided) does not require auth.
+    // Authenticated endpoints (no user_id) still require a valid token.
+    if (!userId) {
+      const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+      if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
+      try { await requireUser(token); }
+      catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 401 }); }
+    }
+
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')));
     const date = searchParams.get('date'); // YYYY-MM-DD
-    const userIdRaw = searchParams.get('user_id'); // optional UUID filter
-    const userId = userIdRaw && /^[0-9a-f-]{36}$/i.test(userIdRaw) ? userIdRaw : null;
 
     const db = serviceClient();
-    const from = (page - 1) * limit;
 
-    // 只查含有至少一张公开图片的任务
+    // Fetch all matching tasks (no DB-level range — pagination is done at the image level below)
     let taskQuery = db
       .from('generate_tasks')
       .select('task_id, prompt, images, created_at, user_id')
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (userId) {
-      taskQuery = taskQuery.eq('user_id', userId)
+      taskQuery = taskQuery.eq('user_id', userId);
     }
 
     if (date) {
       taskQuery = taskQuery
         .gte('created_at', `${date}T00:00:00`)
-        .lt('created_at', `${date}T23:59:59`)
-    } else {
-      taskQuery = taskQuery.range(from, from + limit - 1)
+        .lt('created_at', `${date}T23:59:59`);
     }
 
     const { data: tasks, error } = await taskQuery;
-
     if (error) throw new Error(error.message);
 
     // 批量查询涉及的用户 profile
@@ -81,7 +81,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const items = (tasks ?? []).flatMap((task: any) => {
+    // Flatten all public images, then paginate at the image level
+    const allImages = (tasks ?? []).flatMap((task: any) => {
       const profile = profileMap[task.user_id] ?? { username: null, avatar_url: null };
       return (task.images ?? []).filter((img: any) => img.is_public === true).map((img: any) => ({
         task_id: task.task_id,
@@ -97,32 +98,10 @@ export async function GET(request: NextRequest) {
       }));
     });
 
-    // 统计公开图片张数（与查询条件一致，含日期过滤）
-    let countQuery = db
-      .from('generate_tasks')
-      .select('images')
-      .eq('status', 3)
-      .filter('images', 'cs', '[{"is_public":true}]');
-
-    if (userId) {
-      countQuery = countQuery.eq('user_id', userId);
-    }
-
-    if (date) {
-      countQuery = countQuery
-        .gte('created_at', `${date}T00:00:00`)
-        .lt('created_at', `${date}T23:59:59`);
-    }
-
-    const { data: allTasks } = await countQuery;
-
-    const totalImages = (allTasks ?? []).reduce((sum: number, task: any) => {
-      const publicCount = (task.images ?? []).filter((img: any) => img.is_public === true).length;
-      return sum + publicCount;
-    }, 0);
-
-    const taskCount = allTasks?.length ?? 0;
-    const hasMore = from + limit < taskCount;
+    const totalImages = allImages.length;
+    const from = (page - 1) * limit;
+    const items = allImages.slice(from, from + limit);
+    const hasMore = from + limit < totalImages;
 
     return NextResponse.json({ success: true, items, hasMore, total: totalImages });
   } catch (error: any) {
