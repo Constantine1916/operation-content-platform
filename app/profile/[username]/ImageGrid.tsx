@@ -3,6 +3,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
+import { Image } from 'antd';
 
 export interface ProfileImage {
   task_id: string;
@@ -66,15 +67,17 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
 
   return (
     <>
-      <Masonry
-        breakpointCols={BREAKPOINTS}
-        className="flex gap-4"
-        columnClassName="flex flex-col gap-4"
-      >
-        {images.map((img, i) => (
-          <ProfileImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} />
-        ))}
-      </Masonry>
+      <Image.PreviewGroup>
+        <Masonry
+          breakpointCols={BREAKPOINTS}
+          className="flex gap-4"
+          columnClassName="flex flex-col gap-4"
+        >
+          {images.map((img, i) => (
+            <ProfileImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} />
+          ))}
+        </Masonry>
+      </Image.PreviewGroup>
       <LoadMoreTrigger
         onVisible={fetchMore}
         hasMore={hasMore}
@@ -99,30 +102,30 @@ function ProfileImageCard({ image }: { image: ProfileImage }) {
   };
 
   return (
-    <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg">
-      <div className="relative overflow-hidden">
-        <img
-          src={image.url}
-          alt={image.prompt}
-          className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-        {/* hover 时浮出 prompt + 复制按钮 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
-            <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
-            <div className="flex justify-end">
-              <button
-                onClick={copy}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                  copied
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
-                }`}
-              >
-                {copied ? '已复制' : '复制'}
-              </button>
-            </div>
+    <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
+      <Image
+        src={image.url}
+        alt={image.prompt}
+        className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        style={{ display: 'block', width: '100%' }}
+        preview={{ mask: false }}
+        loading="lazy"
+      />
+      {/* hover 时浮出 prompt + 复制按钮 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+          <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={copy}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                copied
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
+              }`}
+            >
+              {copied ? '已复制' : '复制'}
+            </button>
           </div>
         </div>
       </div>

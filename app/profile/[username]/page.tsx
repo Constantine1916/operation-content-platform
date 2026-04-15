@@ -29,7 +29,7 @@ export default async function PublicProfilePage({
 
   if (profileError || !profile) return notFound();
 
-  // 2. Fetch first page of public images (fetch PAGE_LIMIT + 1 to detect hasMore)
+  // 2. Fetch first page of public images
   const { data: tasks, error: tasksError } = await db
     .from('generate_tasks')
     .select('task_id, prompt, images, created_at, user_id')
@@ -61,35 +61,45 @@ export default async function PublicProfilePage({
   const totalImages = allImages.length;
   const initialImages = allImages.slice(0, PAGE_LIMIT);
   const hasMore = totalImages > PAGE_LIMIT;
-  const initial = (profile.username ?? profile.id).charAt(0).toUpperCase();
+  const displayName = profile.username ?? profile.id;
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="max-w-7xl mx-auto">
       {/* Profile Header */}
-      <div className="mb-8 flex items-start gap-5">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-          {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.avatar_url}
-              alt={initial}
-              className="w-24 h-24 rounded-full object-cover ring-2 ring-gray-100"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center ring-2 ring-gray-100">
-              <span className="text-3xl font-semibold text-gray-400">{initial}</span>
-            </div>
-          )}
-        </div>
+      <div className="mb-10 pb-8 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          {/* Avatar — compact & balanced */}
+          <div className="flex-shrink-0">
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar_url}
+                alt={displayName}
+                className="w-14 h-14 rounded-full object-cover ring-1 ring-gray-200"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center ring-1 ring-gray-200">
+                <span className="text-xl font-semibold text-white leading-none">{initial}</span>
+              </div>
+            )}
+          </div>
 
-        {/* Info */}
-        <div className="pt-2">
-          <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-          {profile.bio && (
-            <p className="text-sm text-gray-500 mt-1 max-w-md">{profile.bio}</p>
-          )}
-          <p className="text-xs text-gray-400 mt-2">{totalImages} 张公开图片</p>
+          {/* Info */}
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <h1 className="text-xl font-semibold text-gray-900 tracking-tight">{profile.username}</h1>
+              {profile.full_name && profile.full_name !== profile.username && (
+                <span className="text-sm text-gray-400 font-normal">{profile.full_name}</span>
+              )}
+            </div>
+            {profile.bio && (
+              <p className="text-sm text-gray-500 mt-0.5 max-w-md leading-relaxed">{profile.bio}</p>
+            )}
+            <p className="text-xs text-gray-400 mt-1 tabular-nums">
+              {totalImages} 张公开图片
+            </p>
+          </div>
         </div>
       </div>
 

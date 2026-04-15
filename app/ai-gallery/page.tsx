@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Masonry from 'react-masonry-css';
+import { Image } from 'antd';
 
 export interface GalleryImage {
   task_id: string;
@@ -74,15 +75,17 @@ export default function AiGalleryPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <PageHeader />
-      <Masonry
-        breakpointCols={BREAKPOINTS}
-        className="flex gap-4"
-        columnClassName="flex flex-col gap-4"
-      >
-        {images.map((img, i) => (
-          <ImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} allImages={images} />
-        ))}
-      </Masonry>
+      <Image.PreviewGroup>
+        <Masonry
+          breakpointCols={BREAKPOINTS}
+          className="flex gap-4"
+          columnClassName="flex flex-col gap-4"
+        >
+          {images.map((img, i) => (
+            <ImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} />
+          ))}
+        </Masonry>
+      </Image.PreviewGroup>
       <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={images.length} />
     </div>
   );
@@ -154,112 +157,69 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
   );
 }
 
-function CopyButton({ text, className = '' }: { text: string; className?: string }) {
+function ImageCard({ image }: { image: GalleryImage }) {
   const [copied, setCopied] = useState(false);
+
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(image.prompt).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
   };
-  return (
-    <button
-      onClick={copy}
-      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-        copied
-          ? 'bg-gray-900 text-white'
-          : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
-      } ${className}`}
-      title="复制 Prompt"
-    >
-      {copied ? (
-        <>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-          </svg>
-          已复制
-        </>
-      ) : (
-        <>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          复制
-        </>
-      )}
-    </button>
-  );
-}
-
-function ImageCard({ image, allImages }: { image: GalleryImage; allImages: GalleryImage[] }) {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-
-  const { siblings, startIndex } = useMemo(() => {
-    const siblings = allImages
-      .filter(img => img.task_id === image.task_id)
-      .sort((a, b) => a.index - b.index);
-    const startIndex = siblings.findIndex(img => img.index === image.index);
-    return { siblings, startIndex };
-  }, [allImages, image.task_id, image.index]);
 
   return (
-    <>
-      <div
-        className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg"
-        onClick={() => setLightboxOpen(true)}
-      >
-        {/* 图片 + 常驻底部渐变（作者信息） + hover 时显示 prompt */}
-        <div className="relative overflow-hidden">
-          <img
-            src={image.url}
-            alt={image.prompt}
-            className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
+    <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
+      <Image
+        src={image.url}
+        alt={image.prompt}
+        className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        style={{ display: 'block', width: '100%' }}
+        preview={{ mask: false }}
+        loading="lazy"
+      />
 
-          {/* 常驻底部渐变 + 作者信息 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
-            {/* hover 时浮出 prompt + 复制按钮 */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-2.5 pointer-events-auto">
-              <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
-              <div className="flex justify-end">
-                <CopyButton text={image.prompt} />
-              </div>
-            </div>
-
-            {/* 作者信息：始终可见 */}
-            {image.username ? (
-              <Link
-                href={`/profile/${image.username}`}
-                className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
-                onClick={e => e.stopPropagation()}
-              >
-                <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-                <span className="text-xs text-white/90 font-medium truncate">
-                  {image.username}
-                </span>
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2 pointer-events-auto">
-                <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-                <span className="text-xs text-white/90 font-medium truncate">
-                  {image.user_id.slice(0, 8)}
-                </span>
-              </div>
-            )}
+      {/* 常驻底部渐变 + 作者信息 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
+        {/* hover 时浮出 prompt + 复制按钮 */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-2.5 pointer-events-auto">
+          <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={copy}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                copied
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
+              }`}
+            >
+              {copied ? '已复制' : '复制'}
+            </button>
           </div>
         </div>
-      </div>
 
-      {lightboxOpen && (
-        <Lightbox
-          images={siblings}
-          initialIndex={startIndex >= 0 ? startIndex : 0}
-          onClose={() => setLightboxOpen(false)}
-        />
-      )}
-    </>
+        {/* 作者信息：始终可见 */}
+        {image.username ? (
+          <Link
+            href={`/profile/${image.username}`}
+            className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
+            onClick={e => e.stopPropagation()}
+          >
+            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+            <span className="text-xs text-white/90 font-medium truncate">
+              {image.username}
+            </span>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+            <span className="text-xs text-white/90 font-medium truncate">
+              {image.user_id.slice(0, 8)}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -271,90 +231,6 @@ function Avatar({ user_id, username, avatar_url }: { user_id: string; username: 
   return (
     <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm ring-1 ring-white/40 flex items-center justify-center flex-shrink-0">
       <span className="text-[10px] font-semibold text-white">{initial}</span>
-    </div>
-  );
-}
-
-function Lightbox({ images, initialIndex, onClose }: {
-  images: GalleryImage[];
-  initialIndex: number;
-  onClose: () => void;
-}) {
-  const [current, setCurrent] = useState(initialIndex);
-  const img = images[current];
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') setCurrent(i => Math.max(0, i - 1));
-      if (e.key === 'ArrowRight') setCurrent(i => Math.min(images.length - 1, i + 1));
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [images.length, onClose]);
-
-  if (!img) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative flex flex-col items-center max-w-2xl w-full mx-4"
-        onClick={e => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute -top-10 right-0 text-white/60 hover:text-white transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <div className="relative">
-          <img
-            src={img.url}
-            alt={img.prompt}
-            className="rounded-xl max-h-[75vh] w-auto object-contain"
-          />
-
-          {images.length > 1 && (
-            <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none">
-              <button
-                onClick={() => setCurrent(i => Math.max(0, i - 1))}
-                disabled={current === 0}
-                className="pointer-events-auto w-9 h-9 flex items-center justify-center rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white disabled:opacity-20 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setCurrent(i => Math.min(images.length - 1, i + 1))}
-                disabled={current === images.length - 1}
-                className="pointer-events-auto w-9 h-9 flex items-center justify-center rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white disabled:opacity-20 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 w-full bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-white/90 text-sm leading-relaxed flex-1">{img.prompt}</p>
-            <CopyButton text={img.prompt} className="flex-shrink-0 mt-0.5" />
-          </div>
-          {images.length > 1 && (
-            <p className="text-white/40 text-xs mt-2">{current + 1} / {images.length}</p>
-          )}
-        </div>
-
-      </div>
     </div>
   );
 }
