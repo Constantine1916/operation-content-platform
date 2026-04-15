@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')));
     const date = searchParams.get('date'); // YYYY-MM-DD
+    const userId = searchParams.get('user_id'); // optional UUID filter
 
     const db = serviceClient();
     const from = (page - 1) * limit;
@@ -49,6 +50,10 @@ export async function GET(request: NextRequest) {
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      taskQuery = taskQuery.eq('user_id', userId)
+    }
 
     if (date) {
       taskQuery = taskQuery
@@ -97,6 +102,10 @@ export async function GET(request: NextRequest) {
       .select('images')
       .eq('status', 3)
       .filter('images', 'cs', '[{"is_public":true}]');
+
+    if (userId) {
+      countQuery = countQuery.eq('user_id', userId);
+    }
 
     if (date) {
       countQuery = countQuery
