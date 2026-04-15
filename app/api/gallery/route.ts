@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')));
     const date = searchParams.get('date'); // YYYY-MM-DD
-    const userId = searchParams.get('user_id'); // optional UUID filter
+    const userIdRaw = searchParams.get('user_id'); // optional UUID filter
+    const userId = userIdRaw && /^[0-9a-f-]{36}$/i.test(userIdRaw) ? userIdRaw : null;
 
     const db = serviceClient();
     const from = (page - 1) * limit;
