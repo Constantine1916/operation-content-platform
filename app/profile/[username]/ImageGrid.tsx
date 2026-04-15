@@ -34,6 +34,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const [paginationError, setPaginationError] = useState<string | null>(null);
   const pageRef = useRef(1);
   const tokenRef = useRef<string | null>(null);
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -42,26 +43,34 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   }, []);
 
   const fetchMore = useCallback(async () => {
-    if (!hasMore || loadingMore || !tokenRef.current) return;
+    if (!hasMore || loadingMoreRef.current) return;
+    if (!tokenRef.current) {
+      // Token not yet loaded — surface a retryable error rather than silently skipping
+      setPaginationError('请先登录后再加载更多图片');
+      return;
+    }
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     setPaginationError(null);
     try {
       const nextPage = pageRef.current + 1;
       const res = await fetch(
-        `/api/gallery?user_id=${userId}&page=${nextPage}&limit=${PAGE_LIMIT}`,
+        `/api/gallery?user_id=${encodeURIComponent(userId)}&page=${nextPage}&limit=${PAGE_LIMIT}`,
         { headers: { Authorization: `Bearer ${tokenRef.current}` } }
       );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error ?? '加载失败');
       setImages(prev => [...prev, ...data.items]);
       setHasMore(data.hasMore);
       pageRef.current = nextPage;
-    } catch (e: any) {
-      setPaginationError(e.message ?? '加载失败');
+    } catch (e: unknown) {
+      setPaginationError(e instanceof Error ? e.message : '加载失败');
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [hasMore, loadingMore, userId]);
+  }, [hasMore, userId]);
 
   if (images.length === 0) {
     return (
@@ -157,13 +166,13 @@ function LoadMoreTrigger({
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMore && !loadingMore) onVisible();
+        if (entry.isIntersecting) onVisible();
       },
       { rootMargin: '200px' }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [hasMore, loadingMore, onVisible]);
+  }, [onVisible]);
 
   return (
     <div ref={ref} className="mt-8 flex items-center justify-center py-8">
