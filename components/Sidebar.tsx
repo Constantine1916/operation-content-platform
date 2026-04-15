@@ -21,7 +21,9 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   const [isSVIP, setIsSVIP] = useState(false)
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
+    // 用北京时间（UTC+8）计算今日日期，避免 UTC 与本地日期不一致
+    const bjNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const today = bjNow.toISOString().slice(0, 10);
 
     async function fetchStats() {
       const { data: { session } } = await supabase.auth.getSession()

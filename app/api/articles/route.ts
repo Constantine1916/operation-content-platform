@@ -40,13 +40,17 @@ export async function GET(request: NextRequest) {
         .from('articles')
         .select('*', { count: 'exact', head: true });
 
-      // 获取今日新增数量
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // 获取今日新增数量（北京时间 00:00 起）
+      // UTC+8：北京今天 00:00 = UTC 前一天 16:00
+      const nowUtc = new Date();
+      const bjOffsetMs = 8 * 60 * 60 * 1000;
+      const bjNow = new Date(nowUtc.getTime() + bjOffsetMs);
+      const bjDateStr = bjNow.toISOString().slice(0, 10); // "YYYY-MM-DD" in BJ time
+      const bjMidnightUtc = new Date(`${bjDateStr}T00:00:00+08:00`);
       const { count: todayCount } = await supabaseRead
         .from('articles')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString());
+        .gte('created_at', bjMidnightUtc.toISOString());
 
       // 获取各平台数量
       const { data: platformCounts } = await supabaseRead
