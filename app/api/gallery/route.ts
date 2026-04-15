@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
 
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')));
-    const date = searchParams.get('date'); // YYYY-MM-DD
+    const dateRaw = searchParams.get('date');
+    const date = dateRaw && /^\d{4}-\d{2}-\d{2}$/.test(dateRaw) ? dateRaw : null;
 
     const db = serviceClient();
 
@@ -61,8 +62,8 @@ export async function GET(request: NextRequest) {
 
     if (date) {
       taskQuery = taskQuery
-        .gte('created_at', `${date}T00:00:00`)
-        .lt('created_at', `${date}T23:59:59`);
+        .gte('created_at', `${date}T00:00:00.000Z`)
+        .lt('created_at', new Date(new Date(`${date}T00:00:00.000Z`).getTime() + 86400000).toISOString());
     }
 
     const { data: tasks, error } = await taskQuery;

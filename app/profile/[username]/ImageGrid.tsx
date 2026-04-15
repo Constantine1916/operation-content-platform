@@ -1,7 +1,7 @@
 // app/profile/[username]/ImageGrid.tsx
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
 
 export interface ProfileImage {
