@@ -27,12 +27,10 @@ export default async function PublicProfilePage({
     .eq('username', username)
     .single();
 
-  if (profileError || !profile) {
-    notFound();
-  }
+  if (profileError || !profile) return notFound();
 
   // 2. Fetch first page of public images
-  const { data: tasks } = await db
+  const { data: tasks, error: tasksError } = await db
     .from('generate_tasks')
     .select('task_id, prompt, images, created_at, user_id')
     .eq('status', 3)
@@ -41,13 +39,17 @@ export default async function PublicProfilePage({
     .order('created_at', { ascending: false })
     .range(0, PAGE_LIMIT - 1);
 
+  if (tasksError) throw tasksError;
+
   // 3. Count total public images for display
-  const { data: allTasks } = await db
+  const { data: allTasks, error: allTasksError } = await db
     .from('generate_tasks')
     .select('images')
     .eq('status', 3)
     .eq('user_id', profile.id)
     .filter('images', 'cs', '[{"is_public":true}]');
+
+  if (allTasksError) throw allTasksError;
 
   const totalImages = (allTasks ?? []).reduce((sum: number, task: any) => {
     const publicCount = (task.images ?? []).filter((img: any) => img.is_public === true).length;
