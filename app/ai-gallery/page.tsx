@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Masonry from 'react-masonry-css';
 
@@ -228,12 +229,25 @@ function ImageCard({ image, allImages }: { image: GalleryImage; allImages: Galle
             </div>
 
             {/* 作者信息：始终可见 */}
-            <div className="flex items-center gap-2 pointer-events-auto">
-              <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-              <span className="text-xs text-white/90 font-medium truncate">
-                {image.username ?? image.user_id.slice(0, 8)}
-              </span>
-            </div>
+            {image.username ? (
+              <Link
+                href={`/profile/${image.username}`}
+                className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
+                onClick={e => e.stopPropagation()}
+              >
+                <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+                <span className="text-xs text-white/90 font-medium truncate">
+                  {image.username}
+                </span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2 pointer-events-auto">
+                <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+                <span className="text-xs text-white/90 font-medium truncate">
+                  {image.user_id.slice(0, 8)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
