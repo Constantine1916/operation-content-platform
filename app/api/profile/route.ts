@@ -80,8 +80,8 @@ export async function PATCH(request: NextRequest) {
     const { username, full_name, avatar_url, bio } = body;
 
     // 简单校验
-    if (username !== undefined && (username.length < 2 || username.length > 30)) {
-      return NextResponse.json({ error: '用户名长度需在 2-30 个字符之间' }, { status: 400 });
+    if (username !== undefined && (username.length < 2 || username.length > 30 || !/^[\w.-]+$/.test(username))) {
+      return NextResponse.json({ error: '用户名需 2-30 个字符，只能包含字母、数字、下划线、点和连字符' }, { status: 400 });
     }
 
     const updates: Record<string, string> = { updated_at: new Date().toISOString() };

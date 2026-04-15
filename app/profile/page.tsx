@@ -104,6 +104,12 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage(null);
 
+    if (username && !/^[\w.-]{2,30}$/.test(username)) {
+      setMessage({ type: 'error', text: '用户名需 2-30 个字符，只能包含字母、数字、下划线、点和连字符' });
+      setSaving(false);
+      return;
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
