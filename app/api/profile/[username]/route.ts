@@ -18,6 +18,10 @@ export async function GET(
   try {
     const { username } = params;
 
+    if (!username || username.length > 50 || !/^[\w.-]+$/.test(username)) {
+      return NextResponse.json({ error: '无效的用户名' }, { status: 400 });
+    }
+
     const db = serviceClient();
     const { data, error } = await db
       .from('profiles')
@@ -25,8 +29,11 @@ export async function GET(
       .eq('username', username)
       .single();
 
-    if (error || !data) {
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+      }
+      throw error;
     }
 
     return NextResponse.json({ success: true, data });
