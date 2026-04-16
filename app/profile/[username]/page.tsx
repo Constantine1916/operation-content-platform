@@ -1,7 +1,8 @@
 // app/profile/[username]/page.tsx
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-import ImageGrid, { ProfileImage } from './ImageGrid';
+import { ProfileImage } from './ImageGrid';
+import ProfileTabs from './ProfileTabs';
 
 function serviceClient() {
   return createClient(
@@ -23,13 +24,13 @@ export default async function PublicProfilePage({
   // 1. Fetch profile
   const { data: profile, error: profileError } = await db
     .from('profiles')
-    .select('id, username, full_name, avatar_url, bio')
+    .select('id, username, avatar_url, bio')
     .eq('username', username)
     .single();
 
   if (profileError || !profile) return notFound();
 
-  // 2. Fetch first page of public images
+  // 2. Fetch public images
   const { data: tasks, error: tasksError } = await db
     .from('generate_tasks')
     .select('task_id, prompt, images, created_at, user_id')
@@ -67,9 +68,9 @@ export default async function PublicProfilePage({
   return (
     <div className="max-w-7xl mx-auto">
       {/* Profile Header */}
-      <div className="mb-10 pb-8 border-b border-gray-100">
+      <div className="mb-8 pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          {/* Avatar — compact & balanced */}
+          {/* Avatar */}
           <div className="flex-shrink-0">
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -87,27 +88,20 @@ export default async function PublicProfilePage({
 
           {/* Info */}
           <div className="min-w-0">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <h1 className="text-xl font-semibold text-gray-900 tracking-tight">{profile.username}</h1>
-              {profile.full_name && profile.full_name !== profile.username && (
-                <span className="text-sm text-gray-400 font-normal">{profile.full_name}</span>
-              )}
-            </div>
+            <h1 className="text-xl font-semibold text-gray-900 tracking-tight">{profile.username}</h1>
             {profile.bio && (
               <p className="text-sm text-gray-500 mt-0.5 max-w-md leading-relaxed">{profile.bio}</p>
             )}
-            <p className="text-xs text-gray-400 mt-1 tabular-nums">
-              {totalImages} 张公开图片
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Image Grid */}
-      <ImageGrid
+      {/* Tabs: Images / Videos / Courses */}
+      <ProfileTabs
         initialImages={initialImages}
         hasMore={hasMore}
         userId={profile.id}
+        totalImages={totalImages}
       />
     </div>
   );
