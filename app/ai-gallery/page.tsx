@@ -32,7 +32,7 @@ function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode 
           style={{ position: 'fixed', bottom: rect.bottom + 12, right: rect.right + 12 }}
         >
           <span
-            className="text-white/50 text-sm font-semibold tracking-[0.2em] uppercase"
+            className="text-white/80 text-sm font-semibold tracking-[0.2em] uppercase"
             style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
           >
             AiCave
