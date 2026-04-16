@@ -722,6 +722,12 @@ function GenerateImgPageInner() {
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                   />
 
+                                  {/* 水印 */}
+                                  <div className="absolute bottom-2 right-2 pointer-events-none select-none z-10">
+                                    <span className="text-white/40 text-[9px] font-semibold tracking-widest uppercase"
+                                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>AiCave</span>
+                                  </div>
+
                                   {/* 管理模式：勾选圆圈 */}
                                   {isManaging && (
                                     <div className={`absolute top-2 left-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -742,23 +748,34 @@ function GenerateImgPageInner() {
                                     </div>
                                   )}
 
-                                  {/* 非管理模式：hover 链接 */}
+                                  {/* 非管理模式：下载按钮 + 尺寸 */}
                                   {!isManaging && (
                                     <>
                                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                        <a
-                                          href={img.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          onClick={e => e.stopPropagation()}
-                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              const res = await fetch(img.url);
+                                              const blob = await res.blob();
+                                              const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+                                              const url = URL.createObjectURL(blob);
+                                              const a = document.createElement('a');
+                                              a.href = url;
+                                              a.download = `aicave_${Date.now()}.${ext}`;
+                                              a.click();
+                                              URL.revokeObjectURL(url);
+                                            } catch { window.open(img.url, '_blank'); }
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white"
+                                          title="下载原图"
                                         >
-                                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                           </svg>
-                                        </a>
+                                        </button>
                                       </div>
-                                      <div className="absolute bottom-2 right-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
+                                      <div className="absolute bottom-2 left-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
                                         {img.width}×{img.height}
                                       </div>
                                     </>

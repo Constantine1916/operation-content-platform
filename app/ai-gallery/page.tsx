@@ -159,6 +159,7 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
 
 function ImageCard({ image }: { image: GalleryImage }) {
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -166,6 +167,24 @@ function ImageCard({ image }: { image: GalleryImage }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
+  };
+
+  const download = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(image.url);
+      const blob = await res.blob();
+      const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `aicave_${Date.now()}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { window.open(image.url, '_blank'); }
+    finally { setDownloading(false); }
   };
 
   return (
@@ -178,6 +197,25 @@ function ImageCard({ image }: { image: GalleryImage }) {
         preview={{ mask: false }}
         loading="lazy"
       />
+
+      {/* 水印 */}
+      <div className="absolute bottom-10 right-2 pointer-events-none select-none z-10">
+        <span className="text-white/40 text-[10px] font-semibold tracking-widest uppercase"
+          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>AiCave</span>
+      </div>
+
+      {/* 下载按钮 */}
+      <button
+        onClick={download}
+        disabled={downloading}
+        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-7 h-7 flex items-center justify-center rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white disabled:opacity-50"
+        title="下载原图"
+      >
+        {downloading
+          ? <div className="w-3 h-3 border border-white/60 border-t-white rounded-full animate-spin" />
+          : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+        }
+      </button>
 
       {/* 常驻底部渐变 + 作者信息 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
