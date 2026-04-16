@@ -27,8 +27,8 @@ interface ProfileTabsProps {
 
 const TABS = [
   { key: 'images', label: 'AI 图片' },
-  { key: 'videos', label: '视频' },
-  { key: 'courses', label: '课程' },
+  { key: 'videos', label: 'AI 视频' },
+  { key: 'courses', label: 'AI 课程' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -71,7 +71,7 @@ export default function ProfileTabs({ initialImages, hasMore, userId, totalImage
         <VideoGrid userId={userId} />
       )}
       {activeTab === 'courses' && (
-        <EmptyState text="暂无课程" />
+        <EmptyState text="暂无 AI 课程" />
       )}
     </div>
   );
