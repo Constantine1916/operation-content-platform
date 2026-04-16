@@ -11,6 +11,18 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+
+    // Special: return distinct model list
+    if (searchParams.get('models') === 'true') {
+      const { data, error } = await supabase
+        .from('ai_videos')
+        .select('model')
+        .not('model', 'is', null);
+      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      const models = Array.from(new Set((data || []).map((v: any) => v.model).filter(Boolean))).sort();
+      return NextResponse.json({ success: true, models });
+    }
+
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const platform = searchParams.get('platform');

@@ -34,6 +34,13 @@ export default function AiVideoPage() {
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
 
+  useEffect(() => {
+    fetch('/api/ai-video?models=true')
+      .then(r => r.json())
+      .then(data => { if (data.success) setAllModels(data.models); })
+      .catch(() => {});
+  }, []);
+
   const fetchPage = useCallback(async (page: number, model: string, isFirst = false) => {
     if (isFirst) setLoading(true); else setLoadingMore(true);
     try {
@@ -45,11 +52,6 @@ export default function AiVideoPage() {
       setVideos(prev => page === 1 ? data.data : [...prev, ...data.data]);
       setHasMore(data.pagination.page < data.pagination.totalPages);
       pageRef.current = page;
-      if (page === 1) {
-        // collect all models from first page — not ideal but sufficient for now
-        const models = Array.from(new Set(data.data.map((v: VideoItem) => v.model).filter(Boolean))) as string[];
-        if (models.length > 0) setAllModels(models);
-      }
     } catch (e: any) {
       setError(e.message);
     } finally {
