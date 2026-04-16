@@ -69,10 +69,10 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
     <>
       <Image.PreviewGroup
         preview={{
-          imageRender: (originalNode, { image }) => (
-            <div className="relative inline-block">
+          imageRender: (originalNode) => (
+            <>
               {originalNode}
-              <div className="absolute bottom-4 right-4 pointer-events-none select-none">
+              <div className="fixed bottom-4 right-4 pointer-events-none select-none z-[9999]">
                 <span
                   className="text-white/50 text-sm font-semibold tracking-[0.2em] uppercase"
                   style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
@@ -80,7 +80,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
                   AiCave
                 </span>
               </div>
-            </div>
+            </>
           ),
           actionsRender: (originalNode, { image }) => {
             const src = (image as any)?.src ?? '';
