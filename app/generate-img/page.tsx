@@ -722,12 +722,6 @@ function GenerateImgPageInner() {
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                   />
 
-                                  {/* 水印 */}
-                                  <div className="absolute bottom-2 right-2 pointer-events-none select-none z-10">
-                                    <span className="text-white/40 text-[9px] font-semibold tracking-widest uppercase"
-                                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>AiCave</span>
-                                  </div>
-
                                   {/* 管理模式：勾选圆圈 */}
                                   {isManaging && (
                                     <div className={`absolute top-2 left-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -748,7 +742,7 @@ function GenerateImgPageInner() {
                                     </div>
                                   )}
 
-                                  {/* 非管理模式：下载按钮 + 尺寸 */}
+                                  {/* 非管理模式：hover 下载按钮 + 尺寸 */}
                                   {!isManaging && (
                                     <>
                                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -775,7 +769,7 @@ function GenerateImgPageInner() {
                                           </svg>
                                         </button>
                                       </div>
-                                      <div className="absolute bottom-2 left-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
+                                      <div className="absolute bottom-2 right-2 text-[10px] text-white bg-black/40 px-1.5 py-0.5 rounded-full">
                                         {img.width}×{img.height}
                                       </div>
                                     </>
