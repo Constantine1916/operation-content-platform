@@ -16,12 +16,15 @@ export async function GET(request: NextRequest) {
     const platform = searchParams.get('platform');
     const model = searchParams.get('model');
     const sort = searchParams.get('sort') || 'latest';
-    const date = searchParams.get('date'); // YYYY-MM-DD
+    const date = searchParams.get('date');
+    const userIdRaw = searchParams.get('user_id');
+    const userId = userIdRaw && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userIdRaw) ? userIdRaw : null;
 
     let query = supabase
       .from('ai_videos')
       .select('*, profiles(username, avatar_url)', { count: 'exact' });
 
+    if (userId) query = query.eq('user_id', userId);
     if (platform) query = query.eq('platform', platform);
     if (model) query = query.eq('model', model);
     if (date) {
