@@ -1,35 +1,30 @@
 // app/profile/[username]/ImageGrid.tsx
 'use client';
 
-import { useState, useCallback, useRef, useEffect, cloneElement, isValidElement } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
-  const imgRef = useRef<HTMLImageElement>(null);
   const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
 
   useEffect(() => {
-    const img = imgRef.current;
-    if (!img) return;
+    let rafId: number;
     const update = () => {
-      const r = img.getBoundingClientRect();
-      setRect({ bottom: window.innerHeight - r.bottom, right: window.innerWidth - r.right });
+      const img = document.querySelector<HTMLImageElement>('.ant-image-preview-img');
+      if (img) {
+        const r = img.getBoundingClientRect();
+        setRect({ bottom: window.innerHeight - r.bottom, right: window.innerWidth - r.right });
+      }
+      rafId = requestAnimationFrame(update);
     };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(img);
-    window.addEventListener('mousemove', update);
-    return () => { ro.disconnect(); window.removeEventListener('mousemove', update); };
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
   }, []);
-
-  const nodeWithRef = isValidElement(originalNode)
-    ? cloneElement(originalNode as React.ReactElement<any>, { ref: imgRef })
-    : originalNode;
 
   return (
     <>
-      {nodeWithRef}
+      {originalNode}
       {rect && (
         <div
           className="pointer-events-none select-none z-[9999]"
