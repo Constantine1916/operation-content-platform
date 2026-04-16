@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'AI树洞',
   description: '汇聚 AI 原创内容，连接创作者与用户',
   icons: {
-    icon: '/assets/aicave_icon.jpg',
+    icon: '/assets/aicave_icon.png',
   },
 }
 
