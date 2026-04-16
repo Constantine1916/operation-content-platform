@@ -49,23 +49,21 @@ export default function RegisterPage() {
         return;
       }
 
-      // Save username — use the session token if available (no email confirmation),
-      // otherwise fall back to the service-role API route which accepts user_id directly.
-      const token = data.session?.access_token;
-      if (token) {
-        await fetch('/api/profile', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ username }),
-        });
-      } else if (data.user) {
-        // Email confirmation required — profile row may not exist yet.
-        // Username will be saved when the user logs in for the first time.
-        // Store it in sessionStorage so the post-login flow can pick it up.
-        sessionStorage.setItem('pending_username', username);
+      if (!data.user) {
+        setError('注册失败，请重试');
+        return;
+      }
+
+      // Save username via service-role API — works with or without email confirmation
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: data.user.id, email, username }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setError(result.error || '用户名保存失败');
+        return;
       }
 
       setSuccess('注册成功！请前往邮箱验证链接（如果已配置邮件），或直接登录');
