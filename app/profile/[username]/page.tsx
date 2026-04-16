@@ -30,37 +30,31 @@ export default async function PublicProfilePage({
 
   if (profileError || !profile) return notFound();
 
-  // 2. Fetch public images
-  const { data: tasks, error: tasksError } = await db
-    .from('generate_tasks')
-    .select('task_id, prompt, images, created_at, user_id')
-    .eq('status', 3)
+  // 2. Fetch public images from ai_images
+  const { data: images, error: imagesError, count } = await db
+    .from('ai_images')
+    .select('id, task_id, prompt, url, width, height, index, created_at, user_id', { count: 'exact' })
     .eq('user_id', profile.id)
-    .filter('images', 'cs', '[{"is_public":true}]')
-    .order('created_at', { ascending: false });
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+    .range(0, PAGE_LIMIT - 1);
 
-  if (tasksError) throw tasksError;
+  if (imagesError) throw imagesError;
 
-  // 3. Flatten all public images, then slice for the first page
-  const allImages: ProfileImage[] = (tasks ?? []).flatMap((task: any) =>
-    (task.images ?? [])
-      .filter((img: any) => img.is_public === true)
-      .map((img: any) => ({
-        task_id: task.task_id,
-        prompt: task.prompt as string,
-        url: img.url as string,
-        width: img.width as number,
-        height: img.height as number,
-        index: img.index as number,
-        created_at: task.created_at as string,
-        user_id: task.user_id as string,
-        username: profile.username,
-        avatar_url: profile.avatar_url,
-      }))
-  );
+  const totalImages = count ?? 0;
+  const initialImages: ProfileImage[] = (images ?? []).map((img: any) => ({
+    task_id: img.task_id,
+    prompt: img.prompt,
+    url: img.url,
+    width: img.width,
+    height: img.height,
+    index: img.index,
+    created_at: img.created_at,
+    user_id: img.user_id,
+    username: profile.username,
+    avatar_url: profile.avatar_url,
+  }));
 
-  const totalImages = allImages.length;
-  const initialImages = allImages.slice(0, PAGE_LIMIT);
   const hasMore = totalImages > PAGE_LIMIT;
   const displayName = profile.username ?? profile.id;
   const initial = displayName.charAt(0).toUpperCase();

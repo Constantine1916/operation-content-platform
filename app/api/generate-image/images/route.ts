@@ -24,7 +24,7 @@ async function requireUser(token: string): Promise<string> {
 /**
  * PATCH /api/generate-image/images
  * Body: { task_id: string, image_indexes: number[], is_public: boolean }
- * 批量更新指定 task 内的 images[].is_public 字段
+ * 批量更新 ai_images 中指定 task_id + index 的 is_public
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -43,31 +43,14 @@ export async function PATCH(request: NextRequest) {
 
     const db = serviceClient();
 
-    // 获取当前 task
-    const { data: task, error: fetchError } = await db
-      .from('generate_tasks')
-      .select('images')
+    const { error } = await db
+      .from('ai_images')
+      .update({ is_public })
       .eq('task_id', task_id)
       .eq('user_id', userId)
-      .single();
+      .in('index', image_indexes);
 
-    if (fetchError || !task) {
-      return NextResponse.json({ error: '任务不存在' }, { status: 404 });
-    }
-
-    const images: any[] = task.images ?? [];
-    const indexSet = new Set(image_indexes);
-    const updatedImages = images.map((img: any) =>
-      indexSet.has(img.index) ? { ...img, is_public } : img
-    );
-
-    const { error: updateError } = await db
-      .from('generate_tasks')
-      .update({ images: updatedImages })
-      .eq('task_id', task_id)
-      .eq('user_id', userId);
-
-    if (updateError) throw new Error(updateError.message);
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -78,7 +61,7 @@ export async function PATCH(request: NextRequest) {
 /**
  * DELETE /api/generate-image/images
  * Body: { task_id: string, image_indexes: number[] }
- * 从 images 数组中删除指定 index 的图片
+ * 从 ai_images 中删除指定 task_id + index 的行
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -97,29 +80,14 @@ export async function DELETE(request: NextRequest) {
 
     const db = serviceClient();
 
-    // 获取当前 task
-    const { data: task, error: fetchError } = await db
-      .from('generate_tasks')
-      .select('images')
+    const { error } = await db
+      .from('ai_images')
+      .delete()
       .eq('task_id', task_id)
       .eq('user_id', userId)
-      .single();
+      .in('index', image_indexes);
 
-    if (fetchError || !task) {
-      return NextResponse.json({ error: '任务不存在' }, { status: 404 });
-    }
-
-    const images: any[] = task.images ?? [];
-    const indexSet = new Set(image_indexes);
-    const updatedImages = images.filter((img: any) => !indexSet.has(img.index));
-
-    const { error: updateError } = await db
-      .from('generate_tasks')
-      .update({ images: updatedImages })
-      .eq('task_id', task_id)
-      .eq('user_id', userId);
-
-    if (updateError) throw new Error(updateError.message);
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

@@ -157,6 +157,34 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
             })
             .eq('task_id', item.task_id);
+
+          // On completion, sync images to ai_images table
+          if (item.status === 3 && images.length > 0) {
+            // Get user_id and prompt for this task
+            const { data: taskRow } = await db
+              .from('generate_tasks')
+              .select('user_id, prompt')
+              .eq('task_id', item.task_id)
+              .single();
+
+            if (taskRow) {
+              // Upsert to avoid duplicates on repeated polls
+              await db.from('ai_images').upsert(
+                images.map((img: any) => ({
+                  url: img.url,
+                  prompt: taskRow.prompt,
+                  width: img.width,
+                  height: img.height,
+                  index: img.index,
+                  is_public: true,
+                  source: 'generate',
+                  task_id: item.task_id,
+                  user_id: taskRow.user_id,
+                })),
+                { onConflict: 'task_id,index' }
+              );
+            }
+          }
         }
 
         return {
