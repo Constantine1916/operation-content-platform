@@ -6,33 +6,38 @@ import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
-  const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
+  const [imgRect, setImgRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     let rafId: number;
     const update = () => {
       const img = document.querySelector<HTMLImageElement>('.ant-image-preview-img');
-      if (img) {
-        const r = img.getBoundingClientRect();
-        setRect({ bottom: window.innerHeight - r.bottom, right: window.innerWidth - r.right });
-      }
+      if (img) setImgRect(img.getBoundingClientRect());
       rafId = requestAnimationFrame(update);
     };
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
   }, []);
 
+  const fontSize = imgRect ? Math.max(10, (imgRect.width / 800) * 14) : 14;
+
   return (
     <>
       {originalNode}
-      {rect && (
+      {imgRect && (
         <div
           className="pointer-events-none select-none z-[9999]"
-          style={{ position: 'fixed', bottom: rect.bottom + 12, right: rect.right + 12 }}
+          style={{
+            position: 'fixed',
+            left: imgRect.left,
+            top: imgRect.top,
+            width: imgRect.width,
+            height: imgRect.height,
+          }}
         >
           <span
-            className="text-white/50 text-sm font-semibold tracking-[0.2em] uppercase"
-            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+            className="absolute bottom-3 right-3 text-white/50 font-semibold tracking-[0.2em] uppercase"
+            style={{ fontSize, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
           >
             AiCave
           </span>
