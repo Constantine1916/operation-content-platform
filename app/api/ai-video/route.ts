@@ -18,14 +18,16 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort') || 'latest';
     const date = searchParams.get('date'); // YYYY-MM-DD
 
-    let query = supabase.from('ai_videos').select('*', { count: 'exact' });
+    let query = supabase
+      .from('ai_videos')
+      .select('*, profiles(username, avatar_url)', { count: 'exact' });
 
     if (platform) query = query.eq('platform', platform);
     if (model) query = query.eq('model', model);
     if (date) {
       query = query
         .gte('created_at', `${date}T00:00:00`)
-        .lt('created_at', `${date}T23:59:59`);
+        .lt('created_at', new Date(new Date(`${date}T00:00:00`).getTime() + 86400000).toISOString());
     }
 
     if (sort === 'oldest') {
@@ -43,9 +45,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
+    // Flatten profile fields into each video
+    const items = (data || []).map((v: any) => ({
+      ...v,
+      username: v.profiles?.username ?? null,
+      avatar_url: v.profiles?.avatar_url ?? null,
+      profiles: undefined,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: data || [],
+      data: items,
       pagination: {
         page,
         limit,
