@@ -1,9 +1,51 @@
 // app/profile/[username]/ImageGrid.tsx
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, cloneElement, isValidElement } from 'react';
 import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
+
+function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    const update = () => {
+      const r = img.getBoundingClientRect();
+      setRect({ bottom: window.innerHeight - r.bottom, right: window.innerWidth - r.right });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(img);
+    window.addEventListener('mousemove', update);
+    return () => { ro.disconnect(); window.removeEventListener('mousemove', update); };
+  }, []);
+
+  const nodeWithRef = isValidElement(originalNode)
+    ? cloneElement(originalNode as React.ReactElement<any>, { ref: imgRef })
+    : originalNode;
+
+  return (
+    <>
+      {nodeWithRef}
+      {rect && (
+        <div
+          className="pointer-events-none select-none z-[9999]"
+          style={{ position: 'fixed', bottom: rect.bottom + 12, right: rect.right + 12 }}
+        >
+          <span
+            className="text-white/50 text-sm font-semibold tracking-[0.2em] uppercase"
+            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
+          >
+            AiCave
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
 
 export interface ProfileImage {
   task_id: string;
@@ -70,17 +112,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
       <Image.PreviewGroup
         preview={{
           imageRender: (originalNode) => (
-            <>
-              {originalNode}
-              <div className="fixed bottom-4 right-4 pointer-events-none select-none z-[9999]">
-                <span
-                  className="text-white/50 text-sm font-semibold tracking-[0.2em] uppercase"
-                  style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
-                >
-                  AiCave
-                </span>
-              </div>
-            </>
+            <PreviewWithWatermark originalNode={originalNode} />
           ),
           actionsRender: (originalNode, { image }) => {
             const src = (image as any)?.src ?? '';
