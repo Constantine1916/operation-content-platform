@@ -240,9 +240,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
                   <div className="mt-1 text-sm font-semibold tracking-[0.01em]">
                     加入我们
                   </div>
-                  <div className="mt-1.5 text-xs leading-relaxed text-white/70">
-                    扫码加入微信社群，第一时间获取更新和交流入口
-                  </div>
                 </div>
                 <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/85 backdrop-blur-sm transition-colors group-hover:bg-white/15">
                   <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

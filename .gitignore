@@ -8,6 +8,8 @@ node_modules
 .env*.local
 data/
 scripts/
+next-env.d.ts
+tsconfig.tsbuildinfo
 
 # Superpowers / AI tooling (local only)
 .superpowers/
