@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { ProfileImage } from './ImageGrid';
 import ProfileTabs from './ProfileTabs';
 
+export const dynamic = 'force-dynamic';
+
 function serviceClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
