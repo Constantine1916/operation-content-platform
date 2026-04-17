@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -77,6 +78,8 @@ export default function LandingPage() {
               了解更多
             </Link>
           </div>
+
+          <CommunityInvite />
         </div>
 
         {/* 向下滚动提示 */}
@@ -187,6 +190,44 @@ export default function LandingPage() {
         </div>
       </footer>
 
+    </div>
+  );
+}
+
+function CommunityInvite() {
+  return (
+    <div className="mt-10 flex justify-center">
+      <div className="w-full max-w-[460px] rounded-[28px] border border-black/[0.08] bg-white/72 p-3 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-5">
+          <div className="w-[106px] flex-shrink-0 rounded-[22px] bg-black p-2.5 shadow-[0_20px_50px_-32px_rgba(0,0,0,0.9)]">
+            <div className="overflow-hidden rounded-[16px] bg-white">
+              <Image
+                src="/assets/qr_code.jpg"
+                alt="AI树洞微信社群二维码"
+                width={737}
+                height={732}
+                className="block h-auto w-full"
+                priority
+              />
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col justify-center text-left">
+            <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
+              <span className="h-2 w-2 rounded-full bg-black" />
+              <span className="font-sans-sc text-[10px] font-semibold uppercase tracking-[0.28em] text-black/35">
+                微信社群
+              </span>
+            </div>
+            <h3 className="font-serif-sc text-[22px] font-bold leading-[1.2] tracking-[-0.02em] text-black sm:text-[24px]">
+              扫码加入 AI 树洞社群
+            </h3>
+            <p className="font-sans-sc mt-2 text-[13px] leading-[1.85] text-black/48">
+              获取产品更新、创作交流和内容合作入口。用微信扫码即可加入。
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
