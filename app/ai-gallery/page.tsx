@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
 
@@ -229,6 +230,7 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
 
 function ImageCard({ image }: { image: GalleryImage }) {
   const [copied, setCopied] = useState(false);
+  const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -240,14 +242,19 @@ function ImageCard({ image }: { image: GalleryImage }) {
 
   return (
     <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
-      <Image
-        src={image.url}
-        alt={image.prompt}
-        className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        style={{ display: 'block', width: '100%' }}
-        preview={{ mask: false }}
-        loading="lazy"
-      />
+      <div style={imageFrameStyles.frame}>
+        <Image
+          src={image.url}
+          alt={image.prompt}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          styles={{
+            root: imageFrameStyles.root,
+            image: imageFrameStyles.image,
+          }}
+          preview={{ mask: false }}
+          loading="lazy"
+        />
+      </div>
 
       {/* 常驻底部渐变 + 作者信息 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">

@@ -4,6 +4,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
+import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
   const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
@@ -162,6 +163,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
 
 function ProfileImageCard({ image }: { image: ProfileImage }) {
   const [copied, setCopied] = useState(false);
+  const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -173,14 +175,19 @@ function ProfileImageCard({ image }: { image: ProfileImage }) {
 
   return (
     <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
-      <Image
-        src={image.url}
-        alt={image.prompt}
-        className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        style={{ display: 'block', width: '100%' }}
-        preview={{ mask: false }}
-        loading="lazy"
-      />
+      <div style={imageFrameStyles.frame}>
+        <Image
+          src={image.url}
+          alt={image.prompt}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          styles={{
+            root: imageFrameStyles.root,
+            image: imageFrameStyles.image,
+          }}
+          preview={{ mask: false }}
+          loading="lazy"
+        />
+      </div>
 
       {/* hover 时浮出 prompt + 复制按钮 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
