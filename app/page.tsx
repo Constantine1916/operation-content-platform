@@ -196,11 +196,11 @@ export default function LandingPage() {
 
 function CommunityInvite() {
   return (
-    <div className="mt-10 flex justify-center">
-      <div className="w-full max-w-[460px] rounded-[28px] border border-black/[0.08] bg-white/72 p-3 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-5">
-          <div className="w-[106px] flex-shrink-0 rounded-[22px] bg-black p-2.5 shadow-[0_20px_50px_-32px_rgba(0,0,0,0.9)]">
-            <div className="overflow-hidden rounded-[16px] bg-white">
+    <div className="mt-12 flex justify-center">
+      <div className="w-full max-w-[560px] rounded-[32px] border border-black/[0.08] bg-white/78 p-4 shadow-[0_36px_90px_-42px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+        <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-stretch sm:gap-6">
+          <div className="w-[142px] flex-shrink-0 rounded-[26px] bg-black p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.92)] sm:w-[168px]">
+            <div className="overflow-hidden rounded-[20px] bg-white">
               <Image
                 src="/assets/qr_code.jpg"
                 alt="AI树洞微信社群二维码"
@@ -212,17 +212,17 @@ function CommunityInvite() {
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col justify-center text-left">
+          <div className="flex min-w-0 flex-1 flex-col justify-center text-left sm:pr-2">
             <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
-              <span className="h-2 w-2 rounded-full bg-black" />
+              <span className="h-2.5 w-2.5 rounded-full bg-black" />
               <span className="font-sans-sc text-[10px] font-semibold uppercase tracking-[0.28em] text-black/35">
                 微信社群
               </span>
             </div>
-            <h3 className="font-serif-sc text-[22px] font-bold leading-[1.2] tracking-[-0.02em] text-black sm:text-[24px]">
+            <h3 className="font-serif-sc text-[24px] font-bold leading-[1.16] tracking-[-0.025em] text-black sm:text-[30px]">
               扫码加入 AI 树洞社群
             </h3>
-            <p className="font-sans-sc mt-2 text-[13px] leading-[1.85] text-black/48">
+            <p className="font-sans-sc mt-3 text-[14px] leading-[1.9] text-black/48 sm:max-w-[260px]">
               获取产品更新、创作交流和内容合作入口。用微信扫码即可加入。
             </p>
           </div>
