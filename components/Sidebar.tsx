@@ -1,8 +1,10 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { Popover } from 'antd'
 import { supabase } from '@/lib/supabase'
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache'
 
@@ -12,6 +14,28 @@ interface TodayStats {
   articles: number
   images: number
   videos: number
+}
+
+function JoinUsPopoverContent() {
+  return (
+    <div className="w-[220px] rounded-[22px] border border-gray-200 bg-white p-3 shadow-[0_18px_48px_-24px_rgba(17,24,39,0.35)]">
+      <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400">
+        微信社群
+      </div>
+      <div className="rounded-[18px] border border-gray-100 bg-gray-50 p-2">
+        <Image
+          src="/assets/qr_code.jpg"
+          alt="加入我们二维码"
+          width={737}
+          height={732}
+          className="block h-auto w-full rounded-[14px]"
+        />
+      </div>
+      <p className="mt-2.5 text-xs leading-relaxed text-gray-500">
+        微信扫码加入，获取站点更新、产品通知和交流答疑。
+      </p>
+    </div>
+  )
 }
 
 export default function Sidebar({ className = '' }: SidebarProps) {
@@ -197,6 +221,38 @@ export default function Sidebar({ className = '' }: SidebarProps) {
 
         {/* 底部统计 */}
         <div className="px-4 py-4 border-t border-gray-200 space-y-2">
+          <Popover
+            trigger="click"
+            placement="rightBottom"
+            showArrow={false}
+            content={<JoinUsPopoverContent />}
+          >
+            <button
+              type="button"
+              className="group relative mb-4 w-full overflow-hidden rounded-[20px] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-4 text-left text-white shadow-[0_18px_42px_-24px_rgba(17,24,39,0.7)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-22px_rgba(17,24,39,0.8)]"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_36%)] opacity-80" />
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                    Community
+                  </div>
+                  <div className="mt-1 text-sm font-semibold tracking-[0.01em]">
+                    加入我们
+                  </div>
+                  <div className="mt-1.5 text-xs leading-relaxed text-white/70">
+                    扫码加入微信社群，第一时间获取更新和交流入口
+                  </div>
+                </div>
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/85 backdrop-blur-sm transition-colors group-hover:bg-white/15">
+                  <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 3H6a3 3 0 00-3 3v2m18 0V6a3 3 0 00-3-3h-2M8 21H6a3 3 0 01-3-3v-2m18 0v2a3 3 0 01-3 3h-2M8 8h.01M16 8h.01M8 16h.01M12 12h.01M16 16h.01" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          </Popover>
+
           <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">今日更新</div>
           {[
             { label: '资讯', value: todayStats?.hotspots },
