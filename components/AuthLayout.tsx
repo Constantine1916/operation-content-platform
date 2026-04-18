@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import MainLayout from '@/components/MainLayout';
 import LandingPage from '@/app/page';
@@ -12,6 +13,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const [session, setSession] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const isPublicProfilePath = /^\/profile\/[^/]+$/.test(pathname);
 
   useEffect(() => {
     // 获取当前会话
@@ -41,6 +43,35 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="h-8 w-8 bg-gray-200 rounded-full mb-3"></div>
           <div className="h-3 w-24 bg-gray-200 rounded"></div>
         </div>
+      </div>
+    );
+  }
+
+  if (!session && isPublicProfilePath) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/88 backdrop-blur-md">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-6">
+            <Link href="/" className="text-sm font-semibold tracking-[0.22em] text-gray-900 uppercase">
+              AICAVE
+            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+              >
+                登录
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+              >
+                注册
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main className="px-4 py-6 lg:px-6 lg:py-8">{children}</main>
       </div>
     );
   }

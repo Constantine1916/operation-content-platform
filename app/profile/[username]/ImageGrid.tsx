@@ -2,9 +2,11 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Masonry from 'react-masonry-css';
-import { Image } from 'antd';
+import { Image, message } from 'antd';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
+import { supabase } from '@/lib/supabase';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
   const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
@@ -72,6 +74,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const [paginationError, setPaginationError] = useState<string | null>(null);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
+  const router = useRouter();
 
   const fetchMore = useCallback(async () => {
     if (!hasMore || loadingMoreRef.current) return;
@@ -97,6 +100,15 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
     }
   }, [hasMore, userId]);
 
+  const requireLoginForResource = useCallback(async (actionText: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) return true;
+
+    message.info(`请先登录后再${actionText}`);
+    router.push('/login');
+    return false;
+  }, [router]);
+
   if (images.length === 0) {
     return (
       <div className="text-center py-20 text-gray-400 text-sm">暂无公开图片</div>
@@ -119,6 +131,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
                   title="下载原图"
                   style={{ color: 'rgba(255,255,255,0.65)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}
                   onClick={async () => {
+                    if (!(await requireLoginForResource('下载图片'))) return;
                     try {
                       const res = await fetch(src);
                       const blob = await res.blob();
