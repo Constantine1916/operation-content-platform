@@ -239,14 +239,14 @@ export default function ImagePreviewLightbox({
             type="button"
             aria-label="关闭预览"
             onClick={onClose}
-            className="absolute left-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_14px_34px_-24px_rgba(15,23,42,0.5)] transition-all duration-200 hover:text-gray-900 lg:left-6 lg:top-6"
+            className={`absolute left-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_14px_34px_-24px_rgba(15,23,42,0.5)] transition-all duration-200 hover:text-gray-900 lg:left-6 lg:top-6 ${layout.floatingControlClassName}`}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          <div className="absolute right-4 top-4 rounded-full border border-black/5 bg-white/80 px-3 py-1.5 text-[11px] font-medium tracking-[0.18em] text-gray-500 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.32)] lg:right-6 lg:top-6">
+          <div className={`absolute right-4 top-4 rounded-full border border-black/5 bg-white/80 px-3 py-1.5 text-[11px] font-medium tracking-[0.18em] text-gray-500 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.32)] lg:right-6 lg:top-6 ${layout.counterClassName}`}>
             {(currentIndex + 1).toString().padStart(2, '0')} / {items.length.toString().padStart(2, '0')}
           </div>
 
@@ -255,7 +255,7 @@ export default function ImagePreviewLightbox({
               type="button"
               aria-label="上一张"
               onClick={() => onSelect(currentIndex - 1)}
-              className="absolute left-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.38)] transition-all duration-200 hover:-translate-y-[calc(50%+1px)] hover:text-gray-900 lg:left-6"
+              className={`absolute left-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.38)] transition-all duration-200 hover:-translate-y-[calc(50%+1px)] hover:text-gray-900 lg:left-6 ${layout.floatingControlClassName}`}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 19l-7-7 7-7" />
@@ -268,7 +268,7 @@ export default function ImagePreviewLightbox({
               type="button"
               aria-label="下一张"
               onClick={() => onSelect(currentIndex + 1)}
-              className="absolute right-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.38)] transition-all duration-200 hover:-translate-y-[calc(50%+1px)] hover:text-gray-900 lg:right-6"
+              className={`absolute right-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.38)] transition-all duration-200 hover:-translate-y-[calc(50%+1px)] hover:text-gray-900 lg:right-6 ${layout.floatingControlClassName}`}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
@@ -300,7 +300,7 @@ export default function ImagePreviewLightbox({
               <button
                 type="button"
                 onClick={handleDownload}
-                className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-px hover:border-gray-300 ${isStackedPreview ? 'flex-1 sm:flex-none' : ''}`}
+                className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-px hover:border-gray-300 ${isStackedPreview ? 'w-full sm:flex-none' : ''}`}
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -313,6 +313,7 @@ export default function ImagePreviewLightbox({
                   isFavorite={favoriteState.isFavorite}
                   isPending={favoriteState.isPending}
                   onToggle={() => onToggleFavorite(item)}
+                  className={layout.favoriteButtonClassName}
                 />
               )}
             </div>
