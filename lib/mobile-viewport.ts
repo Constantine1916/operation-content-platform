@@ -8,5 +8,5 @@ export function getPreviewPanelMode(
   viewportWidth: number,
   canHover: boolean,
 ): PreviewPanelMode {
-  return viewportWidth < 1024 || !canHover ? 'stacked' : 'sidebar';
+  return isTouchFirstViewport(viewportWidth, canHover) ? 'stacked' : 'sidebar';
 }

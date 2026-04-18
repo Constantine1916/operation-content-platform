@@ -14,6 +14,7 @@ test('treats narrow or non-hover viewports as touch-first', () => {
 
 test('stacks the preview panel below 1024px or when hover is unavailable', () => {
   assert.equal(getPreviewPanelMode(390, false), 'stacked');
-  assert.equal(getPreviewPanelMode(1023, true), 'stacked');
+  assert.equal(getPreviewPanelMode(1023, true), 'sidebar');
+  assert.equal(getPreviewPanelMode(820, false), 'stacked');
   assert.equal(getPreviewPanelMode(1280, true), 'sidebar');
 });
