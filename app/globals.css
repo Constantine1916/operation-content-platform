@@ -31,3 +31,33 @@ a { color: inherit; text-decoration: none; transition: opacity 0.2s; }
 a:hover { opacity: 0.7; }
 button { font-family: inherit; cursor: pointer; }
 ::selection { background-color: #171717; color: white; }
+
+@keyframes favorite-button-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes favorite-button-burst {
+  0% { opacity: 0.28; transform: scale(0.72); }
+  75% { opacity: 0.12; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes favorite-heart-pop {
+  0% { transform: scale(0.92); }
+  45% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.favorite-button-pop {
+  animation: favorite-button-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.favorite-button-burst {
+  animation: favorite-button-burst 420ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.favorite-heart-pop {
+  animation: favorite-heart-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}

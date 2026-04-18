@@ -249,7 +249,6 @@ export default function MyFavoritesPanel() {
                     isFavorite={favoriteIds.has(selectedArticle.id)}
                     isPending={pendingIds.has(selectedArticle.id)}
                     onToggle={() => toggleFavorite(selectedArticle.id, false)}
-                    className="h-8 w-8"
                   />
                   <button
                     type="button"

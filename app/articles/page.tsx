@@ -138,7 +138,7 @@ export default function ArticlesPage() {
                     isFavorite={getFavoriteButtonState(article.id, favoriteIds, pendingIds).isFavorite}
                     isPending={getFavoriteButtonState(article.id, favoriteIds, pendingIds).isPending}
                     onToggle={() => toggleFavorite(article.id, !favoriteIds.has(article.id))}
-                    className="h-8 w-8 flex-shrink-0"
+                    className="flex-shrink-0"
                   />
                 </div>
 
@@ -220,7 +220,6 @@ export default function ArticlesPage() {
                     if (!selectedArticle) return;
                     toggleFavorite(selectedArticle.id, !favoriteIds.has(selectedArticle.id));
                   }}
-                  className="h-8 w-8"
                 />
                 {/* 复制按钮 */}
                 <button
