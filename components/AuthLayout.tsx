@@ -1,11 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import MainLayout from '@/components/MainLayout';
 import LandingPage from '@/app/page';
-import OverviewPage from '@/app/overview/page';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -52,8 +52,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="min-h-screen bg-gray-50">
         <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/88 backdrop-blur-md">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-6">
-            <Link href="/" className="text-sm font-semibold tracking-[0.22em] text-gray-900 uppercase">
-              AICAVE
+            <Link href="/" className="flex items-center min-w-0">
+              <Image
+                src="/assets/logo.png"
+                alt="AICAVE"
+                width={140}
+                height={52}
+                className="flex-shrink-0 object-contain"
+              />
             </Link>
             <div className="flex items-center gap-2">
               <Link
