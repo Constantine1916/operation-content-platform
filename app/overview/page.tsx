@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -96,10 +97,10 @@ export default function Overview() {
   if (!stats) return null;
 
   const resources = [
-    { key: 'hotspots', label: 'AI 资讯', icon: '📡', count: stats.hotspots, desc: '每 2 小时自动采集' },
-    { key: 'articles', label: 'AI 文章', icon: '📝', count: stats.articles.total, desc: '多平台内容聚合' },
-    { key: 'images',   label: 'AI 图片', icon: '🖼️', count: stats.images,   desc: '创作者公开作品' },
-    { key: 'videos',   label: 'AI 视频', icon: '🎬', count: stats.videos,   desc: '持续扩充中' },
+    { key: 'hotspots', label: 'AI 资讯', icon: '📡', count: stats.hotspots, desc: '每 2 小时自动采集', href: '/hotspots' },
+    { key: 'articles', label: 'AI 文章', icon: '📝', count: stats.articles.total, desc: '多平台内容聚合', href: '/articles' },
+    { key: 'images',   label: 'AI 图片', icon: '🖼️', count: stats.images,   desc: '创作者公开作品', href: '/ai-gallery' },
+    { key: 'videos',   label: 'AI 视频', icon: '🎬', count: stats.videos,   desc: '持续扩充中', href: '/ai-video' },
   ];
 
   return (
@@ -116,7 +117,14 @@ export default function Overview() {
         <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.2em] mb-4">内容总量</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {resources.map(r => (
-            <ResourceCard key={r.key} label={r.label} icon={r.icon} count={r.count} desc={r.desc} />
+            <ResourceCard
+              key={r.key}
+              label={r.label}
+              icon={r.icon}
+              count={r.count}
+              desc={r.desc}
+              href={r.href}
+            />
           ))}
         </div>
       </div>
@@ -162,18 +170,32 @@ export default function Overview() {
 }
 
 function ResourceCard({
-  label, icon, count, desc,
+  label, icon, count, desc, href,
 }: {
-  label: string; icon: string; count: number; desc: string;
+  label: string;
+  icon: string;
+  count: number;
+  desc: string;
+  href: string;
 }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 transition-all hover:border-gray-300 hover:shadow-sm sm:p-5">
-      <div className="text-2xl mb-4">{icon}</div>
-      <div className="text-[28px] font-bold text-gray-900 leading-none mb-1">
+    <Link
+      href={href}
+      className="group block rounded-2xl border border-gray-100 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 sm:p-5"
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="text-2xl">{icon}</div>
+        <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition-all group-hover:bg-gray-900 group-hover:text-white">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+      <div className="mb-1 text-[28px] font-bold leading-none text-gray-900">
         {count.toLocaleString()}
       </div>
-      <div className="text-[13px] font-medium text-gray-700 mb-0.5">{label}</div>
+      <div className="mb-0.5 text-[13px] font-medium text-gray-700">{label}</div>
       <div className="text-[11px] text-gray-400">{desc}</div>
-    </div>
+    </Link>
   );
 }
