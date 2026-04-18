@@ -32,6 +32,9 @@ function groupByTime(hotspots: Hotspot[]): HotspotGroup[] {
 
 type SourceTab = 'all' | 'web' | 'twitter';
 
+const hotspotActionButtonClasses =
+  'inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full border border-black/5 bg-white/92 text-gray-400 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-sm transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out hover:-translate-y-px hover:border-gray-300 hover:text-gray-700 hover:shadow-[0_14px_28px_-20px_rgba(15,23,42,0.38)] active:scale-95';
+
 export default function HotspotsPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,37 +166,48 @@ export default function HotspotsPage() {
                             href={hotspot.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex min-w-0 flex-1 items-start gap-4"
+                            className="min-w-0 flex-1"
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <div className="min-w-0">
+                              <div className="mb-1.5 flex flex-wrap items-center gap-2">
                                 {hotspot.热度 && (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 text-orange-600 border border-orange-200">
+                                  <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-600">
                                     🔥 {hotspot.热度}
                                   </span>
                                 )}
                               </div>
-                              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-black line-clamp-2">
+                              <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 transition-colors group-hover:text-black">
                                 {hotspot.title}
                               </h3>
                               {hotspot.summary && (
-                                <p className="text-xs text-gray-600 line-clamp-1 mt-1">{hotspot.summary}</p>
+                                <p className="mt-1 line-clamp-1 text-xs text-gray-600">{hotspot.summary}</p>
                               )}
                               {hotspot.source && (
-                                <div className="text-[10px] text-gray-400 mt-1">📰 {hotspot.source}</div>
+                                <div className="mt-1 text-[10px] text-gray-400">📰 {hotspot.source}</div>
                               )}
                             </div>
-                            <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-600 flex-shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
                           </a>
 
-                          <FavoriteButton
-                            isFavorite={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isFavorite}
-                            isPending={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isPending}
-                            onToggle={() => toggleFavorite(hotspot.id, !favoriteIds.has(hotspot.id))}
-                            className="mt-0.5 flex-shrink-0"
-                          />
+                          <div className="flex shrink-0 items-center gap-1.5 self-start pt-0.5">
+                            <a
+                              href={hotspot.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`打开资讯：${hotspot.title}`}
+                              title="打开资讯"
+                              className={hotspotActionButtonClasses}
+                            >
+                              <svg className="h-[13px] w-[13px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+
+                            <FavoriteButton
+                              isFavorite={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isFavorite}
+                              isPending={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isPending}
+                              onToggle={() => toggleFavorite(hotspot.id, !favoriteIds.has(hotspot.id))}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
