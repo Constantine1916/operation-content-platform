@@ -211,12 +211,12 @@ export default function MyUploadsPanel() {
   return (
     <div>
       <div className="mb-6 border-b border-gray-100">
-        <div className="flex gap-0 overflow-x-auto">
+        <div className="-mx-1 flex gap-0 overflow-x-auto px-1">
           {PROFILE_CENTER_UPLOAD_TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`relative whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -238,7 +238,7 @@ export default function MyUploadsPanel() {
             onChange={handleImageSelection}
           />
 
-          <div className="relative p-5 sm:p-6">
+          <div className="relative p-4 sm:p-6">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-gray-100/80 via-white/0 to-transparent" />
 
             <div className="relative flex flex-col gap-5">
@@ -247,7 +247,7 @@ export default function MyUploadsPanel() {
                   <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
                     上传资源
                   </div>
-                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-gray-950">上传 AI 图片</h3>
+                  <h3 className="mt-2 text-lg font-semibold tracking-tight text-gray-950 sm:text-xl">上传 AI 图片</h3>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-gray-600">
                     上传入口与资源浏览已经分开，方便后续继续扩展视频、资讯、文章等资源上传。
                     当前为
@@ -259,7 +259,7 @@ export default function MyUploadsPanel() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <div className="min-w-[140px] rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.25)]">
+                  <div className="min-w-[120px] flex-1 rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.25)] sm:min-w-[140px] sm:flex-none">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
                       今日额度
                     </div>
@@ -267,7 +267,7 @@ export default function MyUploadsPanel() {
                       {uploadPlanLabel} · {uploadLimit} 张/日
                     </div>
                   </div>
-                  <div className="min-w-[160px] rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.25)]">
+                  <div className="min-w-[132px] flex-1 rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.25)] sm:min-w-[160px] sm:flex-none">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
                       当前队列
                     </div>
@@ -283,12 +283,12 @@ export default function MyUploadsPanel() {
                   支持 JPG、PNG、WebP、GIF。单张不超过 10MB，先选择图片，再逐张完善提示词后统一提交。
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
                     onClick={() => imageUploadInputRef.current?.click()}
                     disabled={uploadingImage}
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.4)] transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.4)] transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-950 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
@@ -300,7 +300,7 @@ export default function MyUploadsPanel() {
                     type="button"
                     onClick={handleSubmitUploads}
                     disabled={uploadingImage || pendingUploads.length === 0}
-                    className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white shadow-[0_18px_40px_-24px_rgba(17,17,17,0.7)] transition-all hover:-translate-y-0.5 hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-950 px-4 py-2.5 text-sm font-medium text-white shadow-[0_18px_40px_-24px_rgba(17,17,17,0.7)] transition-all hover:-translate-y-0.5 hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
                     {uploadingImage ? (
                       <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/35 border-t-white" />
@@ -319,8 +319,8 @@ export default function MyUploadsPanel() {
                     >
                       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-gray-100/75 via-white/0 to-transparent opacity-70" />
 
-                      <div className="relative grid gap-4 lg:grid-cols-[148px_minmax(0,1fr)]">
-                        <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[22px] border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-100/80 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_32px_-28px_rgba(15,23,42,0.45)]">
+                      <div className="relative grid gap-4 sm:grid-cols-[132px_minmax(0,1fr)] lg:grid-cols-[148px_minmax(0,1fr)]">
+                        <div className="mx-auto flex aspect-[4/5] w-full max-w-[220px] items-center justify-center overflow-hidden rounded-[22px] border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-gray-100/80 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_32px_-28px_rgba(15,23,42,0.45)] sm:mx-0 sm:max-w-none">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={item.previewUrl}
@@ -348,7 +348,7 @@ export default function MyUploadsPanel() {
                             <button
                               type="button"
                               onClick={() => removePendingUpload(item.id)}
-                              className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
+                              className="inline-flex items-center justify-center self-start rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
                             >
                               移除
                             </button>
@@ -377,7 +377,7 @@ export default function MyUploadsPanel() {
                     </div>
                   ))}
 
-                  <div className="flex flex-col gap-2 border-t border-gray-100 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 border-t border-gray-100 pt-1 sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-sm text-gray-500">
                       已准备
                       <span className="mx-1 font-medium text-gray-950">{pendingUploads.length}</span>
@@ -385,12 +385,12 @@ export default function MyUploadsPanel() {
                       <span className="mx-1 font-medium text-gray-950">{pendingTotalSizeMb}MB</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <button
                         type="button"
                         onClick={clearPendingUploads}
                         disabled={uploadingImage}
-                        className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 disabled:opacity-60"
+                        className="w-full rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 disabled:opacity-60 sm:w-auto"
                       >
                         清空列表
                       </button>
@@ -398,7 +398,7 @@ export default function MyUploadsPanel() {
                         type="button"
                         onClick={handleSubmitUploads}
                         disabled={uploadingImage}
-                        className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black disabled:opacity-60"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black disabled:opacity-60 sm:w-auto"
                       >
                         {uploadingImage ? (
                           <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/35 border-t-white" />
@@ -409,7 +409,7 @@ export default function MyUploadsPanel() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[24px] border border-dashed border-gray-200 bg-white/70 px-6 py-10 text-center">
+                <div className="rounded-[24px] border border-dashed border-gray-200 bg-white/70 px-4 py-8 text-center sm:px-6 sm:py-10">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-500">
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 16V7m0 0-3.5 3.5M12 7l3.5 3.5M5 17.5A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5" />

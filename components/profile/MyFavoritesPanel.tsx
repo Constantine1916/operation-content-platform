@@ -169,7 +169,7 @@ export default function MyFavoritesPanel() {
 
     if (activeTab === 'images') {
       return (
-        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
+        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
           {itemsByTab.images.map((image, index) => (
             <ProfileImageCard
               key={`${image.id}-${index}`}
@@ -185,7 +185,7 @@ export default function MyFavoritesPanel() {
 
     if (activeTab === 'videos') {
       return (
-        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
+        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
           {itemsByTab.videos.map((video, index) => (
             <ProfileVideoCard
               key={`${video.id}-${index}`}
@@ -217,7 +217,7 @@ export default function MyFavoritesPanel() {
 
     return (
       <>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {itemsByTab.articles.map((article) => (
             <ProfileArticleCard
               key={article.id}
@@ -231,20 +231,20 @@ export default function MyFavoritesPanel() {
         </div>
         {selectedArticle && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm sm:p-4"
             onClick={(event) => {
               if (event.target === event.currentTarget) setSelectedArticle(null);
             }}
           >
-            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-              <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 pb-4 pt-6">
+            <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl sm:max-h-[85vh]">
+              <div className="flex flex-col gap-4 border-b border-gray-200 px-4 pb-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pt-6">
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
                     {selectedArticle.platform}
                   </div>
                   <h2 className="text-base font-semibold leading-snug text-gray-900">{selectedArticle.title}</h2>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2">
                   <FavoriteButton
                     isFavorite={favoriteIds.has(selectedArticle.id)}
                     isPending={pendingIds.has(selectedArticle.id)}
@@ -261,7 +261,7 @@ export default function MyFavoritesPanel() {
                   </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-6 py-5">
+              <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
                   {selectedArticle.content || '暂无正文内容'}
                 </p>
@@ -275,19 +275,21 @@ export default function MyFavoritesPanel() {
 
   return (
     <div>
-      <div className="mb-6 flex gap-0 border-b border-gray-100">
-        {PROFILE_CENTER_FAVORITE_TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab.key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            {tab.label}
-            {activeTab === tab.key && <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-gray-900" />}
-          </button>
-        ))}
+      <div className="mb-6 border-b border-gray-100">
+        <div className="-mx-1 flex gap-0 overflow-x-auto px-1">
+          {PROFILE_CENTER_FAVORITE_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`relative whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === tab.key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.label}
+              {activeTab === tab.key && <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-gray-900" />}
+            </button>
+          ))}
+        </div>
       </div>
 
       {renderCurrentTab()}

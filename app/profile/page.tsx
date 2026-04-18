@@ -156,25 +156,25 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div className="rounded-3xl border border-gray-200 bg-white px-6 py-5">
+    <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+      <div className="rounded-3xl border border-gray-200 bg-white px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">Profile Center</div>
-            <h1 className="mt-2 text-2xl font-semibold text-gray-900">个人中心</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="mt-2 text-xl font-semibold text-gray-900 sm:text-2xl">个人中心</h1>
+            <p className="mt-1 text-sm leading-6 text-gray-500">
               管理我的资产、上传资源、我的收藏和个人资料
             </p>
           </div>
-          <div className="text-sm text-gray-400">{profile?.email}</div>
+          <div className="break-all text-xs text-gray-400 sm:text-sm">{profile?.email}</div>
         </div>
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        <div className="-mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1">
           {PROFILE_CENTER_PRIMARY_TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActivePrimaryTab(tab.key)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 activePrimaryTab === tab.key
                   ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-600 hover:text-gray-900'
@@ -187,19 +187,19 @@ export default function ProfilePage() {
       </div>
 
       {profile && activePrimaryTab === 'assets' && (
-        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6">
           <MyAssetsPanel userId={profile.id} />
         </div>
       )}
 
       {profile && activePrimaryTab === 'uploads' && (
-        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6">
           <MyUploadsPanel />
         </div>
       )}
 
       {activePrimaryTab === 'favorites' && (
-        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6">
           <MyFavoritesPanel />
         </div>
       )}

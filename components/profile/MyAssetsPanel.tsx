@@ -103,23 +103,23 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
   return (
     <div>
       <div className="mb-6 overflow-hidden rounded-[28px] border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50/80">
-        <div className="border-b border-gray-100 px-5 pt-5 sm:px-6 sm:pt-6">
+        <div className="border-b border-gray-100 px-4 pt-4 sm:px-6 sm:pt-6">
           <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
             资源浏览
           </div>
           <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-950">我的公开资源</h3>
+              <h3 className="text-lg font-semibold tracking-tight text-gray-950 sm:text-xl">我的公开资源</h3>
               <p className="mt-1 text-sm leading-6 text-gray-500">
                 这里只保留资源浏览。上传图片请前往上方的“上传资源”入口。
               </p>
             </div>
-            <div className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500">
+            <div className="self-start rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 lg:self-auto">
               图片 {totalImages} · 视频 {totalVideos}
             </div>
           </div>
 
-          <div className="mt-5 flex gap-0 overflow-x-auto">
+          <div className="-mx-1 mt-5 flex gap-0 overflow-x-auto px-1">
             {PROFILE_CENTER_ASSET_TABS.map(tab => {
               const count = getProfileTabCount(tab.key, { totalImages, totalVideos });
 
@@ -127,7 +127,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+                  className={`relative whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                     activeTab === tab.key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
                   }`}
                 >
@@ -140,7 +140,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
           </div>
         </div>
 
-        <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <div className="px-4 py-4 sm:px-6 sm:py-6">
           {activeTab === 'images' && (
             <AssetSection
               loading={imagesLoading}
@@ -150,7 +150,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
               emptyText="暂无公开图片"
               onLoadMore={() => fetchImages(imagePageRef.current + 1)}
             >
-              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
+              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
                 {images.map((image, index) => (
                   <ProfileImageCard
                     key={`${image.id}-${index}`}
@@ -172,7 +172,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
               emptyText="暂无视频"
               onLoadMore={() => fetchVideos(videoPageRef.current + 1)}
             >
-              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
+              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
                 {videos.map((video, index) => (
                   <ProfileVideoCard
                     key={`${video.id}-${index}`}

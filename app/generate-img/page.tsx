@@ -416,17 +416,17 @@ function GenerateImgPageInner() {
   const totalRuns = counts.reduce((s, c) => s + c, 0);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">AI 生图</h1>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="mb-1 text-xl font-semibold text-gray-900 sm:text-2xl">AI 生图</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Image Generation · SVIP</p>
       </div>
 
       {/* Prompt 输入区 */}
-      <div ref={promptSectionRef} className="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div ref={promptSectionRef} className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 sm:mb-6 sm:p-6">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-medium text-gray-900">Prompt 列表</span>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
             <input
               ref={csvInputRef}
               type="file"
@@ -459,8 +459,8 @@ function GenerateImgPageInner() {
 
         <div className="space-y-3">
           {prompts.map((prompt, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <span className="mt-2.5 text-xs text-gray-400 w-5 text-right flex-shrink-0">{i + 1}</span>
+            <div key={i} className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-3 sm:flex-row sm:items-start sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0">
+              <span className="w-5 flex-shrink-0 text-xs text-gray-400 sm:mt-2.5 sm:text-right">{i + 1}</span>
               <textarea
                 value={prompt}
                 onChange={e => updatePrompt(i, e.target.value)}
@@ -469,44 +469,46 @@ function GenerateImgPageInner() {
                 rows={3}
                 className="flex-1 px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl resize-none focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 transition-colors placeholder:text-gray-400"
               />
-              <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                <span className="text-[10px] text-gray-400">次数</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={counts[i] ?? 1}
-                  onChange={e => {
-                    const v = Math.min(100, Math.max(1, parseInt(e.target.value) || 1));
-                    updateCount(i, v);
-                  }}
-                  disabled={submitting || polling}
-                  className="w-14 px-2 py-1.5 text-sm text-center text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 transition-colors"
-                />
+              <div className="flex flex-shrink-0 items-end justify-between gap-2 sm:flex-col sm:items-center sm:justify-start sm:gap-1">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] text-gray-400">次数</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={counts[i] ?? 1}
+                    onChange={e => {
+                      const v = Math.min(100, Math.max(1, parseInt(e.target.value) || 1));
+                      updateCount(i, v);
+                    }}
+                    disabled={submitting || polling}
+                    className="w-16 px-2 py-1.5 text-sm text-center text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 transition-colors sm:w-14"
+                  />
+                </div>
+                {prompts.length > 1 && (
+                  <button
+                    onClick={() => removePrompt(i)}
+                    disabled={submitting || polling}
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:opacity-40 sm:mt-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-              {prompts.length > 1 && (
-                <button
-                  onClick={() => removePrompt(i)}
-                  disabled={submitting || polling}
-                  className="mt-2 w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-all flex-shrink-0"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
             </div>
           ))}
         </div>
 
-        {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
-        <div className="mt-5 flex items-center justify-between">
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs text-gray-400">共 {totalRuns} 次任务，每次生成 4 张图</span>
           <button
             onClick={handleSubmit}
             disabled={submitting || polling}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {submitting ? (
               <>
@@ -527,7 +529,7 @@ function GenerateImgPageInner() {
 
       {/* 本次批次进度 */}
       {polling && (batchTotal > 0 || batchQueued > 0) && batchDone < batchTotal + batchQueued && (
-        <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 mb-6 flex items-center gap-3">
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin flex-shrink-0" />
           <span className="text-sm text-gray-700">
             本次任务进度：已完成 <span className="font-semibold text-gray-900">{batchDone}</span> / <span className="font-semibold text-gray-900">{batchTotal + batchQueued}</span> 次
@@ -540,7 +542,7 @@ function GenerateImgPageInner() {
       {groups.length > 0 && (
         <>
           {/* 任务列表顶部操作栏 */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-xs text-gray-400">{groups.length} 个任务</span>
             {totalImagesCount > 0 && (
               isManaging ? (
@@ -572,9 +574,9 @@ function GenerateImgPageInner() {
               return (
                 <div key={gi} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                   {/* 标题行 */}
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3">
+                  <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-start sm:px-5">
                     {/* 序号 */}
-                    <span className="flex-shrink-0 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center mt-0.5">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-[10px] font-bold text-white">
                       {gi + 1}
                     </span>
 
@@ -636,7 +638,7 @@ function GenerateImgPageInner() {
                     </div>
 
                     {/* 操作按钮组 */}
-                    <div className="flex-shrink-0 flex items-center gap-0.5 bg-gray-50 border border-gray-200 rounded-lg p-0.5 self-start">
+                    <div className="flex flex-shrink-0 items-center gap-0.5 self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
                       {/* 复制提示词 */}
                       <Tooltip title="复制提示词" placement="top">
                         <button
@@ -690,14 +692,14 @@ function GenerateImgPageInner() {
                   </div>
 
                   {/* 图片区 */}
-                  <div className="p-4 space-y-3">
+                  <div className="space-y-3 p-4">
                     {group.subtasks.map((sub, si) => (
                       <div key={si}>
                         {group.subtasks.length > 1 && (
                           <p className="text-[10px] text-gray-400 mb-1.5 ml-1">第 {si + 1} 次</p>
                         )}
                         {sub.images.length > 0 ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             {sub.images.map((img, j) => {
                               const selKey = `${sub.task_id}::${img.index}`;
                               const isSelected = selected.has(selKey);
@@ -779,7 +781,7 @@ function GenerateImgPageInner() {
                             })}
                           </div>
                         ) : sub.status === 1 || sub.status === 2 ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             {[1, 2, 3, 4].map(j => (
                               <div key={j} className="aspect-[9/16] rounded-xl bg-gray-100 animate-pulse" />
                             ))}
@@ -799,9 +801,9 @@ function GenerateImgPageInner() {
 
       {/* 管理模式底部浮动操作栏 */}
       {isManaging && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-2xl shadow-lg shadow-gray-200/80">
+        <div className="fixed bottom-4 left-4 right-4 z-40 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-lg shadow-gray-200/80 sm:bottom-6 sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:flex-nowrap sm:py-2.5">
           {/* 已选计数 */}
-          <div className="flex items-center gap-1.5 pr-3 border-r border-gray-100">
+          <div className="flex w-full items-center justify-center gap-1.5 border-b border-gray-100 pb-2 sm:w-auto sm:justify-start sm:border-b-0 sm:border-r sm:pb-0 sm:pr-3">
             {selected.size > 0 ? (
               <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center tabular-nums">
                 {selected.size}
@@ -849,7 +851,7 @@ function GenerateImgPageInner() {
             删除
           </button>
 
-          <div className="w-px h-4 bg-gray-100 mx-1" />
+          <div className="mx-1 hidden h-4 w-px bg-gray-100 sm:block" />
 
           {/* 取消 */}
           <button

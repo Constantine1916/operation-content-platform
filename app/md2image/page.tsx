@@ -349,23 +349,23 @@ export default function Md2ImagePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-normal text-gray-900">MD转小红书图片</h1>
-        <p className="text-lg text-gray-900">上传 Markdown，生成小红书风格卡片图片（自动分页）</p>
+        <h1 className="text-xl font-normal text-gray-900 sm:text-2xl">MD转小红书图片</h1>
+        <p className="text-sm text-gray-900 sm:text-base">上传 Markdown，生成小红书风格卡片图片（自动分页）</p>
       </div>
 
       {!profileOk && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-center justify-between gap-4">
-          <p className="text-base text-gray-900">👋 请先完善个人资料，自动填充昵称和头像</p>
-          <a href="/profile" className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <p className="text-sm text-gray-900 sm:text-base">👋 请先完善个人资料，自动填充昵称和头像</p>
+          <a href="/profile" className="inline-flex w-full items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 sm:w-auto">
             去设置 →
           </a>
         </div>
       )}
 
       {/* 配置 */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6">
         <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-widest">配置</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">显示名称</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="小红书昵称"
@@ -386,7 +386,7 @@ export default function Md2ImagePage() {
 
       {/* 上传 */}
       <div
-        className={`bg-white border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-colors ${dragOver ? 'border-gray-900 bg-gray-50' : 'border-gray-300 hover:border-gray-400'}`}
+        className={`cursor-pointer rounded-2xl border-2 border-dashed bg-white p-6 text-center transition-colors sm:p-10 md:p-12 ${dragOver ? 'border-gray-900 bg-gray-50' : 'border-gray-300 hover:border-gray-400'}`}
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
@@ -394,34 +394,34 @@ export default function Md2ImagePage() {
       >
         <input ref={fileRef} type="file" accept=".md" className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }} />
-        <div className="text-4xl mb-3">📄</div>
-        <p className="text-lg text-gray-900 font-medium">
+        <div className="mb-3 text-3xl sm:text-4xl">📄</div>
+        <p className="text-base font-medium text-gray-900 sm:text-lg">
           {md ? '✅ 已加载 MD 文件' : '点击或拖拽上传 .md 文件'}
         </p>
         {md && <p className="text-sm text-gray-900 mt-2">{md.split('\n').length} 行 · {blocks.length} 个内容块</p>}
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-base text-red-600">{error}</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 sm:text-base">{error}</div>
       )}
 
       {/* 转换按钮 */}
       <button
         onClick={onConvert}
         disabled={converting || !md}
-        className="w-full bg-gray-900 text-white py-4 rounded-2xl text-lg font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-2xl bg-gray-900 py-3 text-base font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40 sm:py-4 sm:text-lg"
       >
         {converting ? '转换中...' : `转换为图片${pageCount > 0 ? `（${pageCount} 张）` : ''}`}
       </button>
 
       {/* 最终结果下载 */}
       {images.map((img, i) => (
-        <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+        <div key={i} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3 sm:p-4">
           <div className="text-sm text-gray-500 text-center">第 {i + 1} 张</div>
           <img src={img} alt={`card-${i + 1}`} className="w-full rounded-xl" style={{ maxWidth: '540px', margin: '0 auto', display: 'block' }} />
           <button
             onClick={() => download(img, i + 1)}
-            className="w-full bg-gray-900 text-white py-2.5 rounded-xl text-base font-medium hover:bg-gray-800 transition-colors"
+            className="w-full rounded-xl bg-gray-900 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 sm:text-base"
           >
             下载第 {i + 1} 张
           </button>

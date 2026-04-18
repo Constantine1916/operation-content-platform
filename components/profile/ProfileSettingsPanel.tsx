@@ -37,11 +37,11 @@ export default function ProfileSettingsPanel({
 }: ProfileSettingsPanelProps) {
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-medium text-gray-900 tracking-widest uppercase">头像</h2>
-        <div className="flex items-center gap-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6">
+        <h2 className="mb-4 text-base font-medium uppercase tracking-widest text-gray-900 sm:text-lg">头像</h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <div
-            className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-100 transition-colors hover:border-gray-400"
+            className="flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-100 transition-colors hover:border-gray-400 sm:h-24 sm:w-24"
             onClick={onAvatarClick}
           >
             {uploadingAvatar ? (
@@ -55,7 +55,7 @@ export default function ProfileSettingsPanel({
               </span>
             )}
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               ref={fileInputRef}
               type="file"
@@ -67,65 +67,65 @@ export default function ProfileSettingsPanel({
               type="button"
               onClick={onAvatarClick}
               disabled={uploadingAvatar}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-lg text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+              className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50 sm:w-auto sm:text-base"
             >
               {uploadingAvatar ? '上传中...' : '上传新头像'}
             </button>
-            <p className="mt-2 text-sm text-gray-900">支持 JPG/PNG/WebP/GIF，不超过 2MB</p>
+            <p className="mt-2 text-sm leading-6 text-gray-900">支持 JPG/PNG/WebP/GIF，不超过 2MB</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-medium text-gray-900 tracking-widest uppercase">基本信息</h2>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6">
+        <h2 className="mb-4 text-base font-medium uppercase tracking-widest text-gray-900 sm:text-lg">基本信息</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-lg font-medium text-gray-900">用户名</label>
+            <label className="mb-1 block text-sm font-medium text-gray-900 sm:text-base">用户名</label>
             <input
               type="text"
               value={username}
               onChange={e => onUsernameChange(e.target.value)}
               placeholder="设置用户名（2-30字符）"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900"
+              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900 sm:px-4 sm:py-3"
               maxLength={30}
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-lg font-medium text-gray-900">姓名</label>
+            <label className="mb-1 block text-sm font-medium text-gray-900 sm:text-base">姓名</label>
             <input
               type="text"
               value={fullName}
               onChange={e => onFullNameChange(e.target.value)}
               placeholder="真实姓名（可选）"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900"
+              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900 sm:px-4 sm:py-3"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-lg font-medium text-gray-900">邮箱</label>
+            <label className="mb-1 block text-sm font-medium text-gray-900 sm:text-base">邮箱</label>
             <input
               type="email"
               value={email}
               disabled
-              className="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900"
+              className="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-gray-900 sm:px-4 sm:py-3"
             />
-            <p className="mt-1 text-sm text-gray-900">邮箱不可修改</p>
+            <p className="mt-1 text-sm leading-6 text-gray-900">邮箱不可修改</p>
           </div>
 
           <div>
-            <label className="mb-1 block text-lg font-medium text-gray-900">简介</label>
+            <label className="mb-1 block text-sm font-medium text-gray-900 sm:text-base">简介</label>
             <textarea
               value={bio}
               onChange={e => onBioChange(e.target.value)}
               placeholder="个人简介（可选）"
               rows={3}
-              className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900"
+              className="w-full resize-none rounded-lg border border-gray-300 px-3.5 py-2.5 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900 sm:px-4 sm:py-3"
             />
           </div>
 
           {message && (
-            <div className={`rounded-lg py-2 text-center text-lg ${message.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
+            <div className={`rounded-lg px-3 py-2 text-center text-sm sm:text-base ${message.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
               {message.text}
             </div>
           )}
@@ -133,7 +133,7 @@ export default function ProfileSettingsPanel({
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-lg bg-gray-900 py-3 text-lg font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+            className="w-full rounded-lg bg-gray-900 py-2.5 text-base font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50 sm:py-3 sm:text-lg"
           >
             {saving ? '保存中...' : '保存修改'}
           </button>
