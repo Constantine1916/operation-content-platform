@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 
 interface Article { id: string; platform: string; author: string | null; title: string; content: string; created_at: string; }
 
@@ -23,6 +27,11 @@ export default function ArticlesPage() {
   const [copied, setCopied] = useState(false);
   const [authors, setAuthors] = useState<string[]>([]);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('article', articles.map(article => article.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'article',
+    setFavoriteIds,
+  });
 
   // 从文章列表中提取所有唯一作者
   useEffect(() => {
@@ -119,10 +128,18 @@ export default function ArticlesPage() {
               >
                 {/* Platform badge */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${platformColors[article.platform] || 'bg-gray-50 text-gray-900 border-gray-200'}`}>
-                    {platformNames[article.platform] || article.platform}
-                  </span>
-                  <span className="text-[10px] text-gray-500">{formatDate(article.created_at)}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${platformColors[article.platform] || 'bg-gray-50 text-gray-900 border-gray-200'}`}>
+                      {platformNames[article.platform] || article.platform}
+                    </span>
+                    <span className="text-[10px] text-gray-500">{formatDate(article.created_at)}</span>
+                  </div>
+                  <FavoriteButton
+                    isFavorite={getFavoriteButtonState(article.id, favoriteIds, pendingIds).isFavorite}
+                    isPending={getFavoriteButtonState(article.id, favoriteIds, pendingIds).isPending}
+                    onToggle={() => toggleFavorite(article.id, !favoriteIds.has(article.id))}
+                    className="h-8 w-8 flex-shrink-0"
+                  />
                 </div>
 
                 {/* Title */}
@@ -196,6 +213,15 @@ export default function ArticlesPage() {
                 <h2 className="text-base font-semibold text-gray-900 leading-snug">{selectedArticle.title}</h2>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
+                <FavoriteButton
+                  isFavorite={selectedArticle ? favoriteIds.has(selectedArticle.id) : false}
+                  isPending={selectedArticle ? pendingIds.has(selectedArticle.id) : false}
+                  onToggle={() => {
+                    if (!selectedArticle) return;
+                    toggleFavorite(selectedArticle.id, !favoriteIds.has(selectedArticle.id));
+                  }}
+                  className="h-8 w-8"
+                />
                 {/* 复制按钮 */}
                 <button
                   onClick={() => handleCopy(selectedArticle)}

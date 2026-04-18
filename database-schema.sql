@@ -115,3 +115,28 @@ CREATE POLICY "avatars_own_upload" ON storage.objects
 CREATE POLICY "avatars_own_update" ON storage.objects
   FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::text = (name.split('/'))[1]);
 
+-- ============================================================
+-- 用户收藏表
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_favorites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  content_type TEXT NOT NULL CHECK (content_type IN ('image', 'video', 'hotspot', 'article')),
+  content_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, content_type, content_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_favorites_user_type_created
+  ON user_favorites(user_id, content_type, created_at DESC);
+
+ALTER TABLE user_favorites ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "user_favorites_own_read" ON user_favorites
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "user_favorites_own_insert" ON user_favorites
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "user_favorites_own_delete" ON user_favorites
+  FOR DELETE USING (auth.uid() = user_id);

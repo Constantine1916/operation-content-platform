@@ -3,6 +3,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Masonry from 'react-masonry-css';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 
 interface VideoItem {
   id: string;
@@ -33,6 +37,11 @@ export default function AiVideoPage() {
   const [allModels, setAllModels] = useState<string[]>([]);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('video', videos.map(video => video.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'video',
+    setFavoriteIds,
+  });
 
   useEffect(() => {
     fetch('/api/ai-video?models=true')
@@ -111,7 +120,12 @@ export default function AiVideoPage() {
             columnClassName="flex flex-col gap-4"
           >
             {videos.map((video, i) => (
-              <VideoCard key={`${video.id}-${i}`} video={video} />
+              <VideoCard
+                key={`${video.id}-${i}`}
+                video={video}
+                {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
+                onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
+              />
             ))}
           </Masonry>
           <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={videos.length} />
@@ -121,7 +135,17 @@ export default function AiVideoPage() {
   );
 }
 
-function VideoCard({ video }: { video: VideoItem }) {
+function VideoCard({
+  video,
+  isFavorite,
+  isPending,
+  onToggleFavorite,
+}: {
+  video: VideoItem;
+  isFavorite: boolean;
+  isPending: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -151,6 +175,15 @@ function VideoCard({ video }: { video: VideoItem }) {
       onMouseLeave={handleMouseLeave}
     >
       <div className="relative overflow-hidden bg-gray-100">
+        <div className="absolute right-3 top-3 z-10 pointer-events-auto">
+          <FavoriteButton
+            variant="overlay"
+            isFavorite={isFavorite}
+            isPending={isPending}
+            onToggle={onToggleFavorite}
+          />
+        </div>
+
         {video.video_url ? (
           <video
             ref={videoRef}

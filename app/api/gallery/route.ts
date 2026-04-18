@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
     if (error) throw new Error(error.message);
 
     const items = (data ?? []).map((img: any) => ({
+      id: img.id,
       task_id: img.task_id,
       prompt: img.prompt,
       url: img.url,

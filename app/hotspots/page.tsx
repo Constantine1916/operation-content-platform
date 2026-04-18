@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 
 interface Hotspot { id: string; title: string; category: string; source: string; summary: string; url: string; 热度: string; collected_date: string; collected_time: string; }
 interface HotspotGroup { timeKey: string; label: string; items: Hotspot[]; }
@@ -37,6 +41,11 @@ export default function HotspotsPage() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [sourceTab, setSourceTab] = useState<SourceTab>('all');
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('hotspot', hotspots.map(item => item.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'hotspot',
+    setFavoriteIds,
+  });
 
   useEffect(() => { setHotspots([]); setPage(0); setHasMore(true); fetchHotspots(0, true, sourceTab); }, [sourceTab]);
 
@@ -146,35 +155,46 @@ export default function HotspotsPage() {
                   {!isCollapsed && (
                     <div className="divide-y divide-gray-50">
                       {group.items.map((hotspot) => (
-                        <a
+                        <div
                           key={hotspot.id}
-                          href={hotspot.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
+                          className="flex items-start gap-3 px-5 py-4 hover:bg-gray-50 transition-colors group"
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              {hotspot.热度 && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 text-orange-600 border border-orange-200">
-                                  🔥 {hotspot.热度}
-                                </span>
+                          <a
+                            href={hotspot.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex min-w-0 flex-1 items-start gap-4"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                {hotspot.热度 && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 text-orange-600 border border-orange-200">
+                                    🔥 {hotspot.热度}
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-black line-clamp-2">
+                                {hotspot.title}
+                              </h3>
+                              {hotspot.summary && (
+                                <p className="text-xs text-gray-600 line-clamp-1 mt-1">{hotspot.summary}</p>
+                              )}
+                              {hotspot.source && (
+                                <div className="text-[10px] text-gray-400 mt-1">📰 {hotspot.source}</div>
                               )}
                             </div>
-                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-black line-clamp-2">
-                              {hotspot.title}
-                            </h3>
-                            {hotspot.summary && (
-                              <p className="text-xs text-gray-600 line-clamp-1 mt-1">{hotspot.summary}</p>
-                            )}
-                            {hotspot.source && (
-                              <div className="text-[10px] text-gray-400 mt-1">📰 {hotspot.source}</div>
-                            )}
-                          </div>
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-600 flex-shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
+                            <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-600 flex-shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+
+                          <FavoriteButton
+                            isFavorite={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isFavorite}
+                            isPending={getFavoriteButtonState(hotspot.id, favoriteIds, pendingIds).isPending}
+                            onToggle={() => toggleFavorite(hotspot.id, !favoriteIds.has(hotspot.id))}
+                            className="mt-0.5 flex-shrink-0"
+                          />
+                        </div>
                       ))}
                     </div>
                   )}

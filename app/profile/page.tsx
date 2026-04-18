@@ -2,6 +2,13 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import MyAssetsPanel from '@/components/profile/MyAssetsPanel';
+import MyFavoritesPanel from '@/components/profile/MyFavoritesPanel';
+import ProfileSettingsPanel from '@/components/profile/ProfileSettingsPanel';
+import {
+  PROFILE_CENTER_PRIMARY_TABS,
+  type ProfileCenterPrimaryTab,
+} from '@/components/profile/profile-center-tabs';
 
 interface Profile {
   id: string;
@@ -18,6 +25,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [activePrimaryTab, setActivePrimaryTab] = useState<ProfileCenterPrimaryTab>('assets');
 
   // 编辑字段
   const [username, setUsername] = useState('');
@@ -147,119 +155,67 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div>
-          <h1 className="text-2xl font-normal text-gray-900">个人资料</h1>
-          <p className="text-lg text-gray-900">{profile?.email}</p>
-        </div>
-      </div>
-
-      {/* Avatar Section */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 tracking-widest uppercase">头像</h2>
-        <div className="flex items-center gap-6">
-          {/* 头像预览 */}
-          <div
-            className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-gray-400 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {uploadingAvatar ? (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600" />
-            ) : avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-3xl text-gray-400">
-                {username ? username.charAt(0).toUpperCase() : '?'}
-              </span>
-            )}
-          </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="rounded-3xl border border-gray-200 bg-white px-6 py-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">Profile Center</div>
+            <h1 className="mt-2 text-2xl font-semibold text-gray-900">个人中心</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              管理我的资产、我的收藏和个人资料
+            </p>
+          </div>
+          <div className="text-sm text-gray-400">{profile?.email}</div>
+        </div>
+
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          {PROFILE_CENTER_PRIMARY_TABS.map(tab => (
             <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingAvatar}
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              key={tab.key}
+              onClick={() => setActivePrimaryTab(tab.key)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                activePrimaryTab === tab.key
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:text-gray-900'
+              }`}
             >
-              {uploadingAvatar ? '上传中...' : '上传新头像'}
+              {tab.label}
             </button>
-            <p className="text-sm text-gray-900 mt-2">支持 JPG/PNG/WebP/GIF，不超过 2MB</p>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Profile Form */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 tracking-widest uppercase">基本信息</h2>
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="block text-lg font-medium text-gray-900 mb-1">用户名</label>
-            <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="设置用户名（2-30字符）"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all"
-              maxLength={30}
-            />
-          </div>
+      {profile && activePrimaryTab === 'assets' && (
+        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+          <MyAssetsPanel userId={profile.id} />
+        </div>
+      )}
 
-          <div>
-            <label className="block text-lg font-medium text-gray-900 mb-1">姓名</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="真实姓名（可选）"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all"
-            />
-          </div>
+      {activePrimaryTab === 'favorites' && (
+        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+          <MyFavoritesPanel />
+        </div>
+      )}
 
-          <div>
-            <label className="block text-lg font-medium text-gray-900 mb-1">邮箱</label>
-            <input
-              type="email"
-              value={profile?.email || ''}
-              disabled
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 cursor-not-allowed"
-            />
-            <p className="text-sm text-gray-900 mt-1">邮箱不可修改</p>
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium text-gray-900 mb-1">简介</label>
-            <textarea
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder="个人简介（可选）"
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all resize-none"
-            />
-          </div>
-
-          {message && (
-            <div className={`text-lg text-center py-2 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-              {message.text}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-gray-900 text-white py-3 rounded-lg text-lg font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
-          >
-            {saving ? '保存中...' : '保存修改'}
-          </button>
-        </form>
-      </div>
+      {activePrimaryTab === 'settings' && (
+        <ProfileSettingsPanel
+          username={username}
+          fullName={fullName}
+          bio={bio}
+          avatarUrl={avatarUrl}
+          email={profile?.email || ''}
+          uploadingAvatar={uploadingAvatar}
+          saving={saving}
+          message={message}
+          fileInputRef={fileInputRef}
+          onAvatarChange={handleAvatarChange}
+          onAvatarClick={() => fileInputRef.current?.click()}
+          onUsernameChange={setUsername}
+          onFullNameChange={setFullName}
+          onBioChange={setBio}
+          onSubmit={handleSave}
+        />
+      )}
     </div>
   );
 }

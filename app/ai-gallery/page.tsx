@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabase';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import Masonry from 'react-masonry-css';
 import { Image } from 'antd';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
   const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
@@ -45,6 +49,7 @@ function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode 
 }
 
 export interface GalleryImage {
+  id: string;
   task_id: string;
   prompt: string;
   url: string;
@@ -68,6 +73,11 @@ export default function AiGalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const pageRef = useRef(1);
   const tokenRef = useRef<string | null>(null);
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('image', images.map(image => image.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'image',
+    setFavoriteIds,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -153,7 +163,12 @@ export default function AiGalleryPage() {
           columnClassName="flex flex-col gap-4"
         >
           {images.map((img, i) => (
-            <ImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} />
+            <ImageCard
+              key={`${img.task_id}-${img.index}-${i}`}
+              image={img}
+              {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
+              onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
+            />
           ))}
         </Masonry>
       </Image.PreviewGroup>
@@ -228,7 +243,17 @@ function LoadMoreTrigger({ onVisible, hasMore, loadingMore, total }: {
   );
 }
 
-function ImageCard({ image }: { image: GalleryImage }) {
+function ImageCard({
+  image,
+  isFavorite,
+  isPending,
+  onToggleFavorite,
+}: {
+  image: GalleryImage;
+  isFavorite: boolean;
+  isPending: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
 
@@ -242,6 +267,14 @@ function ImageCard({ image }: { image: GalleryImage }) {
 
   return (
     <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
+      <div className="absolute right-3 top-3 z-10 pointer-events-auto">
+        <FavoriteButton
+          variant="overlay"
+          isFavorite={isFavorite}
+          isPending={isPending}
+          onToggle={onToggleFavorite}
+        />
+      </div>
       <div style={imageFrameStyles.frame}>
         <Image
           src={image.url}
