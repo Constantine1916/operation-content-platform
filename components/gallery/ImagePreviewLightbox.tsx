@@ -135,7 +135,10 @@ export default function ImagePreviewLightbox({
   onToggleFavorite,
 }: ImagePreviewLightboxProps) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [flipX, setFlipX] = useState(false);
+  const [flipY, setFlipY] = useState(false);
 
   const currentIndex =
     selectedIndex === null || items.length === 0
@@ -169,7 +172,10 @@ export default function ImagePreviewLightbox({
 
   useEffect(() => {
     setCopiedPrompt(false);
-    setCopiedLink(false);
+    setScale(1);
+    setRotation(0);
+    setFlipX(false);
+    setFlipY(false);
   }, [item?.id]);
 
   if (!item || currentIndex === null) return null;
@@ -203,11 +209,14 @@ export default function ImagePreviewLightbox({
     window.setTimeout(() => setCopiedPrompt(false), 1500);
   };
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(item.url);
-    setCopiedLink(true);
-    window.setTimeout(() => setCopiedLink(false), 1500);
+  const resetTransforms = () => {
+    setScale(1);
+    setRotation(0);
+    setFlipX(false);
+    setFlipY(false);
   };
+
+  const transform = `scale(${scale * (flipX ? -1 : 1)}, ${scale * (flipY ? -1 : 1)}) rotate(${rotation}deg)`;
 
   return (
     <div
@@ -268,6 +277,7 @@ export default function ImagePreviewLightbox({
               src={item.url}
               alt={item.prompt}
               className="max-h-[calc(100vh-132px)] w-auto rounded-[28px] border border-black/5 object-contain shadow-[0_40px_90px_-42px_rgba(15,23,42,0.55)]"
+              style={{ transform, transition: 'transform 220ms ease-out' }}
             />
             <div className="pointer-events-none absolute bottom-4 right-4 rounded-full bg-black/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/82 backdrop-blur-sm">
               AiCave
@@ -300,12 +310,6 @@ export default function ImagePreviewLightbox({
                   onToggle={() => onToggleFavorite(item)}
                 />
               )}
-
-              <PreviewIconButton title={copiedLink ? '链接已复制' : '复制图片链接'} onClick={() => { void handleCopyLink(); }}>
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5" />
-                </svg>
-              </PreviewIconButton>
             </div>
           </div>
 
@@ -317,7 +321,31 @@ export default function ImagePreviewLightbox({
             />
 
             <div className="mt-5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400">图片提示词</div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400">图片提示词</div>
+                <button
+                  type="button"
+                  title={copiedPrompt ? '提示词已复制' : '复制提示词'}
+                  aria-label={copiedPrompt ? '提示词已复制' : '复制提示词'}
+                  onClick={() => { void handleCopyPrompt(); }}
+                  className={`inline-flex h-9 w-9 items-center justify-center rounded-2xl border transition-all duration-200 ${
+                    copiedPrompt
+                      ? 'border-gray-900 bg-gray-900 text-white'
+                      : 'border-black/5 bg-white text-gray-500 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.32)] hover:-translate-y-px hover:border-gray-300 hover:text-gray-800'
+                  }`}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {copiedPrompt ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 13l4 4L19 7" />
+                    ) : (
+                      <>
+                        <rect x="9" y="9" width="10" height="10" rx="2" strokeWidth="1.8" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 9V7a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h2" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </div>
               <p className="mt-3 text-[15px] leading-7 text-gray-800">
                 {item.prompt || '暂无提示词'}
               </p>
@@ -332,20 +360,81 @@ export default function ImagePreviewLightbox({
 
             <div className="mt-5 rounded-[24px] border border-gray-100 bg-[linear-gradient(180deg,rgba(250,250,250,0.96),rgba(244,244,244,0.94))] p-4">
               <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400">快捷操作</div>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
-                  onClick={() => { void handleCopyPrompt(); }}
-                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                  onClick={() => setScale(current => Math.min(3, Number((current + 0.2).toFixed(2))))}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
                 >
-                  {copiedPrompt ? '提示词已复制' : '复制提示词'}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
+                  </svg>
+                  放大
                 </button>
                 <button
                   type="button"
-                  onClick={handleDownload}
-                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                  onClick={() => setScale(current => Math.max(0.6, Number((current - 0.2).toFixed(2))))}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
                 >
-                  下载原图
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 12h14" />
+                  </svg>
+                  缩小
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRotation(current => current - 90)}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 10H5V6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 10a7 7 0 111.747 4.622" />
+                  </svg>
+                  左转
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRotation(current => current + 90)}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 10h4V6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 10a7 7 0 11-1.747 4.622" />
+                  </svg>
+                  右转
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFlipX(current => !current)}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 4v16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 7l7 5-7 5V7zM12 7L5 12l7 5" />
+                  </svg>
+                  水平镜像
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFlipY(current => !current)}
+                  className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 12h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 12l5 7 5-7H7zM7 12l5-7 5 7" />
+                  </svg>
+                  垂直镜像
+                </button>
+                <button
+                  type="button"
+                  onClick={resetTransforms}
+                  className="col-span-2 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-400 hover:text-gray-900"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 4v6h6M20 20v-6h-6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 14a8 8 0 00-2.343-5.657A8 8 0 006 10M4 10a8 8 0 002.343 5.657A8 8 0 0018 14" />
+                  </svg>
+                  重置视图
                 </button>
               </div>
             </div>
