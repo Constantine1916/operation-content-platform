@@ -22,6 +22,20 @@ import { supabase } from '@/lib/supabase';
 
 const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
 const PAGE_LIMIT = 20;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const DAILY_UPLOAD_LIMITS: Record<number, number> = {
+  0: 5,
+  1: 10,
+  2: 500,
+};
+
+interface PendingUploadItem {
+  id: string;
+  file: File;
+  prompt: string;
+  width: number;
+  height: number;
+}
 
 export default function MyAssetsPanel({ userId }: { userId: string }) {
   const [activeTab, setActiveTab] = useState<ProfileCenterAssetTab>('images');
@@ -36,6 +50,8 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
   const [totalImages, setTotalImages] = useState(0);
   const [totalVideos, setTotalVideos] = useState(0);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<PendingUploadItem[]>([]);
+  const [vipLevel, setVipLevel] = useState(0);
   const imagePageRef = useRef(1);
   const videoPageRef = useRef(1);
   const imageUploadInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +77,25 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
   useEffect(() => {
     fetchImages(1, true);
     fetchVideos(1, true);
+    fetchVipLevel();
   }, [userId]);
+
+  async function fetchVipLevel() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVipLevel(Number(data.data?.vip_level ?? 0));
+      }
+    } catch {
+      setVipLevel(0);
+    }
+  }
 
   async function fetchImages(page: number, isFirst = false) {
     if (isFirst) setImagesLoading(true);
@@ -120,10 +154,66 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
     });
   }
 
-  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+  async function handleImageSelection(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
     event.target.value = '';
-    if (!file) return;
+    if (files.length === 0) return;
+
+    try {
+      const invalidType = files.find(file => !['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type));
+      if (invalidType) {
+        throw new Error(`仅支持 JPG/PNG/WebP/GIF 格式：${invalidType.name}`);
+      }
+
+      const oversized = files.find(file => file.size > MAX_FILE_SIZE_BYTES);
+      if (oversized) {
+        throw new Error(`单张图片大小不能超过 10MB：${oversized.name}`);
+      }
+
+      const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      if (totalSize > files.length * MAX_FILE_SIZE_BYTES) {
+        throw new Error(`本次批量上传总大小不能超过 ${files.length * 10}MB`);
+      }
+
+      const items = await Promise.all(
+        files.map(async (file) => {
+          const { width, height } = await resolveImageDimensions(file);
+          return {
+            id: `${file.name}-${file.lastModified}-${file.size}-${Math.random().toString(36).slice(2, 8)}`,
+            file,
+            prompt: file.name.replace(/\.[^/.]+$/, ''),
+            width,
+            height,
+          };
+        })
+      );
+
+      setPendingUploads(current => [...current, ...items]);
+    } catch (error: any) {
+      message.error(error.message ?? '选择图片失败');
+    }
+  }
+
+  function updatePendingPrompt(id: string, prompt: string) {
+    setPendingUploads(current =>
+      current.map(item => (item.id === id ? { ...item, prompt } : item))
+    );
+  }
+
+  function removePendingUpload(id: string) {
+    setPendingUploads(current => current.filter(item => item.id !== id));
+  }
+
+  async function handleSubmitUploads() {
+    if (pendingUploads.length === 0) {
+      message.error('请先选择图片');
+      return;
+    }
+
+    if (pendingUploads.some(item => !item.prompt.trim())) {
+      message.error('请为每张图片填写提示词');
+      return;
+    }
 
     setUploadingImage(true);
 
@@ -133,21 +223,13 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
         throw new Error('请先登录后再上传图片');
       }
 
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('仅支持 JPG/PNG/WebP/GIF 格式');
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('图片大小不能超过 10MB');
-      }
-
-      const { width, height } = await resolveImageDimensions(file);
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('prompt', file.name.replace(/\.[^/.]+$/, ''));
-      formData.append('width', String(width));
-      formData.append('height', String(height));
+      pendingUploads.forEach(item => {
+        formData.append('files', item.file);
+      });
+      formData.append('prompts', JSON.stringify(pendingUploads.map(item => item.prompt.trim())));
+      formData.append('widths', JSON.stringify(pendingUploads.map(item => item.width)));
+      formData.append('heights', JSON.stringify(pendingUploads.map(item => item.height)));
 
       const res = await fetch('/api/profile/images/upload', {
         method: 'POST',
@@ -161,8 +243,10 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
         throw new Error(data.error ?? '上传图片失败');
       }
 
-      message.success('图片上传成功');
+      message.success(`成功上传 ${pendingUploads.length} 张图片`);
+      setPendingUploads([]);
       await fetchImages(1, true);
+      await fetchVipLevel();
       setActiveTab('images');
     } catch (error: any) {
       message.error(error.message ?? '上传图片失败');
@@ -170,6 +254,10 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
       setUploadingImage(false);
     }
   }
+
+  const uploadLimit = DAILY_UPLOAD_LIMITS[vipLevel] ?? DAILY_UPLOAD_LIMITS[2];
+  const uploadPlanLabel = vipLevel >= 2 ? 'SVIP' : vipLevel >= 1 ? 'VIP' : '免费';
+  const pendingTotalSizeMb = (pendingUploads.reduce((sum, item) => sum + item.file.size, 0) / (1024 * 1024)).toFixed(1);
 
   return (
     <div>
@@ -198,28 +286,112 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
             <input
               ref={imageUploadInputRef}
               type="file"
+              multiple
               accept="image/jpeg,image/png,image/webp,image/gif"
               className="hidden"
-              onChange={handleImageUpload}
+              onChange={handleImageSelection}
             />
-            <button
-              type="button"
-              onClick={() => imageUploadInputRef.current?.click()}
-              disabled={uploadingImage}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {uploadingImage ? (
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />
-              ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => imageUploadInputRef.current?.click()}
+                disabled={uploadingImage}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+              >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
                 </svg>
+                上传图片
+              </button>
+              {pendingUploads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleSubmitUploads}
+                  disabled={uploadingImage}
+                  className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {uploadingImage ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : null}
+                  {uploadingImage ? '上传中...' : `上传 ${pendingUploads.length > 0 ? pendingUploads.length : ''} 张`}
+                </button>
               )}
-              {uploadingImage ? '上传中...' : '上传图片'}
-            </button>
+            </div>
           </div>
         )}
       </div>
+
+      {activeTab === 'images' && (
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">上传图片</div>
+              <div className="mt-2 text-sm text-gray-600">
+                当前会员：<span className="font-medium text-gray-900">{uploadPlanLabel}</span>
+                ，每日最多上传 <span className="font-medium text-gray-900">{uploadLimit}</span> 张图片。
+                单张图片不超过 <span className="font-medium text-gray-900">10MB</span>，支持多张批量上传。
+              </div>
+            </div>
+            {pendingUploads.length > 0 && (
+              <div className="text-sm text-gray-500">
+                已选择 <span className="font-medium text-gray-900">{pendingUploads.length}</span> 张，
+                合计 <span className="font-medium text-gray-900">{pendingTotalSizeMb}MB</span>
+              </div>
+            )}
+          </div>
+
+          {pendingUploads.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {pendingUploads.map(item => (
+                <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 lg:flex-row lg:items-center">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-gray-900">{item.file.name}</div>
+                    <div className="mt-1 text-xs text-gray-500">
+                      {item.width} × {item.height} · {(item.file.size / (1024 * 1024)).toFixed(1)}MB
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={item.prompt}
+                    onChange={(event) => updatePendingPrompt(item.id, event.target.value)}
+                    placeholder="请输入这张图片的提示词"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-400 lg:w-[340px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePendingUpload(item.id)}
+                    className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
+                  >
+                    移除
+                  </button>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPendingUploads([])}
+                  disabled={uploadingImage}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 disabled:opacity-60"
+                >
+                  清空列表
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitUploads}
+                  disabled={uploadingImage}
+                  className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-60"
+                >
+                  {uploadingImage ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : null}
+                  {uploadingImage ? '上传中...' : `提交 ${pendingUploads.length} 张图片`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === 'images' && (
         <AssetSection
