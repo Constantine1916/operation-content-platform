@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
 export interface ImagePreviewItem {
   id: string;
@@ -139,6 +140,7 @@ export default function ImagePreviewLightbox({
   const [rotation, setRotation] = useState(0);
   const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
+  const { previewPanelMode } = useMobileViewportState();
 
   const currentIndex =
     selectedIndex === null || items.length === 0
@@ -184,6 +186,7 @@ export default function ImagePreviewLightbox({
   const createdAtText = formatTimestamp(item.created_at) ?? '未知';
   const sizeText = item.width && item.height ? `${item.width} × ${item.height}` : '未知';
   const ratioText = formatAspectRatio(item.width, item.height);
+  const isStackedPreview = previewPanelMode === 'stacked';
 
   const handleDownload = async () => {
     if (beforeDownload && !(await beforeDownload())) return;
@@ -225,7 +228,7 @@ export default function ImagePreviewLightbox({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="flex h-full flex-col lg:flex-row">
+      <div className={`flex h-full flex-col ${isStackedPreview ? '' : 'lg:flex-row'}`}>
         <div className="relative flex min-h-[52vh] flex-1 items-center justify-center overflow-hidden px-4 pb-4 pt-16 lg:min-h-0 lg:px-8 lg:py-8">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(243,241,237,0.25)_38%,rgba(232,229,224,0.45)_100%)]" />
           <div className="pointer-events-none absolute inset-x-12 bottom-8 h-16 rounded-full bg-black/5 blur-3xl" />
@@ -285,17 +288,17 @@ export default function ImagePreviewLightbox({
           </div>
         </div>
 
-        <aside className="flex w-full shrink-0 flex-col border-t border-black/5 bg-white/88 shadow-[-24px_0_64px_-44px_rgba(15,23,42,0.35)] backdrop-blur-xl lg:w-[380px] lg:border-l lg:border-t-0">
-          <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-5 lg:px-6">
+        <aside className={`flex w-full shrink-0 flex-col border-t border-black/5 bg-white/88 backdrop-blur-xl ${isStackedPreview ? 'shadow-[0_-18px_42px_-36px_rgba(15,23,42,0.18)]' : 'shadow-[-24px_0_64px_-44px_rgba(15,23,42,0.35)] lg:w-[380px] lg:border-l lg:border-t-0'}`}>
+          <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5 lg:px-6">
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gray-400">图片预览</div>
               <div className="mt-1 text-sm font-medium text-gray-500">沉浸式查看与操作</div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full items-center gap-2 sm:w-auto">
               <button
                 type="button"
                 onClick={handleDownload}
-                className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-px hover:border-gray-300"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-px hover:border-gray-300 sm:flex-none"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -313,7 +316,7 @@ export default function ImagePreviewLightbox({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-5 pb-6 pt-5 lg:px-6">
+          <div className="flex-1 overflow-y-auto px-4 pb-5 pt-4 sm:px-5 sm:pb-6 sm:pt-5 lg:px-6">
             <PreviewAuthor
               username={item.username ?? null}
               avatarUrl={item.avatar_url ?? null}

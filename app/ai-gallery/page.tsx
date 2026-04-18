@@ -10,6 +10,7 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
+import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
 
 export interface GalleryImage {
@@ -196,7 +197,9 @@ function ImageCard({
   onToggleFavorite: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -236,7 +239,7 @@ function ImageCard({
       {/* 常驻底部渐变 + 作者信息 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
         {/* hover 时浮出 prompt + 复制按钮 */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-2.5 pointer-events-auto">
+        <div className={`mb-2.5 pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
           <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
           <div className="flex justify-end">
             <button

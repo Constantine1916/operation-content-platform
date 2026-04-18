@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
+import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
 export interface ProfileContentImage {
   id: string;
@@ -68,7 +69,9 @@ export function ProfileImageCard({
   onToggleFavorite?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,7 +105,7 @@ export function ProfileImageCard({
       </div>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-end rounded-xl bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
-        <div className="pointer-events-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className={`pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
           <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{image.prompt}</p>
           <div className="flex justify-between gap-2">
             {image.username ? (
@@ -139,6 +142,8 @@ export function ProfileVideoCard({
   const [copied, setCopied] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { touchFirst } = useMobileViewportState();
+  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -149,6 +154,7 @@ export function ProfileVideoCard({
   };
 
   const handleMouseEnter = () => {
+    if (touchFirst) return;
     const element = videoRef.current;
     if (!element) return;
     element.currentTime = 0;
@@ -157,12 +163,22 @@ export function ProfileVideoCard({
   };
 
   const handleMouseLeave = () => {
+    if (touchFirst) return;
     const element = videoRef.current;
     if (!element) return;
     element.pause();
     element.currentTime = 0;
     setPlaying(false);
   };
+
+  useEffect(() => {
+    if (!touchFirst) return;
+    const element = videoRef.current;
+    if (!element) return;
+    element.pause();
+    element.currentTime = 0;
+    setPlaying(false);
+  }, [touchFirst]);
 
   return (
     <div
@@ -212,7 +228,7 @@ export function ProfileVideoCard({
         )}
 
         <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
-          <div className="pointer-events-auto mb-2.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className={`pointer-events-auto mb-2.5 transition-opacity duration-200 ${promptVisibilityClass}`}>
             <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{video.prompt}</p>
             <div className="flex justify-end">
               <button

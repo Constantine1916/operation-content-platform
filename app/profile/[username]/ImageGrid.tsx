@@ -12,6 +12,7 @@ import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { supabase } from '@/lib/supabase';
+import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
 export interface ProfileImage {
   id: string;
@@ -94,8 +95,8 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
     <>
       <Masonry
         breakpointCols={BREAKPOINTS}
-        className="flex gap-4"
-        columnClassName="flex flex-col gap-4"
+        className="flex gap-3 sm:gap-4"
+        columnClassName="flex flex-col gap-3 sm:gap-4"
       >
         {images.map((img, i) => (
           <ProfileImageCard
@@ -142,7 +143,9 @@ function ProfileImageCard({
   onToggleFavorite: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -181,7 +184,7 @@ function ProfileImageCard({
 
       {/* hover 时浮出 prompt + 复制按钮 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+        <div className={`pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
           <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
           <div className="flex justify-end">
             <button

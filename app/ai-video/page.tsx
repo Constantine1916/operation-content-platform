@@ -7,6 +7,7 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
+import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
 interface VideoItem {
   id: string;
@@ -151,6 +152,8 @@ function VideoCard({
   const [copied, setCopied] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { touchFirst } = useMobileViewportState();
+  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -161,14 +164,25 @@ function VideoCard({
   };
 
   const handleMouseEnter = () => {
+    if (touchFirst) return;
     const v = videoRef.current;
     if (v) { v.currentTime = 0; v.play().catch(() => {}); setPlaying(true); }
   };
 
   const handleMouseLeave = () => {
+    if (touchFirst) return;
     const v = videoRef.current;
     if (v) { v.pause(); v.currentTime = 0; setPlaying(false); }
   };
+
+  useEffect(() => {
+    if (!touchFirst) return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.pause();
+    v.currentTime = 0;
+    setPlaying(false);
+  }, [touchFirst]);
 
   return (
     <div
@@ -219,7 +233,7 @@ function VideoCard({
 
         {/* Hover overlay: prompt + copy + author */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-2.5 pointer-events-auto">
+          <div className={`mb-2.5 pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
             <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{video.prompt}</p>
             <div className="flex justify-end">
               <button
