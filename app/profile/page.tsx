@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import MyAssetsPanel from '@/components/profile/MyAssetsPanel';
 import MyFavoritesPanel from '@/components/profile/MyFavoritesPanel';
+import MyUploadsPanel from '@/components/profile/MyUploadsPanel';
 import ProfileSettingsPanel from '@/components/profile/ProfileSettingsPanel';
 import {
   PROFILE_CENTER_PRIMARY_TABS,
@@ -162,7 +163,7 @@ export default function ProfilePage() {
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">Profile Center</div>
             <h1 className="mt-2 text-2xl font-semibold text-gray-900">个人中心</h1>
             <p className="mt-1 text-sm text-gray-500">
-              管理我的资产、我的收藏和个人资料
+              管理我的资产、上传资源、我的收藏和个人资料
             </p>
           </div>
           <div className="text-sm text-gray-400">{profile?.email}</div>
@@ -188,6 +189,12 @@ export default function ProfilePage() {
       {profile && activePrimaryTab === 'assets' && (
         <div className="rounded-3xl border border-gray-200 bg-white p-6">
           <MyAssetsPanel userId={profile.id} />
+        </div>
+      )}
+
+      {profile && activePrimaryTab === 'uploads' && (
+        <div className="rounded-3xl border border-gray-200 bg-white p-6">
+          <MyUploadsPanel />
         </div>
       )}
 

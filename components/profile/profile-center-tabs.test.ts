@@ -8,15 +8,18 @@ const { getProfileCenterSecondaryTabs, PROFILE_CENTER_PRIMARY_TABS } = await imp
 test('exposes expected primary tabs for profile center', () => {
   assert.deepEqual(
     PROFILE_CENTER_PRIMARY_TABS.map((tab: { key: string }) => tab.key),
-    ['assets', 'favorites', 'settings']
+    ['assets', 'uploads', 'favorites', 'settings']
   );
 });
 
-test('returns expected secondary tabs for assets and favorites', () => {
+test('returns expected secondary tabs for assets, uploads, and favorites', () => {
   assert.deepEqual(getProfileCenterSecondaryTabs('assets').map((tab: { key: string }) => tab.key), [
     'images',
     'videos',
     'courses',
+  ]);
+  assert.deepEqual(getProfileCenterSecondaryTabs('uploads').map((tab: { key: string }) => tab.key), [
+    'images',
   ]);
   assert.deepEqual(getProfileCenterSecondaryTabs('favorites').map((tab: { key: string }) => tab.key), [
     'images',
