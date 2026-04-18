@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getBeijingDateRange } from '@/lib/beijing-date-range';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,9 +57,10 @@ export async function GET(request: NextRequest) {
     if (userId) query = query.eq('user_id', userId);
 
     if (date) {
+      const { startIso, endIso } = getBeijingDateRange(date);
       query = query
-        .gte('created_at', `${date}T00:00:00.000Z`)
-        .lt('created_at', new Date(new Date(`${date}T00:00:00.000Z`).getTime() + 86400000).toISOString());
+        .gte('created_at', startIso)
+        .lt('created_at', endIso);
     }
 
     const from = (page - 1) * limit;
