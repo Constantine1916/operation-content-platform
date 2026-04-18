@@ -89,23 +89,33 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }, [])
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed top-0 z-50" style={{ left: '16rem', width: 'calc(100vw - 16rem)' }}>
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+    <nav className="fixed inset-x-0 top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md lg:left-64">
+      <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
         {/* 左侧：Logo */}
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={onMenuClick}
+            aria-label="打开导航菜单"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900 lg:hidden"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
           <Link href="/overview" className="flex items-center min-w-0">
             <Image
               src="/assets/logo.png"
               alt="AICAVE"
               width={140}
               height={52}
-              className="flex-shrink-0 object-contain"
+              className="h-9 w-auto flex-shrink-0 object-contain sm:h-10"
             />
           </Link>
         </div>
 
         {/* 右侧：用户信息 */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
           {profile ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -165,7 +175,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="text-sm text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
+              className="rounded-lg px-3 py-1.5 text-sm text-gray-900 transition-colors hover:bg-gray-100"
             >
               登录
             </Link>

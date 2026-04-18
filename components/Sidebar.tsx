@@ -161,9 +161,9 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   ]
 
   return (
-    <aside className={`bg-white border-r border-gray-200 h-full flex flex-col ${className}`}>
-      <div className="flex-1 flex flex-col min-h-0">
-        <nav className="flex-1 px-3 py-6 space-y-0.5">
+    <aside className={`flex h-full min-h-0 flex-col overflow-hidden border-r border-gray-200 bg-white ${className}`}>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-6">
           {/* 主菜单 label */}
           <div className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-3 px-3">
             主菜单
@@ -220,7 +220,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
         </nav>
 
         {/* 底部统计 */}
-        <div className="px-4 py-4 border-t border-gray-200 space-y-2">
+        <div className="safe-bottom space-y-2 border-t border-gray-200 px-4 py-4">
           <Popover
             trigger="click"
             placement="rightBottom"
