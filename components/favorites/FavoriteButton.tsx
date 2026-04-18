@@ -33,16 +33,24 @@ export default function FavoriteButton({
     previousFavoriteRef.current = isFavorite;
   }, [isFavorite]);
 
-  const sizeClasses = variant === 'overlay' ? 'h-[30px] w-[30px]' : 'h-[31px] w-[31px]';
-  const iconClasses = variant === 'overlay' ? 'h-[13px] w-[13px]' : 'h-[14px] w-[14px]';
+  const sizeClasses = variant === 'overlay' ? 'h-[34px] w-[34px]' : 'h-[32px] w-[32px]';
+  const iconClasses = variant === 'overlay' ? 'h-[16px] w-[16px]' : 'h-[15px] w-[15px]';
   const baseClasses =
     variant === 'overlay'
-      ? 'border border-white/18 bg-black/22 text-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.95)] backdrop-blur-md hover:-translate-y-px hover:border-white/32 hover:bg-black/30'
-      : 'border border-black/5 bg-white/92 text-gray-400 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-sm hover:-translate-y-px hover:border-gray-300 hover:text-gray-700 hover:shadow-[0_14px_28px_-20px_rgba(15,23,42,0.38)]';
+      ? 'text-white drop-shadow-[0_12px_20px_rgba(15,23,42,0.75)] hover:-translate-y-0.5'
+      : 'text-gray-400 drop-shadow-[0_8px_12px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:text-gray-700';
   const activeClasses =
     variant === 'overlay'
-      ? 'border-white/60 bg-white/92 text-rose-500 shadow-[0_14px_28px_-16px_rgba(244,63,94,0.5)]'
-      : 'border-rose-200 bg-rose-50/95 text-rose-500 shadow-[0_14px_28px_-20px_rgba(244,63,94,0.45)] hover:text-rose-600 hover:border-rose-300';
+      ? 'text-rose-500 drop-shadow-[0_12px_24px_rgba(244,63,94,0.42)]'
+      : 'text-rose-500 drop-shadow-[0_10px_20px_rgba(244,63,94,0.18)] hover:text-rose-600';
+  const auraClasses =
+    variant === 'overlay'
+      ? isFavorite
+        ? 'bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.24),rgba(251,113,133,0.18)_32%,rgba(244,63,94,0.06)_56%,transparent_80%)] opacity-100'
+        : 'bg-[radial-gradient(circle_at_50%_45%,rgba(15,23,42,0.42),rgba(15,23,42,0.14)_46%,transparent_78%)] opacity-70 group-hover:opacity-100'
+      : isFavorite
+        ? 'bg-[radial-gradient(circle_at_50%_45%,rgba(251,113,133,0.24),rgba(251,113,133,0.08)_48%,transparent_80%)] opacity-100'
+        : 'bg-[radial-gradient(circle_at_50%_45%,rgba(15,23,42,0.1),rgba(15,23,42,0.03)_48%,transparent_80%)] opacity-45 group-hover:opacity-100';
 
   return (
     <button
@@ -56,24 +64,18 @@ export default function FavoriteButton({
         event.stopPropagation();
         onToggle(event);
       }}
-      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full transition-[transform,background-color,border-color,color,box-shadow,opacity] duration-200 ease-out active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${sizeClasses} ${isFavorite ? activeClasses : baseClasses} ${isBursting ? 'favorite-button-pop' : ''} ${className}`}
+      className={`group relative inline-flex shrink-0 items-center justify-center transition-[transform,color,filter,opacity] duration-200 ease-out active:scale-[0.9] disabled:cursor-not-allowed disabled:opacity-60 ${sizeClasses} ${isFavorite ? activeClasses : baseClasses} ${isBursting ? 'favorite-button-pop' : ''} ${className}`}
     >
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 rounded-full ${
-          isFavorite
-            ? 'bg-[radial-gradient(circle_at_35%_35%,rgba(251,113,133,0.26),rgba(251,113,133,0.08)_45%,transparent_72%)] opacity-100'
-            : variant === 'overlay'
-              ? 'bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.16),rgba(255,255,255,0.02)_48%,transparent_74%)] opacity-100'
-              : 'opacity-0'
-        } ${isBursting ? 'favorite-button-burst' : ''}`}
+        className={`pointer-events-none absolute -inset-[4px] rounded-full blur-[2px] transition-[opacity,transform] duration-200 ${auraClasses} ${isBursting ? 'favorite-button-burst' : ''}`}
       />
       <svg
-        className={`relative z-10 transition-transform duration-200 ${iconClasses} ${isBursting ? 'favorite-heart-pop' : ''}`}
+        className={`relative z-10 transition-transform duration-200 ease-out ${iconClasses} ${isBursting ? 'favorite-heart-pop' : ''} ${!isFavorite ? 'group-hover:scale-[1.06]' : ''}`}
         viewBox="0 0 24 24"
         fill={isFavorite ? 'currentColor' : 'none'}
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.75"
       >
         <path
           strokeLinecap="round"
