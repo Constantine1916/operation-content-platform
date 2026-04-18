@@ -32,18 +32,29 @@ export default async function PublicProfilePage({
 
   if (profileError || !profile) return notFound();
 
-  // 2. Fetch public images from ai_images
-  const { data: images, error: imagesError, count } = await db
-    .from('ai_images')
-    .select('id, task_id, prompt, url, width, height, index, created_at, user_id', { count: 'exact' })
-    .eq('user_id', profile.id)
-    .eq('is_public', true)
-    .order('created_at', { ascending: false })
-    .range(0, PAGE_LIMIT - 1);
+  // 2. Fetch public images and total videos
+  const [
+    { data: images, error: imagesError, count: imageCount },
+    { error: videosError, count: videoCount },
+  ] = await Promise.all([
+    db
+      .from('ai_images')
+      .select('id, task_id, prompt, url, width, height, index, created_at, user_id', { count: 'exact' })
+      .eq('user_id', profile.id)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .range(0, PAGE_LIMIT - 1),
+    db
+      .from('ai_videos')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id),
+  ]);
 
   if (imagesError) throw imagesError;
+  if (videosError) throw videosError;
 
-  const totalImages = count ?? 0;
+  const totalImages = imageCount ?? 0;
+  const totalVideos = videoCount ?? 0;
   const initialImages: ProfileImage[] = (images ?? []).map((img: any) => ({
     task_id: img.task_id,
     prompt: img.prompt,
@@ -98,6 +109,7 @@ export default async function PublicProfilePage({
         hasMore={hasMore}
         userId={profile.id}
         totalImages={totalImages}
+        totalVideos={totalVideos}
       />
     </div>
   );

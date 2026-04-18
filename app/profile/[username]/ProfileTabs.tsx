@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Masonry from 'react-masonry-css';
 import ImageGrid, { ProfileImage } from './ImageGrid';
+import { getProfileTabCount } from '@/lib/profile-tab-count';
 
 interface VideoItem {
   id: string;
@@ -23,6 +24,7 @@ interface ProfileTabsProps {
   hasMore: boolean;
   userId: string;
   totalImages: number;
+  totalVideos: number;
 }
 
 const TABS = [
@@ -36,32 +38,42 @@ type TabKey = typeof TABS[number]['key'];
 const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
 const VIDEO_PAGE_LIMIT = 20;
 
-export default function ProfileTabs({ initialImages, hasMore, userId, totalImages }: ProfileTabsProps) {
+export default function ProfileTabs({
+  initialImages,
+  hasMore,
+  userId,
+  totalImages,
+  totalVideos,
+}: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('images');
 
   return (
     <div>
       {/* Tab bar */}
       <div className="flex gap-0 border-b border-gray-100 mb-6">
-        {TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
-              activeTab === tab.key
-                ? 'text-gray-900'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            {tab.label}
-            {tab.key === 'images' && totalImages > 0 && (
-              <span className="ml-1.5 text-xs text-gray-400 tabular-nums">{totalImages}</span>
-            )}
-            {activeTab === tab.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
-            )}
-          </button>
-        ))}
+        {TABS.map(tab => {
+          const count = getProfileTabCount(tab.key, { totalImages, totalVideos });
+
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+                activeTab === tab.key
+                  ? 'text-gray-900'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.label}
+              {count !== null && (
+                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">{count}</span>
+              )}
+              {activeTab === tab.key && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'images' && (
