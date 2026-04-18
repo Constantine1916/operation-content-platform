@@ -199,7 +199,6 @@ function ImageCard({
   const [copied, setCopied] = useState(false);
   const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
-  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -236,46 +235,45 @@ function ImageCard({
         />
       </div>
 
-      {/* 常驻底部渐变 + 作者信息 */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
-        {/* hover 时浮出 prompt + 复制按钮 */}
-        <div className={`mb-2.5 pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
-          <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
-          <div className="flex justify-end">
-            <button
-              onClick={copy}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                copied
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
-              }`}
-            >
-              {copied ? '已复制' : '复制'}
-            </button>
+      {!touchFirst && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none rounded-xl">
+          <div className="mb-2.5 pointer-events-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{image.prompt}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={copy}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                  copied
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
+                }`}
+              >
+                {copied ? '已复制' : '复制'}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* 作者信息：始终可见 */}
-        {image.username ? (
-          <Link
-            href={`/profile/${image.username}`}
-            className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
-            onClick={e => e.stopPropagation()}
-          >
-            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-            <span className="text-xs text-white/90 font-medium truncate">
-              {image.username}
-            </span>
-          </Link>
-        ) : (
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
-            <span className="text-xs text-white/90 font-medium truncate">
-              {image.user_id.slice(0, 8)}
-            </span>
-          </div>
-        )}
-      </div>
+          {image.username ? (
+            <Link
+              href={`/profile/${image.username}`}
+              className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
+              onClick={e => e.stopPropagation()}
+            >
+              <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+              <span className="text-xs text-white/90 font-medium truncate">
+                {image.username}
+              </span>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2 pointer-events-auto">
+              <Avatar user_id={image.user_id} username={image.username} avatar_url={image.avatar_url} />
+              <span className="text-xs text-white/90 font-medium truncate">
+                {image.user_id.slice(0, 8)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -178,7 +178,6 @@ function VideoCard({
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { touchFirst } = useMobileViewportState();
-  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -248,38 +247,40 @@ function VideoCard({
           </div>
         )}
 
-        {video.model && (
+        {!touchFirst && video.model && (
           <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white/90 text-[10px] px-2 py-0.5 rounded-full pointer-events-none">
             {video.model}
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
-          <div className={`mb-2.5 pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
-            <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{video.prompt}</p>
-            <div className="flex justify-end">
-              <button
-                onClick={copy}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                  copied ? 'bg-gray-900 text-white' : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
-                }`}
-              >
-                {copied ? '已复制' : '复制'}
-              </button>
+        {!touchFirst && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex flex-col justify-end p-3 pointer-events-none">
+            <div className="mb-2.5 pointer-events-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <p className="text-white/90 text-[11px] leading-relaxed line-clamp-3 mb-1.5">{video.prompt}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={copy}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                    copied ? 'bg-gray-900 text-white' : 'bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm'
+                  }`}
+                >
+                  {copied ? '已复制' : '复制'}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {video.username && (
-            <Link
-              href={`/profile/${video.username}`}
-              className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
-              onClick={e => e.stopPropagation()}
-            >
-              <VideoAvatar username={video.username} avatar_url={video.avatar_url ?? null} />
-              <span className="text-xs text-white/90 font-medium truncate">{video.username}</span>
-            </Link>
-          )}
-        </div>
+            {video.username && (
+              <Link
+                href={`/profile/${video.username}`}
+                className="flex items-center gap-2 pointer-events-auto hover:opacity-80 transition-opacity"
+                onClick={e => e.stopPropagation()}
+              >
+                <VideoAvatar username={video.username} avatar_url={video.avatar_url ?? null} />
+                <span className="text-xs text-white/90 font-medium truncate">{video.username}</span>
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

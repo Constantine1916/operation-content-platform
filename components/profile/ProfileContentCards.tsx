@@ -71,7 +71,6 @@ export function ProfileImageCard({
   const [copied, setCopied] = useState(false);
   const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
-  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,26 +103,28 @@ export function ProfileImageCard({
         />
       </div>
 
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-end rounded-xl bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
-        <div className={`pointer-events-auto transition-opacity duration-200 ${promptVisibilityClass}`}>
-          <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{image.prompt}</p>
-          <div className="flex justify-between gap-2">
-            {image.username ? (
-              <span className="truncate text-[11px] font-medium text-white/85">@{image.username}</span>
-            ) : <span />}
-            <button
-              onClick={copy}
-              className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
-                copied
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-black/30 text-white backdrop-blur-sm hover:bg-black/50'
-              }`}
-            >
-              {copied ? '已复制' : '复制'}
-            </button>
+      {!touchFirst && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-end rounded-xl bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
+          <div className="pointer-events-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{image.prompt}</p>
+            <div className="flex justify-between gap-2">
+              {image.username ? (
+                <span className="truncate text-[11px] font-medium text-white/85">@{image.username}</span>
+              ) : <span />}
+              <button
+                onClick={copy}
+                className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                  copied
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-black/30 text-white backdrop-blur-sm hover:bg-black/50'
+                }`}
+              >
+                {copied ? '已复制' : '复制'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -143,7 +144,6 @@ export function ProfileVideoCard({
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { touchFirst } = useMobileViewportState();
-  const promptVisibilityClass = touchFirst ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -211,7 +211,7 @@ export function ProfileVideoCard({
           <div className="flex aspect-[9/16] w-full items-center justify-center text-xs text-gray-300">无视频</div>
         )}
 
-        {video.model && (
+        {!touchFirst && video.model && (
           <div className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white/90 backdrop-blur-sm">
             {video.model}
           </div>
@@ -227,38 +227,40 @@ export function ProfileVideoCard({
           </div>
         )}
 
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
-          <div className={`pointer-events-auto mb-2.5 transition-opacity duration-200 ${promptVisibilityClass}`}>
-            <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{video.prompt}</p>
-            <div className="flex justify-end">
-              <button
-                onClick={copy}
-                className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
-                  copied
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-black/30 text-white backdrop-blur-sm hover:bg-black/50'
-                }`}
-              >
-                {copied ? '已复制' : '复制'}
-              </button>
+        {!touchFirst && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/65 via-black/10 to-transparent p-3">
+            <div className="pointer-events-auto mb-2.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <p className="mb-1.5 line-clamp-3 text-[11px] leading-relaxed text-white/90">{video.prompt}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={copy}
+                  className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                    copied
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-black/30 text-white backdrop-blur-sm hover:bg-black/50'
+                  }`}
+                >
+                  {copied ? '已复制' : '复制'}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {video.username ? (
-            <Link
-              href={`/profile/${video.username}`}
-              className="pointer-events-auto flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <ProfileMiniAvatar username={video.username} avatarUrl={video.avatar_url ?? null} />
-              <span className="truncate text-xs font-medium text-white/90">{video.username}</span>
-            </Link>
-          ) : video.author ? (
-            <div className="pointer-events-auto flex items-center gap-2">
-              <ProfileMiniAvatar username={video.author} avatarUrl={null} />
-              <span className="truncate text-xs font-medium text-white/90">{video.author}</span>
-            </div>
-          ) : null}
-        </div>
+            {video.username ? (
+              <Link
+                href={`/profile/${video.username}`}
+                className="pointer-events-auto flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <ProfileMiniAvatar username={video.username} avatarUrl={video.avatar_url ?? null} />
+                <span className="truncate text-xs font-medium text-white/90">{video.username}</span>
+              </Link>
+            ) : video.author ? (
+              <div className="pointer-events-auto flex items-center gap-2">
+                <ProfileMiniAvatar username={video.author} avatarUrl={null} />
+                <span className="truncate text-xs font-medium text-white/90">{video.author}</span>
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
