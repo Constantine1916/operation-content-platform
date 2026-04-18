@@ -19,3 +19,10 @@ test('overview resource cards render as links', async () => {
   assert.match(source, /import Link from 'next\/link';/);
   assert.match(source, /<Link[\s\S]*?href=\{href\}/);
 });
+
+test('overview uses a two-column resource grid on mobile', async () => {
+  const source = await readFile(overviewPageUrl, 'utf8');
+
+  assert.match(source, /grid-cols-2 gap-3 xl:grid-cols-4/);
+  assert.doesNotMatch(source, /grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/);
+});

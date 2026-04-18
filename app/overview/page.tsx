@@ -86,7 +86,7 @@ export default function Overview() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 animate-pulse">
         <div className="h-7 w-16 bg-gray-100 rounded-lg mb-10" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl" />)}
         </div>
         <div className="h-48 bg-gray-100 rounded-2xl" />
@@ -115,7 +115,7 @@ export default function Overview() {
       {/* 四大资源类型统计 */}
       <div className="mb-4">
         <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.2em] mb-4">内容总量</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {resources.map(r => (
             <ResourceCard
               key={r.key}
@@ -191,7 +191,7 @@ function ResourceCard({
           </svg>
         </div>
       </div>
-      <div className="mb-1 text-[28px] font-bold leading-none text-gray-900">
+      <div className="mb-1 text-2xl font-bold leading-none text-gray-900 sm:text-[28px]">
         {count.toLocaleString()}
       </div>
       <div className="mb-0.5 text-[13px] font-medium text-gray-700">{label}</div>
