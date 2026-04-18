@@ -78,19 +78,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:flex sm:items-center sm:justify-center">
+      <div className="w-full max-w-md">
         {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">AI树洞</h1>
-          <p className="gray-700">创建您的账户</p>
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-black sm:text-3xl">AI树洞</h1>
+          <p className="text-sm text-gray-600 sm:text-base">创建您的账户</p>
         </div>
 
         {/* Register Form */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
           <form onSubmit={handleRegister} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-lg font-medium black mb-2">
+              <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-900">
                 邮箱
               </label>
               <input
@@ -105,7 +105,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-lg font-medium black mb-2">
+              <label htmlFor="username" className="mb-2 block text-sm font-medium text-gray-900">
                 用户名
               </label>
               <input
@@ -121,7 +121,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-lg font-medium black mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-900">
                 密码
               </label>
               <input
@@ -136,7 +136,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-lg font-medium black mb-2">
+              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-gray-900">
                 确认密码
               </label>
               <input
@@ -151,13 +151,13 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-lg text-center bg-red-50 py-2 rounded-lg">
+              <div className="rounded-lg bg-red-50 py-2 text-center text-sm text-red-500">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="text-green-500 text-lg text-center bg-green-50 py-2 rounded-lg">
+              <div className="rounded-lg bg-green-50 py-2 text-center text-sm text-green-500">
                 {success}
               </div>
             )}
@@ -172,7 +172,7 @@ export default function RegisterPage() {
           </form>
           
           {/* Login Link */}
-          <p className="text-center text-gray-900 text-lg mt-6">
+          <p className="mt-6 text-center text-sm text-gray-600 sm:text-base">
             已有账户？{' '}
             <a href="/login" className="text-gray-600 underline hover:text-gray-900">
               登录
@@ -181,7 +181,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-900 text-lg mt-8">
+        <p className="mt-8 text-center text-xs text-gray-500 sm:text-sm">
           © 2026 AI树洞. All rights reserved.
         </p>
       </div>

@@ -76,8 +76,8 @@ export default async function PublicProfilePage({
   return (
     <div className="max-w-7xl mx-auto">
       {/* Profile Header */}
-      <div className="mb-8 pb-6 border-b border-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="mb-8 border-b border-gray-100 pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           {/* Avatar */}
           <div className="flex-shrink-0">
             {profile.avatar_url ? (
@@ -96,9 +96,9 @@ export default async function PublicProfilePage({
 
           {/* Info */}
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-gray-900 tracking-tight">{profile.username}</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-gray-900">{profile.username}</h1>
             {profile.bio && (
-              <p className="text-sm text-gray-500 mt-0.5 max-w-md leading-relaxed">{profile.bio}</p>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-500">{profile.bio}</p>
             )}
           </div>
         </div>

@@ -85,7 +85,7 @@ export default function Overview() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 animate-pulse">
         <div className="h-7 w-16 bg-gray-100 rounded-lg mb-10" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl" />)}
         </div>
         <div className="h-48 bg-gray-100 rounded-2xl" />
@@ -114,7 +114,7 @@ export default function Overview() {
       {/* 四大资源类型统计 */}
       <div className="mb-4">
         <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-[0.2em] mb-4">内容总量</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {resources.map(r => (
             <ResourceCard key={r.key} label={r.label} icon={r.icon} count={r.count} desc={r.desc} />
           ))}
@@ -134,9 +134,9 @@ export default function Overview() {
             return (
               <div
                 key={key}
-                className={`flex items-center gap-4 px-6 py-4 ${!isLast ? 'border-b border-gray-50' : ''}`}
+                className={`flex items-center gap-3 px-4 py-4 sm:gap-4 sm:px-6 ${!isLast ? 'border-b border-gray-50' : ''}`}
               >
-                <span className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">{name}</span>
+                <span className="w-12 flex-shrink-0 text-xs font-medium text-gray-700 sm:w-16 sm:text-sm">{name}</span>
                 <div className="flex-1">
                   <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden">
                     <div
@@ -145,12 +145,12 @@ export default function Overview() {
                     />
                   </div>
                 </div>
-                <span className="w-12 text-right text-sm font-semibold text-gray-900 flex-shrink-0">{count.toLocaleString()}</span>
-                <span className="w-10 text-right text-xs text-gray-400 flex-shrink-0">{pct}%</span>
+                <span className="w-10 flex-shrink-0 text-right text-xs font-semibold text-gray-900 sm:w-12 sm:text-sm">{count.toLocaleString()}</span>
+                <span className="w-8 flex-shrink-0 text-right text-[11px] text-gray-400 sm:w-10 sm:text-xs">{pct}%</span>
               </div>
             );
           })}
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-4 py-3 sm:px-6">
             <span className="text-[11px] text-gray-400 uppercase tracking-widest">合计</span>
             <span className="text-sm font-semibold text-gray-900">{stats.articles.total.toLocaleString()}</span>
           </div>
@@ -167,7 +167,7 @@ function ResourceCard({
   label: string; icon: string; count: number; desc: string;
 }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-300 hover:shadow-sm transition-all">
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 transition-all hover:border-gray-300 hover:shadow-sm sm:p-5">
       <div className="text-2xl mb-4">{icon}</div>
       <div className="text-[28px] font-bold text-gray-900 leading-none mb-1">
         {count.toLocaleString()}

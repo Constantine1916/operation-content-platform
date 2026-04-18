@@ -28,8 +28,8 @@ export default function LandingPage() {
       `}</style>
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#f8f7f4]/95 backdrop-blur-md">
-        <div className="max-w-[1200px] mx-auto px-8 h-16 flex items-center justify-between">
+      <nav className="fixed inset-x-0 top-0 z-50 bg-[#f8f7f4]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <span className="font-serif-sc text-[18px] font-bold tracking-wide text-black">AI树洞</span>
           <div className="flex items-center gap-4">
             <Link href="/login" className="font-sans-sc text-[14px] text-black/50 hover:text-black transition-colors">
@@ -46,9 +46,9 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero — 垂直居中，keynote 气质 */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-8 relative overflow-hidden">
+      <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-24 text-center sm:px-6 sm:pt-28 lg:px-8">
         {/* 背景装饰圈 */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="pointer-events-none absolute inset-0 hidden items-center justify-center sm:flex">
           <div className="w-[700px] h-[700px] rounded-full border border-black/[0.04]" />
           <div className="absolute w-[500px] h-[500px] rounded-full border border-black/[0.04]" />
           <div className="absolute w-[300px] h-[300px] rounded-full border border-black/[0.04]" />
@@ -61,10 +61,10 @@ export default function LandingPage() {
           <h1 className="font-serif-sc text-[clamp(2.8rem,6vw,5.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-black mb-8">
             发现 AI 时代<br />最好的原创内容
           </h1>
-          <p className="font-sans-sc text-[17px] text-black/45 leading-[1.8] mb-12 max-w-[480px] mx-auto font-light">
+          <p className="font-sans-sc text-[15px] text-black/45 leading-[1.8] mb-10 max-w-[480px] mx-auto font-light sm:text-[17px] sm:mb-12">
             资讯、图片、视频、课程<br />每天自动更新，由创作者与 AI 共同生产
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/register"
               className="font-sans-sc inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-8 py-3.5 rounded-full hover:bg-black/80 transition-all group"
@@ -83,7 +83,7 @@ export default function LandingPage() {
         </div>
 
         {/* 向下滚动提示 */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <div className="absolute bottom-10 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 animate-bounce sm:flex">
           <svg className="w-5 h-5 text-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
           </svg>
@@ -91,9 +91,9 @@ export default function LandingPage() {
       </section>
 
       {/* Stats — 三栏数字，细线分隔 */}
-      <section className="py-20 px-8 border-t border-black/[0.06]">
-        <div className="max-w-[900px] mx-auto">
-          <div className="grid grid-cols-3 divide-x divide-black/[0.06] text-center">
+      <section className="border-t border-black/[0.06] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-[900px]">
+          <div className="grid grid-cols-1 divide-y divide-black/[0.06] text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <StatItem number="2h" label="资讯更新间隔" />
             <StatItem number="5+" label="内容类型" />
             <StatItem number="∞" label="创作者自由上传" />
@@ -102,11 +102,11 @@ export default function LandingPage() {
       </section>
 
       {/* Content Types */}
-      <section id="content" className="py-28 px-8 border-t border-black/[0.06]">
-        <div className="max-w-[900px] mx-auto">
-          <div className="text-center mb-20">
+      <section id="content" className="border-t border-black/[0.06] px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-[900px]">
+          <div className="mb-14 text-center sm:mb-20">
             <p className="font-sans-sc text-[11px] tracking-[0.3em] text-black/25 uppercase mb-4 font-medium">内容</p>
-            <h2 className="font-serif-sc text-[36px] font-bold text-black tracking-[-0.01em]">多样的 AI 资源</h2>
+            <h2 className="font-serif-sc text-[30px] font-bold tracking-[-0.01em] text-black sm:text-[36px]">多样的 AI 资源</h2>
           </div>
           <div className="space-y-0">
             <ContentRow icon="📡" title="AI 资讯" desc="全网热点，每 2 小时自动采集" tag="自动更新" />
@@ -119,10 +119,10 @@ export default function LandingPage() {
       </section>
 
       {/* Creator */}
-      <section className="py-28 px-8 border-t border-black/[0.06] bg-black text-white">
-        <div className="max-w-[900px] mx-auto text-center">
+      <section className="border-t border-black/[0.06] bg-black px-4 py-20 text-white sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-[900px] text-center">
           <p className="font-sans-sc text-[11px] tracking-[0.3em] text-white/30 uppercase mb-6 font-medium">创作者</p>
-          <h2 className="font-serif-sc text-[40px] font-bold leading-[1.2] tracking-[-0.01em] mb-6">
+          <h2 className="font-serif-sc text-[32px] font-bold leading-[1.2] tracking-[-0.01em] mb-6 sm:text-[40px]">
             上传你的作品<br />让更多人看见
           </h2>
           <p className="font-sans-sc text-[16px] text-white/45 leading-[1.8] mb-10 max-w-[520px] mx-auto font-light">
@@ -138,13 +138,13 @@ export default function LandingPage() {
       </section>
 
       {/* Access Cards */}
-      <section className="py-28 px-8 border-t border-black/[0.06]">
-        <div className="max-w-[900px] mx-auto">
-          <div className="text-center mb-20">
+      <section className="border-t border-black/[0.06] px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-[900px]">
+          <div className="mb-14 text-center sm:mb-20">
             <p className="font-sans-sc text-[11px] tracking-[0.3em] text-black/25 uppercase mb-4 font-medium">获取资源</p>
-            <h2 className="font-serif-sc text-[36px] font-bold text-black tracking-[-0.01em]">两种方式，畅享内容</h2>
+            <h2 className="font-serif-sc text-[30px] font-bold tracking-[-0.01em] text-black sm:text-[36px]">两种方式，畅享内容</h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-[720px] mx-auto">
+          <div className="mx-auto grid max-w-[720px] gap-4 md:grid-cols-2 md:gap-6">
             <AccessCard
               type="免费用户"
               desc="浏览全部内容，观看短广告后下载资源"
@@ -161,9 +161,9 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-36 px-8 border-t border-black/[0.06] text-center">
-        <div className="max-w-[560px] mx-auto">
-          <h2 className="font-serif-sc text-[48px] font-black text-black mb-5 leading-[1.1] tracking-[-0.02em]">
+      <section className="border-t border-black/[0.06] px-4 py-24 text-center sm:px-6 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-[560px]">
+          <h2 className="font-serif-sc text-[38px] font-black leading-[1.1] tracking-[-0.02em] text-black mb-5 sm:text-[48px]">
             现在就开始
           </h2>
           <p className="font-sans-sc text-[16px] text-black/40 mb-10 font-light">免费注册，立即探索所有 AI 内容</p>
@@ -183,8 +183,8 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-8 border-t border-black/[0.06]">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+      <footer className="border-t border-black/[0.06] px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
           <span className="font-serif-sc text-[16px] font-bold text-black">AI树洞</span>
           <p className="font-sans-sc text-[13px] text-black/25">© 2026 aicave.cn</p>
         </div>
@@ -234,8 +234,8 @@ function CommunityInvite() {
 
 function StatItem({ number, label }: { number: string; label: string }) {
   return (
-    <div className="px-8 py-4">
-      <div className="font-serif-sc text-[52px] font-black text-black mb-2 tracking-[-0.03em]">{number}</div>
+    <div className="px-6 py-6 sm:px-8 sm:py-4">
+      <div className="font-serif-sc text-[40px] font-black text-black mb-2 tracking-[-0.03em] sm:text-[52px]">{number}</div>
       <div className="font-sans-sc text-[13px] text-black/35 tracking-wide">{label}</div>
     </div>
   );
@@ -245,7 +245,7 @@ function ContentRow({ icon, title, desc, tag }: {
   icon: string; title: string; desc: string; tag: string;
 }) {
   return (
-    <div className="flex items-center gap-6 py-6 border-b border-black/[0.06] last:border-0 group hover:bg-black/[0.015] transition-colors px-4 -mx-4 rounded-xl">
+    <div className="group -mx-2 flex items-center gap-4 rounded-xl border-b border-black/[0.06] px-2 py-5 transition-colors hover:bg-black/[0.015] last:border-0 sm:-mx-4 sm:gap-6 sm:px-4 sm:py-6">
       <span className="text-[26px] w-10 flex-shrink-0 text-center">{icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-3 flex-wrap">
@@ -262,7 +262,7 @@ function AccessCard({ type, desc, features, highlight }: {
   type: string; desc: string; features: string[]; highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl border p-8 transition-all ${
+    <div className={`rounded-2xl border p-6 transition-all sm:p-8 ${
       highlight
         ? 'border-black bg-black text-white shadow-2xl shadow-black/20'
         : 'border-black/10 bg-white hover:border-black/20 hover:shadow-lg'

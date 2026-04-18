@@ -54,7 +54,7 @@ export default function ProfileTabs({
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex gap-0 border-b border-gray-100 mb-6">
+      <div className="mb-6 flex gap-0 overflow-x-auto border-b border-gray-100 pb-1">
         {TABS.map(tab => {
           const count = getProfileTabCount(tab.key, { totalImages, totalVideos });
 
@@ -62,7 +62,7 @@ export default function ProfileTabs({
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+              className={`relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.key
                   ? 'text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
@@ -147,7 +147,7 @@ function VideoGrid({ userId }: { userId: string }) {
 
   return (
     <>
-      <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
+      <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
         {videos.map((video, i) => (
           <VideoCard
             key={`${video.id}-${i}`}
