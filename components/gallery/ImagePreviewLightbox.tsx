@@ -237,7 +237,7 @@ export default function ImagePreviewLightbox({
             type="button"
             aria-label="关闭预览"
             onClick={onClose}
-            className="absolute left-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_14px_34px_-24px_rgba(15,23,42,0.5)] transition-all duration-200 hover:text-gray-900 lg:left-6 lg:top-6"
+            className="absolute left-4 top-4 z-30 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/90 text-gray-500 shadow-[0_14px_34px_-24px_rgba(15,23,42,0.5)] transition-all duration-200 hover:text-gray-900 lg:left-6 lg:top-6"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
