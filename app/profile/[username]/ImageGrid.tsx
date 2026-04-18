@@ -29,7 +29,7 @@ export interface ProfileImage {
 }
 
 const PAGE_LIMIT = 20;
-const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
+const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 2 };
 
 interface ImageGridProps {
   initialImages: ProfileImage[];

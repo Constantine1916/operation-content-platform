@@ -18,7 +18,8 @@ import {
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { getProfileTabCount } from '@/lib/profile-tab-count';
 
-const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
+const IMAGE_BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 2 };
+const VIDEO_BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
 const PAGE_LIMIT = 20;
 
 export default function MyAssetsPanel({ userId }: { userId: string }) {
@@ -150,7 +151,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
               emptyText="暂无公开图片"
               onLoadMore={() => fetchImages(imagePageRef.current + 1)}
             >
-              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
+              <Masonry breakpointCols={IMAGE_BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
                 {images.map((image, index) => (
                   <ProfileImageCard
                     key={`${image.id}-${index}`}
@@ -172,7 +173,7 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
               emptyText="暂无视频"
               onLoadMore={() => fetchVideos(videoPageRef.current + 1)}
             >
-              <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
+              <Masonry breakpointCols={VIDEO_BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
                 {videos.map((video, index) => (
                   <ProfileVideoCard
                     key={`${video.id}-${index}`}

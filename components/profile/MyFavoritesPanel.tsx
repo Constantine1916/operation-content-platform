@@ -21,7 +21,8 @@ import {
 } from '@/components/profile/profile-center-tabs';
 import { supabase } from '@/lib/supabase';
 
-const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
+const IMAGE_BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 2 };
+const VIDEO_BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
 
 const FAVORITE_TYPE_BY_TAB = {
   images: 'image',
@@ -169,7 +170,7 @@ export default function MyFavoritesPanel() {
 
     if (activeTab === 'images') {
       return (
-        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
+        <Masonry breakpointCols={IMAGE_BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
           {itemsByTab.images.map((image, index) => (
             <ProfileImageCard
               key={`${image.id}-${index}`}
@@ -185,7 +186,7 @@ export default function MyFavoritesPanel() {
 
     if (activeTab === 'videos') {
       return (
-        <Masonry breakpointCols={BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
+        <Masonry breakpointCols={VIDEO_BREAKPOINTS} className="flex gap-3 sm:gap-4" columnClassName="flex flex-col gap-3 sm:gap-4">
           {itemsByTab.videos.map((video, index) => (
             <ProfileVideoCard
               key={`${video.id}-${index}`}

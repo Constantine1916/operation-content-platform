@@ -28,7 +28,7 @@ export interface GalleryImage {
 }
 
 const PAGE_LIMIT = 50;
-const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 1 };
+const BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 2 };
 
 export default function AiGalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -133,7 +133,7 @@ function GallerySkeleton() {
         <div className="h-7 w-24 bg-gray-100 rounded-lg animate-pulse mb-2" />
         <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
       </div>
-      <div className="columns-1 gap-3 sm:columns-2 sm:gap-4 lg:columns-3">
+      <div className="columns-2 gap-3 sm:gap-4 lg:columns-3">
         {Array.from({ length: 9 }).map((_, i) => (
           <div
             key={i}
