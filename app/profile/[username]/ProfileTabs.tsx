@@ -5,6 +5,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Masonry from 'react-masonry-css';
 import ImageGrid, { ProfileImage } from './ImageGrid';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { getProfileTabCount } from '@/lib/profile-tab-count';
 
 interface VideoItem {
@@ -97,6 +101,11 @@ function VideoGrid({ userId }: { userId: string }) {
   const [error, setError] = useState<string | null>(null);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('video', videos.map(video => video.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'video',
+    setFavoriteIds,
+  });
 
   const fetchPage = useCallback(async (page: number, isFirst = false) => {
     if (isFirst) setLoading(true); else setLoadingMore(true);
@@ -140,7 +149,12 @@ function VideoGrid({ userId }: { userId: string }) {
     <>
       <Masonry breakpointCols={BREAKPOINTS} className="flex gap-4" columnClassName="flex flex-col gap-4">
         {videos.map((video, i) => (
-          <VideoCard key={`${video.id}-${i}`} video={video} />
+          <VideoCard
+            key={`${video.id}-${i}`}
+            video={video}
+            {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
+            onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
+          />
         ))}
       </Masonry>
       <VideoLoadMore onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={videos.length} />
@@ -148,7 +162,17 @@ function VideoGrid({ userId }: { userId: string }) {
   );
 }
 
-function VideoCard({ video }: { video: VideoItem }) {
+function VideoCard({
+  video,
+  isFavorite,
+  isPending,
+  onToggleFavorite,
+}: {
+  video: VideoItem;
+  isFavorite: boolean;
+  isPending: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -178,6 +202,15 @@ function VideoCard({ video }: { video: VideoItem }) {
       onMouseLeave={handleMouseLeave}
     >
       <div className="relative overflow-hidden bg-gray-100">
+        <div className="absolute right-3 top-3 z-10 pointer-events-auto">
+          <FavoriteButton
+            variant="overlay"
+            isFavorite={isFavorite}
+            isPending={isPending}
+            onToggle={onToggleFavorite}
+          />
+        </div>
+
         {video.video_url ? (
           <video
             ref={videoRef}

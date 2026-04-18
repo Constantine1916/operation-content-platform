@@ -56,6 +56,7 @@ export default async function PublicProfilePage({
   const totalImages = imageCount ?? 0;
   const totalVideos = videoCount ?? 0;
   const initialImages: ProfileImage[] = (images ?? []).map((img: any) => ({
+    id: img.id,
     task_id: img.task_id,
     prompt: img.prompt,
     url: img.url,

@@ -5,7 +5,11 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Masonry from 'react-masonry-css';
 import { Image, message } from 'antd';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
+import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
+import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { supabase } from '@/lib/supabase';
 
 function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
@@ -46,6 +50,7 @@ function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode 
 }
 
 export interface ProfileImage {
+  id: string;
   task_id: string;
   prompt: string;
   url: string;
@@ -75,6 +80,11 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
   const router = useRouter();
+  const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('image', images.map(image => image.id));
+  const { pendingIds, toggleFavorite } = useFavoriteToggle({
+    contentType: 'image',
+    setFavoriteIds,
+  });
 
   const fetchMore = useCallback(async () => {
     if (!hasMore || loadingMoreRef.current) return;
@@ -158,7 +168,12 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
           columnClassName="flex flex-col gap-4"
         >
           {images.map((img, i) => (
-            <ProfileImageCard key={`${img.task_id}-${img.index}-${i}`} image={img} />
+            <ProfileImageCard
+              key={`${img.id}-${i}`}
+              image={img}
+              {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
+              onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
+            />
           ))}
         </Masonry>
       </Image.PreviewGroup>
@@ -174,7 +189,17 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   );
 }
 
-function ProfileImageCard({ image }: { image: ProfileImage }) {
+function ProfileImageCard({
+  image,
+  isFavorite,
+  isPending,
+  onToggleFavorite,
+}: {
+  image: ProfileImage;
+  isFavorite: boolean;
+  isPending: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
 
@@ -188,6 +213,14 @@ function ProfileImageCard({ image }: { image: ProfileImage }) {
 
   return (
     <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
+      <div className="absolute right-3 top-3 z-10 pointer-events-auto">
+        <FavoriteButton
+          variant="overlay"
+          isFavorite={isFavorite}
+          isPending={isPending}
+          onToggle={onToggleFavorite}
+        />
+      </div>
       <div style={imageFrameStyles.frame}>
         <Image
           src={image.url}
