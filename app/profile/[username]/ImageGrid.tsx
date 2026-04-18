@@ -8,46 +8,10 @@ import { Image, message } from 'antd';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { supabase } from '@/lib/supabase';
-
-function PreviewWithWatermark({ originalNode }: { originalNode: React.ReactNode }) {
-  const [rect, setRect] = useState<{ bottom: number; right: number } | null>(null);
-
-  useEffect(() => {
-    let rafId: number;
-    const update = () => {
-      const img = document.querySelector<HTMLImageElement>('.ant-image-preview-img');
-      if (img) {
-        const r = img.getBoundingClientRect();
-        setRect({ bottom: window.innerHeight - r.bottom, right: window.innerWidth - r.right });
-      }
-      rafId = requestAnimationFrame(update);
-    };
-    rafId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  return (
-    <>
-      {originalNode}
-      {rect && (
-        <div
-          className="pointer-events-none select-none z-[9999]"
-          style={{ position: 'fixed', bottom: rect.bottom + 12, right: rect.right + 12 }}
-        >
-          <span
-            className="text-white/80 text-sm font-semibold tracking-[0.2em] uppercase"
-            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}
-          >
-            AiCave
-          </span>
-        </div>
-      )}
-    </>
-  );
-}
 
 export interface ProfileImage {
   id: string;
@@ -77,6 +41,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
   const [paginationError, setPaginationError] = useState<string | null>(null);
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
   const router = useRouter();
@@ -127,56 +92,30 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
 
   return (
     <>
-      <Image.PreviewGroup
-        preview={{
-          imageRender: (originalNode) => (
-            <PreviewWithWatermark originalNode={originalNode} />
-          ),
-          actionsRender: (originalNode, { image }) => {
-            const src = (image as any)?.src ?? '';
-            return (
-              <>
-                {originalNode}
-                <button
-                  title="下载原图"
-                  style={{ color: 'rgba(255,255,255,0.65)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}
-                  onClick={async () => {
-                    if (!(await requireLoginForResource('下载图片'))) return;
-                    try {
-                      const res = await fetch(src);
-                      const blob = await res.blob();
-                      const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url; a.download = `aicave_${Date.now()}.${ext}`; a.click();
-                      URL.revokeObjectURL(url);
-                    } catch { window.open(src, '_blank'); }
-                  }}
-                >
-                  <svg width="1em" height="1em" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                  </svg>
-                </button>
-              </>
-            );
-          },
-        }}
+      <Masonry
+        breakpointCols={BREAKPOINTS}
+        className="flex gap-4"
+        columnClassName="flex flex-col gap-4"
       >
-        <Masonry
-          breakpointCols={BREAKPOINTS}
-          className="flex gap-4"
-          columnClassName="flex flex-col gap-4"
-        >
-          {images.map((img, i) => (
-            <ProfileImageCard
-              key={`${img.id}-${i}`}
-              image={img}
-              {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
-              onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
-            />
-          ))}
-        </Masonry>
-      </Image.PreviewGroup>
+        {images.map((img, i) => (
+          <ProfileImageCard
+            key={`${img.id}-${i}`}
+            image={img}
+            onOpenPreview={() => setSelectedPreviewIndex(i)}
+            {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
+            onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
+          />
+        ))}
+      </Masonry>
+      <ImagePreviewLightbox
+        items={images}
+        selectedIndex={selectedPreviewIndex}
+        onClose={() => setSelectedPreviewIndex(null)}
+        onSelect={setSelectedPreviewIndex}
+        beforeDownload={() => requireLoginForResource('下载图片')}
+        getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
+        onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
+      />
       <LoadMoreTrigger
         onVisible={fetchMore}
         hasMore={hasMore}
@@ -191,11 +130,13 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
 
 function ProfileImageCard({
   image,
+  onOpenPreview,
   isFavorite,
   isPending,
   onToggleFavorite,
 }: {
   image: ProfileImage;
+  onOpenPreview: () => void;
   isFavorite: boolean;
   isPending: boolean;
   onToggleFavorite: () => void;
@@ -212,7 +153,10 @@ function ProfileImageCard({
   };
 
   return (
-    <div className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative">
+    <div
+      className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg relative"
+      onClick={onOpenPreview}
+    >
       <div className="absolute right-3 top-3 z-10 pointer-events-auto">
         <FavoriteButton
           variant="overlay"
@@ -230,7 +174,7 @@ function ProfileImageCard({
             root: imageFrameStyles.root,
             image: imageFrameStyles.image,
           }}
-          preview={{ mask: false }}
+          preview={false}
           loading="lazy"
         />
       </div>
