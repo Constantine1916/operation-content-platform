@@ -119,12 +119,12 @@ export default function ArticlesPage() {
         <div className="text-center py-20 text-gray-900 text-sm">暂无文章</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {articles.map((article) => (
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-500 hover:shadow-md transition-all cursor-pointer group flex flex-col"
+                className="group flex cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-gray-500 hover:shadow-md"
               >
                 {/* Platform badge */}
                 <div className="flex items-center justify-between mb-3">
@@ -164,9 +164,9 @@ export default function ArticlesPage() {
           {/* Load More */}
           <div ref={loadMoreRef} className="mt-4">
             {loadingMore && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 animate-pulse flex flex-col">
+                  <div key={i} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 animate-pulse">
                     <div className="flex items-center justify-between mb-3">
                       <div className="h-4 w-14 bg-gray-100 rounded-full"></div>
                       <div className="h-3 w-12 bg-gray-100 rounded-full"></div>
@@ -196,12 +196,12 @@ export default function ArticlesPage() {
       {/* Article Modal */}
       {selectedArticle && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm sm:p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedArticle(null); }}
         >
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+          <div className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             {/* Modal Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-200 flex items-start justify-between gap-4 flex-shrink-0">
+            <div className="flex flex-col gap-3 border-b border-gray-200 px-4 pb-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:pt-6">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${platformColors[selectedArticle.platform] || 'bg-gray-50 text-gray-900 border-gray-200'}`}>
@@ -212,7 +212,7 @@ export default function ArticlesPage() {
                 </div>
                 <h2 className="text-base font-semibold text-gray-900 leading-snug">{selectedArticle.title}</h2>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0">
                 <FavoriteButton
                   isFavorite={selectedArticle ? favoriteIds.has(selectedArticle.id) : false}
                   isPending={selectedArticle ? pendingIds.has(selectedArticle.id) : false}
@@ -259,7 +259,7 @@ export default function ArticlesPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
               {selectedArticle.content ? (
                 <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{selectedArticle.content}</p>
               ) : (

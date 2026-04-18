@@ -95,18 +95,20 @@ export default function AiVideoPage() {
 
       {/* Model filter */}
       {allModels.length > 1 && (
-        <div className="flex gap-2 flex-wrap mb-6">
-          <button
-            onClick={() => setModelFilter('all')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${modelFilter === 'all' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-          >全部</button>
-          {allModels.map(m => (
+        <div className="mb-6 overflow-x-auto pb-1">
+          <div className="flex w-max gap-2">
             <button
-              key={m}
-              onClick={() => setModelFilter(m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${modelFilter === m ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-            >{m}</button>
-          ))}
+              onClick={() => setModelFilter('all')}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${modelFilter === 'all' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >全部</button>
+            {allModels.map(m => (
+              <button
+                key={m}
+                onClick={() => setModelFilter(m)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${modelFilter === m ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+              >{m}</button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -116,8 +118,8 @@ export default function AiVideoPage() {
         <>
           <Masonry
             breakpointCols={BREAKPOINTS}
-            className="flex gap-4"
-            columnClassName="flex flex-col gap-4"
+            className="flex gap-3 sm:gap-4"
+            columnClassName="flex flex-col gap-3 sm:gap-4"
           >
             {videos.map((video, i) => (
               <VideoCard
@@ -309,7 +311,7 @@ function VideoSkeleton() {
         <div className="h-7 w-24 bg-gray-100 rounded-lg animate-pulse mb-2" />
         <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
       </div>
-      <div className="columns-2 lg:columns-3 xl:columns-4 gap-4">
+      <div className="columns-1 gap-3 sm:columns-2 sm:gap-4 lg:columns-3 xl:columns-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}

@@ -93,20 +93,22 @@ export default function HotspotsPage() {
       </div>
 
       {/* Source filter tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {([['all', '全部'], ['web', '网站资讯'], ['twitter', 'Twitter']] as [SourceTab, string][]).map(([tab, label]) => (
-          <button
-            key={tab}
-            onClick={() => setSourceTab(tab)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              sourceTab === tab
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mb-6 overflow-x-auto pb-1">
+        <div className="flex w-max gap-1 rounded-xl bg-gray-100 p-1">
+          {([['all', '全部'], ['web', '网站资讯'], ['twitter', 'Twitter']] as [SourceTab, string][]).map(([tab, label]) => (
+            <button
+              key={tab}
+              onClick={() => setSourceTab(tab)}
+              className={`shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
+                sourceTab === tab
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

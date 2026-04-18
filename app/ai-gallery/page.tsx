@@ -90,8 +90,8 @@ export default function AiGalleryPage() {
       <PageHeader />
       <Masonry
         breakpointCols={BREAKPOINTS}
-        className="flex gap-4"
-        columnClassName="flex flex-col gap-4"
+        className="flex gap-3 sm:gap-4"
+        columnClassName="flex flex-col gap-3 sm:gap-4"
       >
         {images.map((img, i) => (
           <ImageCard
@@ -132,7 +132,7 @@ function GallerySkeleton() {
         <div className="h-7 w-24 bg-gray-100 rounded-lg animate-pulse mb-2" />
         <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
       </div>
-      <div className="columns-2 lg:columns-3 gap-4">
+      <div className="columns-1 gap-3 sm:columns-2 sm:gap-4 lg:columns-3">
         {Array.from({ length: 9 }).map((_, i) => (
           <div
             key={i}
