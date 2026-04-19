@@ -1,5 +1,6 @@
 export type AuthModalTab = 'login' | 'register';
-export type AuthActionKind = 'favorite' | 'download';
+export const AUTH_ACTION_KINDS = ['favorite', 'unfavorite', 'download'] as const;
+export type AuthActionKind = (typeof AUTH_ACTION_KINDS)[number];
 
 const PUBLIC_APP_PATHS = new Set([
   '/',
@@ -16,6 +17,12 @@ const PRIVATE_APP_PATHS = new Set([
   '/generate-img',
   '/profile',
 ]);
+
+const AUTH_TAB_BY_ACTION: Record<AuthActionKind, AuthModalTab> = {
+  favorite: 'register',
+  unfavorite: 'register',
+  download: 'register',
+};
 
 export function isPublicProfilePath(pathname: string) {
   return /^\/profile\/[^/]+$/.test(pathname);
@@ -34,5 +41,5 @@ export function getAuthTabForPrivateRoute(): AuthModalTab {
 }
 
 export function getAuthTabForAction(kind: AuthActionKind): AuthModalTab {
-  return 'register';
+  return AUTH_TAB_BY_ACTION[kind];
 }

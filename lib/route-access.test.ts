@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const {
+  AUTH_ACTION_KINDS,
   isPublicAppPath,
   isPrivateAppPath,
   isPublicProfilePath,
@@ -31,5 +32,10 @@ test('recognizes public profile paths', () => {
 test('maps auth modal defaults', () => {
   assert.equal(getAuthTabForPrivateRoute(), 'login');
   assert.equal(getAuthTabForAction('favorite'), 'register');
+  assert.equal(getAuthTabForAction('unfavorite'), 'register');
   assert.equal(getAuthTabForAction('download'), 'register');
+});
+
+test('exports the full gated action contract', () => {
+  assert.deepEqual(AUTH_ACTION_KINDS, ['favorite', 'unfavorite', 'download']);
 });
