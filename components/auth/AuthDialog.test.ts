@@ -20,3 +20,11 @@ test('auth dialog and forms use dedicated motion hooks for overlay, panel, and c
   assert.match(globalSource, /@keyframes auth-dialog-panel-in/);
   assert.match(globalSource, /@keyframes auth-dialog-form-in/);
 });
+
+test('auth dialog constrains small-screen height and scrolls its content region internally', async () => {
+  const source = await readFile(new URL('./AuthDialog.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /max-h-\[min\(90svh,44rem\)\]/);
+  assert.match(source, /overflow-y-auto/);
+  assert.match(source, /overscroll-contain/);
+});

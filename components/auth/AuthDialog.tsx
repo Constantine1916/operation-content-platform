@@ -93,7 +93,7 @@ export default function AuthDialog({
 
   return (
     <div
-      className={`auth-dialog-overlay fixed inset-0 z-[100] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),rgba(17,17,17,0.72))] px-4 py-8 backdrop-blur-xl ${
+      className={`auth-dialog-overlay fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),rgba(17,17,17,0.72))] px-4 py-4 backdrop-blur-xl sm:items-center sm:py-8 ${
         isClosing ? 'auth-dialog-overlay-exit' : 'auth-dialog-overlay-enter'
       }`}
       onClick={isBusy || isClosing ? undefined : onClose}
@@ -102,7 +102,7 @@ export default function AuthDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"
-        className={`auth-dialog-panel relative w-full max-w-[30rem] overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.98))] shadow-[0_50px_140px_-56px_rgba(15,23,42,0.65)] ${
+        className={`auth-dialog-panel relative flex max-h-[min(90svh,44rem)] w-full max-w-[30rem] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.98))] shadow-[0_50px_140px_-56px_rgba(15,23,42,0.65)] ${
           isClosing ? 'auth-dialog-panel-exit' : 'auth-dialog-panel-enter'
         }`}
         onClick={(event) => event.stopPropagation()}
@@ -110,7 +110,7 @@ export default function AuthDialog({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(17,17,17,0.08),rgba(255,255,255,0)_68%)]" />
         <div className="pointer-events-none absolute inset-x-10 bottom-0 h-24 rounded-full bg-black/[0.035] blur-3xl" />
 
-        <div className="relative border-b border-black/6 px-6 pb-5 pt-6 sm:px-8">
+        <div className="relative shrink-0 border-b border-black/6 px-6 pb-5 pt-6 sm:px-8">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="inline-flex items-center rounded-full border border-black/8 bg-white/80 px-3 py-1 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.45)] backdrop-blur">
@@ -181,7 +181,7 @@ export default function AuthDialog({
           </div>
         </div>
 
-        <div className="relative px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
+        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
           <div key={activeTab} className="auth-dialog-form-enter">
             <AuthForms
               activeTab={activeTab}
