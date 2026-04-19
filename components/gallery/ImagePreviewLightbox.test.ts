@@ -2,26 +2,21 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('close preview button keeps an explicit z-index above the image stage', async () => {
+test('image preview delegates shared chrome to the media preview shell and keeps image transform controls', async () => {
   const source = await readFile(new URL('./ImagePreviewLightbox.tsx', import.meta.url), 'utf8');
 
-  const closeButtonMatch = source.match(
-    /aria-label="关闭预览"[\s\S]*?className="([^"]+)"/
-  );
-
-  assert.ok(closeButtonMatch, 'expected to find the close preview button');
-  assert.match(
-    closeButtonMatch[1],
-    /\bz-\[[^\]]+\]|\bz-\d+\b/,
-    'expected close preview button to declare an explicit z-index class'
-  );
+  assert.match(source, /from '\.\/MediaPreviewShell'/);
+  assert.match(source, /mediaLabel="图片预览"/);
+  assert.match(source, /水平镜像/);
+  assert.match(source, /垂直镜像/);
+  assert.match(source, /重置视图/);
 });
 
 test('preview keeps a beforeDownload guard for auth-controlled downloads', async () => {
-  const source = await readFile(new URL('./ImagePreviewLightbox.tsx', import.meta.url), 'utf8');
+  const source = await readFile(new URL('./MediaPreviewShell.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /beforeDownload/);
-  assert.match(source, /if \(beforeDownload && !\(await beforeDownload\(\)\)\) return/);
+  assert.match(source, /if \(beforeDownload && !\(await beforeDownload\(item\)\)\) return/);
 });
 
 test('public gallery and public profile grid gate downloads through auth action hooks', async () => {

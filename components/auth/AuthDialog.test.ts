@@ -31,7 +31,7 @@ test('auth dialog constrains small-screen height and scrolls its content region 
 
 test('auth dialog overlay stays above the image preview lightbox overlay', async () => {
   const authDialogSource = await readFile(new URL('./AuthDialog.tsx', import.meta.url), 'utf8');
-  const previewSource = await readFile(new URL('../gallery/ImagePreviewLightbox.tsx', import.meta.url), 'utf8');
+  const previewSource = await readFile(new URL('../gallery/MediaPreviewShell.tsx', import.meta.url), 'utf8');
 
   const authOverlayZIndex = authDialogSource.match(/auth-dialog-overlay[\s\S]*?z-\[(\d+)\]/);
   const previewOverlayZIndex = previewSource.match(/className="fixed inset-0 z-\[(\d+)\]/);

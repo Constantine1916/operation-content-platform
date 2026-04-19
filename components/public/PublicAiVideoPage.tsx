@@ -6,6 +6,8 @@ import Masonry from 'react-masonry-css';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
+import VideoPreviewLightbox from '@/components/gallery/VideoPreviewLightbox';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 import type { PublicVideo } from '@/lib/server/public-content';
@@ -27,12 +29,14 @@ export default function PublicAiVideoPage({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const [modelFilter, setModelFilter] = useState('all');
   const [allModels] = useState<string[]>(initialModels);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
   const hasMountedRef = useRef(false);
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('video', videos.map(video => video.id));
+  const requireAuthForAction = useAuthActionGate();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'video',
     setFavoriteIds,
@@ -114,14 +118,24 @@ export default function PublicAiVideoPage({
             columnClassName="flex flex-col gap-3 sm:gap-4"
           >
             {videos.map((video, index) => (
-              <VideoCard
-                key={`${video.id}-${index}`}
-                video={video}
-                {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
-                onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
-              />
-            ))}
-          </Masonry>
+                <VideoCard
+                  key={`${video.id}-${index}`}
+                  video={video}
+                  onOpenPreview={() => setSelectedPreviewIndex(index)}
+                  {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
+                  onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
+                />
+              ))}
+            </Masonry>
+            <VideoPreviewLightbox
+              items={videos}
+              selectedIndex={selectedPreviewIndex}
+              onClose={() => setSelectedPreviewIndex(null)}
+              onSelect={setSelectedPreviewIndex}
+              beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
+              getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
+              onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
+            />
           <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={videos.length} />
         </>
       )}
@@ -131,11 +145,13 @@ export default function PublicAiVideoPage({
 
 function VideoCard({
   video,
+  onOpenPreview,
   isFavorite,
   isPending,
   onToggleFavorite,
 }: {
   video: PublicVideo;
+  onOpenPreview: () => void;
   isFavorite: boolean;
   isPending: boolean;
   onToggleFavorite: () => void;
@@ -185,6 +201,7 @@ function VideoCard({
   return (
     <div
       className="group rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-lg"
+      onClick={onOpenPreview}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
