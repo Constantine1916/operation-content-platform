@@ -8,7 +8,7 @@ const {
   isPublicProfilePath,
   getAuthTabForAction,
   getAuthTabForPrivateRoute,
-} = await import('./route-access.ts');
+} = await import(new URL('./route-access.ts', import.meta.url).href);
 
 test('classifies public app paths including overview and agent', () => {
   assert.equal(isPublicAppPath('/overview'), true);

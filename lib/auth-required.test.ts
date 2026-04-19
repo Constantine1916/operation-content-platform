@@ -5,9 +5,9 @@ const {
   AUTH_REQUIRED_CODE,
   isAuthRequiredResponse,
   normalizeAuthRequiredResult,
-} = await import('./auth-required.ts');
+} = await import(new URL('./auth-required.ts', import.meta.url).href);
 
-import type { AuthRequiredResponsePayload } from './auth-required.ts';
+type AuthRequiredResponsePayload = import('./auth-required').AuthRequiredResponsePayload;
 
 test('recognizes auth-required payloads that match the shared contract', () => {
   const payload: AuthRequiredResponsePayload = {
