@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { AuthModalTab } from '@/lib/route-access';
 import type { ResumeAuthAction } from './AuthModalProvider';
+import { completePostAuthSuccess } from './auth-route-launcher-utils';
 
 const USERNAME_RE = /^[\w.-]{2,30}$/;
 
@@ -13,6 +14,7 @@ interface AuthFormsProps {
   redirectTo: string | null;
   resumeAction: ResumeAuthAction;
   onClose: () => void;
+  onBusyChange: (busy: boolean) => void;
   onTabChange: (tab: AuthModalTab) => void;
 }
 
@@ -20,6 +22,7 @@ interface SharedFormProps {
   redirectTo: string | null;
   resumeAction: ResumeAuthAction;
   onClose: () => void;
+  onBusyChange: (busy: boolean) => void;
   onTabChange: (tab: AuthModalTab) => void;
 }
 
@@ -33,6 +36,7 @@ export default function AuthForms({
   redirectTo,
   resumeAction,
   onClose,
+  onBusyChange,
   onTabChange,
 }: AuthFormsProps) {
   if (activeTab === 'register') {
@@ -41,6 +45,7 @@ export default function AuthForms({
         redirectTo={redirectTo}
         resumeAction={resumeAction}
         onClose={onClose}
+        onBusyChange={onBusyChange}
         onTabChange={onTabChange}
       />
     );
@@ -51,21 +56,33 @@ export default function AuthForms({
       redirectTo={redirectTo}
       resumeAction={resumeAction}
       onClose={onClose}
+      onBusyChange={onBusyChange}
       onTabChange={onTabChange}
     />
   );
 }
 
-function LoginForm({ redirectTo, resumeAction, onClose, onTabChange }: SharedFormProps) {
+function LoginForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChange }: SharedFormProps) {
   const router = useRouter();
+  const requestTokenRef = useRef(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    return () => {
+      requestTokenRef.current += 1;
+      onBusyChange(false);
+    };
+  }, [onBusyChange]);
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
+    const requestToken = requestTokenRef.current + 1;
+    requestTokenRef.current = requestToken;
+    onBusyChange(true);
     setLoading(true);
 
     try {
@@ -74,30 +91,33 @@ function LoginForm({ redirectTo, resumeAction, onClose, onTabChange }: SharedFor
         password,
       });
 
+      if (requestTokenRef.current !== requestToken) {
+        return;
+      }
+
       if (signInError) {
         setError(signInError.message);
         return;
       }
 
-      onClose();
-
-      if (resumeAction) {
-        try {
-          await resumeAction();
-        } catch {}
-      }
-
-      if (redirectTo) {
-        router.push(redirectTo);
-      } else if (!resumeAction) {
-        router.push('/overview');
-      }
-
-      router.refresh();
+      await completePostAuthSuccess({
+        redirectTo,
+        resumeAction,
+        onClose,
+        push: (target) => router.push(target),
+        refresh: () => router.refresh(),
+      });
     } catch (err: any) {
+      if (requestTokenRef.current !== requestToken) {
+        return;
+      }
+
       setError(err.message || '登录失败');
     } finally {
-      setLoading(false);
+      if (requestTokenRef.current === requestToken) {
+        setLoading(false);
+        onBusyChange(false);
+      }
     }
   }
 
@@ -157,7 +177,9 @@ function LoginForm({ redirectTo, resumeAction, onClose, onTabChange }: SharedFor
   );
 }
 
-function RegisterForm({ onTabChange }: SharedFormProps) {
+function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChange }: SharedFormProps) {
+  const router = useRouter();
+  const requestTokenRef = useRef(0);
   const timeoutRef = useRef<number | null>(null);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -169,11 +191,13 @@ function RegisterForm({ onTabChange }: SharedFormProps) {
 
   useEffect(() => {
     return () => {
+      requestTokenRef.current += 1;
+      onBusyChange(false);
       if (timeoutRef.current !== null) {
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, [onBusyChange]);
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -195,6 +219,9 @@ function RegisterForm({ onTabChange }: SharedFormProps) {
       return;
     }
 
+    const requestToken = requestTokenRef.current + 1;
+    requestTokenRef.current = requestToken;
+    onBusyChange(true);
     setLoading(true);
 
     try {
@@ -202,6 +229,10 @@ function RegisterForm({ onTabChange }: SharedFormProps) {
         email,
         password,
       });
+
+      if (requestTokenRef.current !== requestToken) {
+        return;
+      }
 
       if (signUpError) {
         setError(signUpError.message);
@@ -220,8 +251,23 @@ function RegisterForm({ onTabChange }: SharedFormProps) {
       });
       const result = await response.json();
 
+      if (requestTokenRef.current !== requestToken) {
+        return;
+      }
+
       if (!result.success) {
         setError(result.error || '用户名保存失败');
+        return;
+      }
+
+      if (data.session) {
+        await completePostAuthSuccess({
+          redirectTo,
+          resumeAction,
+          onClose,
+          push: (target) => router.push(target),
+          refresh: () => router.refresh(),
+        });
         return;
       }
 
@@ -236,9 +282,16 @@ function RegisterForm({ onTabChange }: SharedFormProps) {
         onTabChange('login');
       }, 2000);
     } catch (err: any) {
+      if (requestTokenRef.current !== requestToken) {
+        return;
+      }
+
       setError(err.message || '注册失败');
     } finally {
-      setLoading(false);
+      if (requestTokenRef.current === requestToken) {
+        setLoading(false);
+        onBusyChange(false);
+      }
     }
   }
 

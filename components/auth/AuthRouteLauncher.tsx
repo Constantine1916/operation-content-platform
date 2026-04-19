@@ -2,41 +2,44 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import type { AuthModalTab } from '@/lib/route-access';
 import { useAuthModal } from './AuthModalProvider';
-
-const AUTH_ROUTE_PATHS = new Set(['/login', '/register']);
-
-function getSafeRedirectTo(value: string | null) {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) {
-    return null;
-  }
-
-  const pathname = value.split('?')[0]?.split('#')[0] ?? value;
-
-  if (AUTH_ROUTE_PATHS.has(pathname)) {
-    return null;
-  }
-
-  return value;
-}
+import { executeAuthRouteLaunch } from './auth-route-launcher-utils';
 
 export default function AuthRouteLauncher({ defaultTab }: { defaultTab: AuthModalTab }) {
-  const launchedRef = useRef(false);
+  const launchRunIdRef = useRef(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openAuthModal } = useAuthModal();
-  const redirectTo = getSafeRedirectTo(searchParams.get('redirectTo'));
+  const requestedRedirectTo = searchParams.get('redirectTo');
 
   useEffect(() => {
-    if (launchedRef.current) {
-      return;
+    let cancelled = false;
+    const launchRunId = launchRunIdRef.current + 1;
+    launchRunIdRef.current = launchRunId;
+
+    async function launch() {
+      if (cancelled) {
+        return;
+      }
+
+      await executeAuthRouteLaunch({
+        defaultTab,
+        redirectTo: requestedRedirectTo,
+        getSession: () => supabase.auth.getSession(),
+        openAuthModal,
+        replace: (target) => router.replace(target),
+        shouldContinue: () => !cancelled && launchRunIdRef.current === launchRunId,
+      });
     }
 
-    launchedRef.current = true;
-    openAuthModal({ defaultTab, redirectTo });
-    router.replace('/');
-  }, [defaultTab, openAuthModal, redirectTo, router]);
+    void launch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [defaultTab, openAuthModal, requestedRedirectTo, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
