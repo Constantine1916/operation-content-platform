@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ async function requireSVIP(token: string): Promise<string> {
     { global: { headers: { Authorization: `Bearer ${token}` } } }
   );
   const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) throw Object.assign(new Error('未登录'), { status: 401 });
+  if (error || !user) throw Object.assign(new Error('AUTH_REQUIRED'), { status: 401 });
 
   const { data: profile } = await supabase
     .from('profiles').select('vip_level').eq('id', user.id).single();
@@ -27,11 +28,14 @@ async function requireSVIP(token: string): Promise<string> {
 export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!token) return authRequiredResponse();
 
     let userId: string;
     try { userId = await requireSVIP(token); }
-    catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 403 }); }
+    catch (e: any) {
+      if (e?.status === 401) return authRequiredResponse();
+      return NextResponse.json({ error: e.message }, { status: e.status ?? 403 });
+    }
 
     const db = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

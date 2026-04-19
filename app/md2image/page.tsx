@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import PrivateAppShell from '@/components/PrivateAppShell'
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler'
+import { getAuthTabForPrivateRoute } from '@/lib/route-access'
 import { supabase } from '@/lib/supabase'
 import html2canvas from 'html2canvas'
 
@@ -221,6 +223,9 @@ function Md2ImagePageContent() {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const handleAuthRequired = useAuthRequiredHandler({
+    defaultTab: getAuthTabForPrivateRoute(),
+  })
 
   // Load profile: localStorage first (instant), then API (authoritative)
   useEffect(() => {
@@ -236,24 +241,31 @@ function Md2ImagePageContent() {
     } catch {}
 
     // 2. Background: fetch from API to keep localStorage fresh
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    async function loadProfile() {
+      const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
-      fetch('/api/profile', {
+
+      const response = await fetch('/api/profile', {
         headers: { Authorization: `Bearer ${session.access_token}` }
-      }).then(r => r.json()).then(d => {
-        if (d.success && d.data) {
-          const { username, avatar_url } = d.data
-          if (username) setName(username)
-          if (avatar_url) setAvatar(avatar_url)
-          setProfileOk(true)
-          // Persist to localStorage
-          try {
-            localStorage.setItem(PROFILE_KEY, JSON.stringify({ username, avatar_url }))
-          } catch {}
-        }
-      }).catch(() => {})
-    })
-  }, [])
+      }).catch(() => null)
+
+      if (!response) return
+      if (await handleAuthRequired(response)) return
+
+      const data = await response.json()
+      if (data.success && data.data) {
+        const { username, avatar_url } = data.data
+        if (username) setName(username)
+        if (avatar_url) setAvatar(avatar_url)
+        setProfileOk(true)
+        try {
+          localStorage.setItem(PROFILE_KEY, JSON.stringify({ username, avatar_url }))
+        } catch {}
+      }
+    }
+
+    void loadProfile()
+  }, [handleAuthRequired])
 
   const onFile = useCallback((file: File) => {
     if (!file.name.endsWith('.md')) { setError('请上传 .md 文件'); return }

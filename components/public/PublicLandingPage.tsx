@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import AuthModalButton from '@/components/auth/AuthModalButton';
 
 export default function PublicLandingPage() {
   return (
@@ -14,15 +15,18 @@ export default function PublicLandingPage() {
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <span className="font-serif-sc text-[18px] font-bold tracking-wide text-black">AI树洞</span>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="font-sans-sc text-[14px] text-black/50 hover:text-black transition-colors">
+            <AuthModalButton
+              defaultTab="login"
+              className="font-sans-sc text-[14px] text-black/50 hover:text-black transition-colors"
+            >
               登录
-            </Link>
-            <Link
-              href="/register"
+            </AuthModalButton>
+            <AuthModalButton
+              defaultTab="register"
               className="font-sans-sc text-[14px] bg-black text-white px-5 py-2 rounded-full hover:bg-black/80 transition-all font-medium"
             >
               免费注册
-            </Link>
+            </AuthModalButton>
           </div>
         </div>
       </nav>
@@ -49,15 +53,15 @@ export default function PublicLandingPage() {
             每天自动更新，由创作者与 AI 共同生产
           </p>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link
-              href="/register"
+            <AuthModalButton
+              defaultTab="register"
               className="font-sans-sc inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-8 py-3.5 rounded-full hover:bg-black/80 transition-all group"
             >
               免费开始
               <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+            </AuthModalButton>
             <Link href="#content" className="font-sans-sc text-[15px] text-black/40 hover:text-black transition-colors">
               了解更多
             </Link>
@@ -110,12 +114,12 @@ export default function PublicLandingPage() {
           <p className="font-sans-sc text-[16px] text-white/45 leading-[1.8] mb-10 max-w-[520px] mx-auto font-light">
             普通创作者免费上传，认证创作者享受优先推荐与收益分成，合作创作者获得最高权益与联合运营支持。
           </p>
-          <Link
-            href="/register"
+          <AuthModalButton
+            defaultTab="register"
             className="font-sans-sc inline-flex items-center gap-2 text-[15px] font-medium text-black bg-white px-7 py-3.5 rounded-full hover:bg-white/90 transition-all"
           >
             成为创作者
-          </Link>
+          </AuthModalButton>
         </div>
       </section>
 
@@ -147,17 +151,20 @@ export default function PublicLandingPage() {
             现在就开始
           </h2>
           <p className="font-sans-sc text-[16px] text-black/40 mb-10 font-light">免费注册，立即探索所有 AI 内容</p>
-          <Link
-            href="/register"
+          <AuthModalButton
+            defaultTab="register"
             className="font-sans-sc inline-flex items-center gap-2 bg-black text-white text-[15px] font-medium px-12 py-4 rounded-full hover:bg-black/80 transition-all"
           >
             免费注册
-          </Link>
+          </AuthModalButton>
           <p className="font-sans-sc mt-7 text-[13px] text-black/30">
             已有账号？
-            <Link href="/login" className="text-black/50 hover:text-black ml-1.5 underline underline-offset-2 transition-colors">
+            <AuthModalButton
+              defaultTab="login"
+              className="text-black/50 hover:text-black ml-1.5 underline underline-offset-2 transition-colors"
+            >
               登录
-            </Link>
+            </AuthModalButton>
           </p>
         </div>
       </section>

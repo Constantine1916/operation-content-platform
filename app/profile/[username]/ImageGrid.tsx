@@ -2,16 +2,15 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Masonry from 'react-masonry-css';
-import { Image, message } from 'antd';
+import { Image } from 'antd';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
+import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
-import { supabase } from '@/lib/supabase';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
 export interface ProfileImage {
@@ -45,8 +44,8 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
-  const router = useRouter();
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('image', images.map(image => image.id));
+  const requireAuthForAction = useAuthActionGate();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'image',
     setFavoriteIds,
@@ -76,15 +75,6 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
     }
   }, [hasMore, userId]);
 
-  const requireLoginForResource = useCallback(async (actionText: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) return true;
-
-    message.info(`请先登录后再${actionText}`);
-    router.push('/login');
-    return false;
-  }, [router]);
-
   if (images.length === 0) {
     return (
       <div className="text-center py-20 text-gray-400 text-sm">暂无公开图片</div>
@@ -113,7 +103,7 @@ export default function ImageGrid({ initialImages, hasMore: initialHasMore, user
         selectedIndex={selectedPreviewIndex}
         onClose={() => setSelectedPreviewIndex(null)}
         onSelect={setSelectedPreviewIndex}
-        beforeDownload={() => requireLoginForResource('下载图片')}
+        beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
         getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
         onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
       />

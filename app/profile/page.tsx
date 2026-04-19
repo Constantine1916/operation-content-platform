@@ -6,11 +6,13 @@ import { supabase } from '@/lib/supabase';
 import MyAssetsPanel from '@/components/profile/MyAssetsPanel';
 import MyFavoritesPanel from '@/components/profile/MyFavoritesPanel';
 import MyUploadsPanel from '@/components/profile/MyUploadsPanel';
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
 import ProfileSettingsPanel from '@/components/profile/ProfileSettingsPanel';
 import {
   PROFILE_CENTER_PRIMARY_TABS,
   type ProfileCenterPrimaryTab,
 } from '@/components/profile/profile-center-tabs';
+import { getAuthTabForPrivateRoute } from '@/lib/route-access';
 
 interface Profile {
   id: string;
@@ -28,6 +30,9 @@ function ProfilePageContent() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [activePrimaryTab, setActivePrimaryTab] = useState<ProfileCenterPrimaryTab>('assets');
+  const handleAuthRequired = useAuthRequiredHandler({
+    defaultTab: getAuthTabForPrivateRoute(),
+  });
 
   // 编辑字段
   const [username, setUsername] = useState('');
@@ -43,12 +48,19 @@ function ProfilePageContent() {
 
   async function fetchProfile() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setLoading(false);
+      return;
+    }
 
     const token = session.access_token;
     const res = await fetch('/api/profile', {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (await handleAuthRequired(res)) {
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
 
     if (data.success && data.data) {
@@ -80,6 +92,9 @@ function ProfilePageContent() {
         headers: { Authorization: `Bearer ${session.access_token}` },
         body: formData,
       });
+      if (await handleAuthRequired(res)) {
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -93,6 +108,9 @@ function ProfilePageContent() {
           },
           body: JSON.stringify({ avatar_url: data.url }),
         });
+        if (await handleAuthRequired(updateRes)) {
+          return;
+        }
         const updateData = await updateRes.json();
         if (updateData.success) {
           setProfile(prev => prev ? { ...prev, avatar_url: data.url } : null);
@@ -132,6 +150,9 @@ function ProfilePageContent() {
         },
         body: JSON.stringify({ username: username || null, full_name: fullName || null, bio: bio || null }),
       });
+      if (await handleAuthRequired(res)) {
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {

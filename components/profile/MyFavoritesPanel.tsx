@@ -19,6 +19,8 @@ import {
   PROFILE_CENTER_FAVORITE_TABS,
   type ProfileCenterFavoriteTab,
 } from '@/components/profile/profile-center-tabs';
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
+import { getAuthTabForPrivateRoute } from '@/lib/route-access';
 import { supabase } from '@/lib/supabase';
 
 const IMAGE_BREAKPOINTS = { default: 4, 1280: 4, 1024: 3, 768: 2, 640: 2 };
@@ -80,6 +82,9 @@ export default function MyFavoritesPanel() {
   const [pageByTab, setPageByTab] = useState<FavoriteNumberState>(EMPTY_NUMBER_STATE);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [selectedArticle, setSelectedArticle] = useState<ProfileContentArticle | null>(null);
+  const handleAuthRequired = useAuthRequiredHandler({
+    defaultTab: getAuthTabForPrivateRoute(),
+  });
 
   const currentItems = itemsByTab[activeTab];
   const currentIds = currentItems.map(item => item.id).join(',');
@@ -118,7 +123,7 @@ export default function MyFavoritesPanel() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('未登录');
+        return;
       }
 
       const limit = tab === 'hotspots' ? 30 : 20;
@@ -130,6 +135,9 @@ export default function MyFavoritesPanel() {
       const res = await fetch(`/api/favorites?${params}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
+      if (await handleAuthRequired(res)) {
+        return;
+      }
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error ?? '加载收藏失败');
 

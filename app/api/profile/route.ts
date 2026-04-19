@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,14 +25,14 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const supabase = getUserClient(token);
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const { data, error } = await supabase
@@ -66,14 +67,14 @@ export async function PATCH(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const supabase = getUserClient(token);
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const body = await request.json();

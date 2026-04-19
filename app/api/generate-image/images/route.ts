@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ async function requireUser(token: string): Promise<string> {
     { global: { headers: { Authorization: `Bearer ${token}` } } }
   );
   const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) throw Object.assign(new Error('未登录'), { status: 401 });
+  if (error || !user) throw Object.assign(new Error('AUTH_REQUIRED'), { status: 401 });
   return user.id;
 }
 
@@ -29,11 +30,14 @@ async function requireUser(token: string): Promise<string> {
 export async function PATCH(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!token) return authRequiredResponse();
 
     let userId: string;
     try { userId = await requireUser(token); }
-    catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 401 }); }
+    catch (e: any) {
+      if (e?.status === 401) return authRequiredResponse();
+      return NextResponse.json({ error: e.message }, { status: e.status ?? 401 });
+    }
 
     const body = await request.json();
     const { task_id, image_indexes, is_public } = body;
@@ -54,6 +58,10 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    if (error?.status === 401) {
+      return authRequiredResponse();
+    }
+
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
   }
 }
@@ -66,11 +74,14 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!token) return authRequiredResponse();
 
     let userId: string;
     try { userId = await requireUser(token); }
-    catch (e: any) { return NextResponse.json({ error: e.message }, { status: e.status ?? 401 }); }
+    catch (e: any) {
+      if (e?.status === 401) return authRequiredResponse();
+      return NextResponse.json({ error: e.message }, { status: e.status ?? 401 });
+    }
 
     const body = await request.json();
     const { task_id, image_indexes } = body;
@@ -91,6 +102,10 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    if (error?.status === 401) {
+      return authRequiredResponse();
+    }
+
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
   }
 }

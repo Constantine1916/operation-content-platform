@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PrivateAppShell from '@/components/PrivateAppShell';
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
+import { getAuthTabForPrivateRoute } from '@/lib/route-access';
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
 import { App, Tooltip } from 'antd';
 
@@ -62,6 +64,10 @@ function GenerateImgPageInner() {
   const [selected, setSelected] = useState<Set<SelectedKey>>(new Set());
   const [actionLoading, setActionLoading] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
+  const handleAuthRequired = useAuthRequiredHandler({
+    defaultTab: getAuthTabForPrivateRoute(),
+    redirectTo: '/generate-img',
+  });
 
   const handleRegenerate = (prompt: string) => {
     setPrompts([prompt]);
@@ -78,6 +84,9 @@ function GenerateImgPageInner() {
     const histRes = await fetch('/api/generate-image/history', {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (await handleAuthRequired(histRes)) {
+      return;
+    }
     const histData = await histRes.json();
     if (histData.success && histData.tasks?.length > 0) {
       const histGroups = buildGroupsFromHistory(histData.tasks);
@@ -89,7 +98,10 @@ function GenerateImgPageInner() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.replace('/login'); return; }
+      if (!session) {
+        setChecking(false);
+        return;
+      }
       const userId = session.user.id;
       const token = session.access_token;
       tokenRef.current = token;
@@ -111,7 +123,7 @@ function GenerateImgPageInner() {
       loadHistory(token);
     });
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
-  }, [router]);
+  }, [handleAuthRequired, router]);
 
   function buildGroupsFromHistory(tasks: any[]): PromptGroup[] {
     const map = new Map<string, { subtasks: SubTask[]; latestAt: number }>();
@@ -215,6 +227,10 @@ function GenerateImgPageInner() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
           body: JSON.stringify({ task_ids: pollIds }),
         });
+        if (await handleAuthRequired(res)) {
+          setPolling(false);
+          return;
+        }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
@@ -273,6 +289,10 @@ function GenerateImgPageInner() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenRef.current}` },
         body: JSON.stringify({ prompts: expanded }),
       });
+      if (await handleAuthRequired(res)) {
+        setSubmitting(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? '提交失败'); setSubmitting(false); return; }
 

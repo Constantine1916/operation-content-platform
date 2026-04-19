@@ -7,6 +7,7 @@ import { Image } from 'antd';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
@@ -31,6 +32,7 @@ export default function PublicAiGalleryPage({
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const pageRef = useRef(1);
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('image', images.map(image => image.id));
+  const requireAuthForAction = useAuthActionGate();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'image',
     setFavoriteIds,
@@ -93,6 +95,7 @@ export default function PublicAiGalleryPage({
         selectedIndex={selectedPreviewIndex}
         onClose={() => setSelectedPreviewIndex(null)}
         onSelect={setSelectedPreviewIndex}
+        beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
         getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
         onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
       />

@@ -2,8 +2,10 @@
 
 import { useCallback, useState } from 'react';
 import { message } from 'antd';
-import { supabase } from '@/lib/supabase';
 import { toggleFavoriteState, type FavoriteContentType } from '@/lib/favorites';
+import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
+import { getAuthTabForAction } from '@/lib/route-access';
 
 interface FavoriteToggleOptions {
   contentType: FavoriteContentType;
@@ -17,8 +19,20 @@ export function useFavoriteToggle({
   onRemoved,
 }: FavoriteToggleOptions) {
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const requireAuthForAction = useAuthActionGate();
+  const handleAuthRequired = useAuthRequiredHandler();
 
   const toggleFavorite = useCallback(async (contentId: string, shouldFavorite: boolean) => {
+    const actionKind = shouldFavorite ? 'favorite' : 'unfavorite';
+    const session = await requireAuthForAction({
+      kind: actionKind,
+      resumeAction: () => toggleFavorite(contentId, shouldFavorite),
+    });
+
+    if (!session) {
+      return;
+    }
+
     setFavoriteIds(current => toggleFavoriteState(current, contentId, shouldFavorite));
     setPendingIds(current => {
       const next = new Set(current);
@@ -27,11 +41,6 @@ export function useFavoriteToggle({
     });
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('请先登录后再收藏');
-      }
-
       const res = await fetch('/api/favorites', {
         method: shouldFavorite ? 'POST' : 'DELETE',
         headers: {
@@ -43,6 +52,16 @@ export function useFavoriteToggle({
           content_id: contentId,
         }),
       });
+      const authRequired = await handleAuthRequired(res, {
+        defaultTab: getAuthTabForAction(actionKind),
+        resumeAction: () => toggleFavorite(contentId, shouldFavorite),
+      });
+
+      if (authRequired) {
+        setFavoriteIds(current => toggleFavoriteState(current, contentId, !shouldFavorite));
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error ?? (shouldFavorite ? '收藏失败，请重试' : '取消收藏失败，请重试'));
@@ -61,7 +80,7 @@ export function useFavoriteToggle({
         return next;
       });
     }
-  }, [contentType, onRemoved, setFavoriteIds]);
+  }, [contentType, handleAuthRequired, onRemoved, requireAuthForAction, setFavoriteIds]);
 
   return {
     pendingIds,

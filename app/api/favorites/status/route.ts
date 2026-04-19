@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parseFavoriteStatusParams } from '@/lib/favorites-api';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const { contentType, ids } = parseFavoriteStatusParams(request.nextUrl.searchParams);
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     const supabase = getUserClient(token);
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const { data, error } = await supabase

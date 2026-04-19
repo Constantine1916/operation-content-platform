@@ -5,6 +5,7 @@ import {
   parseFavoriteListParams,
   parseFavoriteMutationInput,
 } from '@/lib/favorites-api';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,7 @@ async function requireUser(token: string) {
   const { data: { user }, error } = await userClient.auth.getUser(token);
 
   if (error || !user) {
-    throw Object.assign(new Error('未登录'), { status: 401 });
+    throw Object.assign(new Error('AUTH_REQUIRED'), { status: 401 });
   }
 
   return { userClient, userId: user.id };
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const { contentType, page, limit, from, to } = parseFavoriteListParams(request.nextUrl.searchParams);
@@ -142,6 +143,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
+    if (error?.status === 401) {
+      return authRequiredResponse();
+    }
+
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: error.status ?? 500 });
   }
 }
@@ -150,7 +155,7 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const body = await request.json();
@@ -172,6 +177,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
+    if (error?.status === 401) {
+      return authRequiredResponse();
+    }
+
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: error.status ?? 500 });
   }
 }
@@ -180,7 +189,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const body = await request.json();
@@ -200,6 +209,10 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    if (error?.status === 401) {
+      return authRequiredResponse();
+    }
+
     return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: error.status ?? 500 });
   }
 }

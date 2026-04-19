@@ -6,6 +6,8 @@ import {
   PROFILE_CENTER_UPLOAD_TABS,
   type ProfileCenterUploadTab,
 } from '@/components/profile/profile-center-tabs';
+import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
+import { getAuthTabForPrivateRoute } from '@/lib/route-access';
 import { supabase } from '@/lib/supabase';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -39,6 +41,9 @@ export default function MyUploadsPanel() {
   const [vipLevel, setVipLevel] = useState(0);
   const imageUploadInputRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef<PendingUploadItem[]>([]);
+  const handleAuthRequired = useAuthRequiredHandler({
+    defaultTab: getAuthTabForPrivateRoute(),
+  });
 
   useEffect(() => {
     fetchVipLevel();
@@ -64,6 +69,9 @@ export default function MyUploadsPanel() {
       const res = await fetch('/api/profile', {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
+      if (await handleAuthRequired(res)) {
+        return;
+      }
       const data = await res.json();
       if (res.ok && data.success) {
         setVipLevel(Number(data.data?.vip_level ?? 0));
@@ -171,7 +179,7 @@ export default function MyUploadsPanel() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('请先登录后再上传图片');
+        return;
       }
 
       const formData = new FormData();
@@ -189,6 +197,9 @@ export default function MyUploadsPanel() {
         },
         body: formData,
       });
+      if (await handleAuthRequired(res)) {
+        return;
+      }
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error ?? '上传图片失败');

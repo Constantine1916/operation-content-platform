@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getBeijingDateRange } from '@/lib/beijing-date-range';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const userClient = createUserClient(token);
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     const { data: { user }, error: authError } = await userClient.auth.getUser(token);
     if (authError || !user) {
-      return NextResponse.json({ error: '无效登录态' }, { status: 401 });
+      return authRequiredResponse();
     }
 
     const formData = await request.formData();
