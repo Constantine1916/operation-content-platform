@@ -128,16 +128,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
-      title: 'Agent 智能体',
-      href: '/agent',
-      access: 'public' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3.75H7.5A2.25 2.25 0 005.25 6v1.5m0 9V18A2.25 2.25 0 007.5 20.25H9m6-16.5h1.5A2.25 2.25 0 0118.75 6v1.5m0 9V18A2.25 2.25 0 0116.5 20.25H15M8.25 9.75h7.5m-7.5 4.5h4.5" />
-        </svg>
-      ),
-    },
-    {
       title: 'AI 资讯',
       href: '/hotspots',
       access: 'public' as const,
@@ -185,6 +175,16 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Agent 智能体',
+      href: '/agent',
+      access: 'public' as const,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3.75H7.5A2.25 2.25 0 005.25 6v1.5m0 9V18A2.25 2.25 0 007.5 20.25H9m6-16.5h1.5A2.25 2.25 0 0118.75 6v1.5m0 9V18A2.25 2.25 0 0116.5 20.25H15M8.25 9.75h7.5m-7.5 4.5h4.5" />
         </svg>
       ),
     },
