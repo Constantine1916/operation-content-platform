@@ -55,16 +55,11 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     const today = bjNow.toISOString().slice(0, 10);
 
     async function fetchStats() {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-
       const [hotspotsData, articlesData, videoData, galleryData] = await Promise.all([
         fetch(`/api/hotspots?date=${today}&limit=1`).then(r => r.json()),
         fetch(`/api/articles?stats=true`).then(r => r.json()),
         fetch(`/api/ai-video?date=${today}&limit=1`).then(r => r.json()),
-        token
-          ? fetch(`/api/gallery?date=${today}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
-          : Promise.resolve({ total: 0 }),
+        fetch(`/api/gallery?date=${today}`).then(r => r.json()),
       ])
 
       setTodayStats({

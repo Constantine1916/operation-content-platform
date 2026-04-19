@@ -29,3 +29,10 @@ test('sidebar places the agent menu item after AI 图片', async () => {
   assert.notEqual(agentIndex, -1, 'expected Agent 智能体 menu item');
   assert.ok(agentIndex > imageIndex, 'expected Agent 智能体 to appear after AI 图片');
 });
+
+test('sidebar fetches today image stats from the public gallery endpoint without auth gating', async () => {
+  const source = await readFile(sidebarUrl, 'utf8');
+
+  assert.match(source, /fetch\(`\/api\/gallery\?date=\$\{today\}`\)\.then\(r => r\.json\(\)\)/);
+  assert.doesNotMatch(source, /token\s*\?\s*fetch\(`\/api\/gallery\?date=\$\{today\}`/);
+});
