@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthLayout from '@/components/AuthLayout';
 import PublicArticlesPage from '@/components/public/PublicArticlesPage';
 import { getPublicArticles } from '@/lib/server/public-content';
 
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 export default async function ArticlesPage() {
   const initial = await getPublicArticles({ page: 1, limit: 20 });
 
-  return <PublicArticlesPage initialArticles={initial.items} initialHasMore={initial.hasMore} />;
+  return (
+    <AuthLayout>
+      <PublicArticlesPage initialArticles={initial.items} initialHasMore={initial.hasMore} />
+    </AuthLayout>
+  );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthLayout from '@/components/AuthLayout';
 import PublicAiVideoPage from '@/components/public/PublicAiVideoPage';
 import { getPublicVideoModels, getPublicVideos } from '@/lib/server/public-content';
 
@@ -17,10 +18,12 @@ export default async function AiVideoPage() {
   ]);
 
   return (
-    <PublicAiVideoPage
-      initialVideos={initialVideos.items}
-      initialModels={initialModels}
-      initialHasMore={initialVideos.hasMore}
-    />
+    <AuthLayout>
+      <PublicAiVideoPage
+        initialVideos={initialVideos.items}
+        initialModels={initialModels}
+        initialHasMore={initialVideos.hasMore}
+      />
+    </AuthLayout>
   );
 }

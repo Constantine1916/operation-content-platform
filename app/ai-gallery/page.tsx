@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthLayout from '@/components/AuthLayout';
 import PublicAiGalleryPage from '@/components/public/PublicAiGalleryPage';
 import { getPublicGalleryImages } from '@/lib/server/public-content';
 
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 export default async function AiGalleryPage() {
   const initial = await getPublicGalleryImages({ page: 1, limit: 50 });
 
-  return <PublicAiGalleryPage initialImages={initial.items} initialHasMore={initial.hasMore} />;
+  return (
+    <AuthLayout>
+      <PublicAiGalleryPage initialImages={initial.items} initialHasMore={initial.hasMore} />
+    </AuthLayout>
+  );
 }

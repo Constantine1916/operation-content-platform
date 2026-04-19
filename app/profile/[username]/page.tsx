@@ -1,6 +1,7 @@
 // app/profile/[username]/page.tsx
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import AuthLayout from '@/components/AuthLayout';
 import { ProfileImage } from './ImageGrid';
 import ProfileTabs from './ProfileTabs';
 
@@ -74,44 +75,46 @@ export default async function PublicProfilePage({
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Profile Header */}
-      <div className="mb-8 border-b border-gray-100 pb-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          {/* Avatar */}
-          <div className="flex-shrink-0">
-            {profile.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profile.avatar_url}
-                alt={displayName}
-                className="w-14 h-14 rounded-full object-cover ring-1 ring-gray-200"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center ring-1 ring-gray-200">
-                <span className="text-xl font-semibold text-white leading-none">{initial}</span>
-              </div>
-            )}
-          </div>
+    <AuthLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Profile Header */}
+        <div className="mb-8 border-b border-gray-100 pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            {/* Avatar */}
+            <div className="flex-shrink-0">
+              {profile.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatar_url}
+                  alt={displayName}
+                  className="w-14 h-14 rounded-full object-cover ring-1 ring-gray-200"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center ring-1 ring-gray-200">
+                  <span className="text-xl font-semibold text-white leading-none">{initial}</span>
+                </div>
+              )}
+            </div>
 
-          {/* Info */}
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight text-gray-900">{profile.username}</h1>
-            {profile.bio && (
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-500">{profile.bio}</p>
-            )}
+            {/* Info */}
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold tracking-tight text-gray-900">{profile.username}</h1>
+              {profile.bio && (
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-500">{profile.bio}</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tabs: Images / Videos / Courses */}
-      <ProfileTabs
-        initialImages={initialImages}
-        hasMore={hasMore}
-        userId={profile.id}
-        totalImages={totalImages}
-        totalVideos={totalVideos}
-      />
-    </div>
+        {/* Tabs: Images / Videos / Courses */}
+        <ProfileTabs
+          initialImages={initialImages}
+          hasMore={hasMore}
+          userId={profile.id}
+          totalImages={totalImages}
+          totalVideos={totalVideos}
+        />
+      </div>
+    </AuthLayout>
   );
 }

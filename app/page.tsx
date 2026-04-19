@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthLayout from '@/components/AuthLayout';
 import PublicLandingPage from '@/components/public/PublicLandingPage';
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <PublicLandingPage />;
+  return (
+    <AuthLayout>
+      <PublicLandingPage />
+    </AuthLayout>
+  );
 }

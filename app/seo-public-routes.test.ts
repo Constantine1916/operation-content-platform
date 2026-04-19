@@ -43,6 +43,28 @@ test('public routes are server entries with route metadata', async () => {
   }
 });
 
+test('public profile stays a server entry', async () => {
+  const source = await read('./profile/[username]/page.tsx');
+
+  assert.doesNotMatch(source, /^'use client';?/m);
+});
+
+test('public routes opt into the session-aware auth shell to preserve signed-in chrome', async () => {
+  const publicPages = [
+    './page.tsx',
+    './articles/page.tsx',
+    './hotspots/page.tsx',
+    './ai-video/page.tsx',
+    './ai-gallery/page.tsx',
+    './profile/[username]/page.tsx',
+  ];
+
+  for (const pagePath of publicPages) {
+    const source = await read(pagePath);
+    assert.match(source, /AuthLayout/);
+  }
+});
+
 test('public routes delegate interactivity to components/public client modules', async () => {
   const routeChecks = [
     { path: './page.tsx', importPattern: /components\/public\/PublicLandingPage/ },

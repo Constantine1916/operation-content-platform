@@ -5,38 +5,108 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import MainLayout from '@/components/MainLayout';
-import LandingPage from '@/app/page';
 import { usePathname, useRouter } from 'next/navigation';
 
+const PUBLIC_CONTENT_PATHS = new Set([
+  '/',
+  '/articles',
+  '/hotspots',
+  '/ai-video',
+  '/ai-gallery',
+]);
+
+function PublicProfileLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/88 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex items-center min-w-0">
+            <Image
+              src="/assets/logo.png"
+              alt="AICAVE"
+              width={155}
+              height={60}
+              className="h-14 w-auto flex-shrink-0 object-contain sm:h-[60px]"
+            />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
+            >
+              登录
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+            >
+              注册
+            </Link>
+          </div>
+        </div>
+      </header>
+      <main className="px-4 py-6 lg:px-6 lg:py-8">{children}</main>
+    </div>
+  );
+}
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
+  const [authResolved, setAuthResolved] = useState(false);
   const [session, setSession] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
   const isPublicProfilePath = /^\/profile\/[^/]+$/.test(pathname);
+  const isAuthPath = pathname === '/login' || pathname === '/register';
+  const isPublicContentPath = PUBLIC_CONTENT_PATHS.has(pathname);
+  const isPublicPath = isPublicContentPath || isPublicProfilePath;
 
   useEffect(() => {
-    // 获取当前会话
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
-      setLoading(false);
+      setAuthResolved(true);
     });
 
-    // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       setSession(session);
+      setAuthResolved(true);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // 登录页和注册页单独处理
-  if (pathname === '/login' || pathname === '/register') {
+  useEffect(() => {
+    if (!authResolved || isAuthPath) return;
+
+    if (session && pathname === '/') {
+      router.replace('/overview');
+      return;
+    }
+
+    if (!session && !isPublicPath) {
+      router.replace('/');
+    }
+  }, [authResolved, isAuthPath, isPublicPath, pathname, router, session]);
+
+  if (isAuthPath) {
     return <>{children}</>;
   }
 
-  // 加载中
-  if (loading) {
+  if (!authResolved) {
+    if (isPublicProfilePath) {
+      return <PublicProfileLayout>{children}</PublicProfileLayout>;
+    }
+
+    if (isPublicContentPath) {
+      return <>{children}</>;
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-pulse flex flex-col items-center">
@@ -47,58 +117,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  if (!session && isPublicProfilePath) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/88 backdrop-blur-md">
-          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-            <Link href="/" className="flex items-center min-w-0">
-              <Image
-                src="/assets/logo.png"
-                alt="AICAVE"
-                width={155}
-                height={60}
-                className="h-14 w-auto flex-shrink-0 object-contain sm:h-[60px]"
-              />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/login"
-                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
-              >
-                登录
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-              >
-                注册
-              </Link>
-            </div>
-          </div>
-        </header>
-        <main className="px-4 py-6 lg:px-6 lg:py-8">{children}</main>
-      </div>
-    );
-  }
-
-  // 未登录且不是首页，重定向到首页（Landing）
-  if (!session && pathname !== '/') {
-    router.push('/');
-    return null;
-  }
-
-  // 未登录显示 Landing 页面（首页）
   if (!session) {
-    return <LandingPage />;
-  }
+    if (isPublicProfilePath) {
+      return <PublicProfileLayout>{children}</PublicProfileLayout>;
+    }
 
-  // 已登录用户访问首页，重定向到概览页
-  if (session && pathname === '/') {
-    router.push('/overview');
+    if (isPublicContentPath) {
+      return <>{children}</>;
+    }
+
     return null;
   }
 
-  // 已登录显示带 MainLayout 的内容
+  if (pathname === '/') {
+    return null;
+  }
+
   return <MainLayout>{children}</MainLayout>;
 }

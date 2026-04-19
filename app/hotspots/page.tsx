@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthLayout from '@/components/AuthLayout';
 import PublicHotspotsPage from '@/components/public/PublicHotspotsPage';
 import { getPublicHotspots } from '@/lib/server/public-content';
 
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 export default async function HotspotsPage() {
   const initial = await getPublicHotspots({ page: 1, limit: 100, sourceType: 'all' });
 
-  return <PublicHotspotsPage initialHotspots={initial.items} initialHasMore={initial.hasMore} />;
+  return (
+    <AuthLayout>
+      <PublicHotspotsPage initialHotspots={initial.items} initialHasMore={initial.hasMore} />
+    </AuthLayout>
+  );
 }
