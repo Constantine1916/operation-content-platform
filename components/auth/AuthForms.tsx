@@ -27,9 +27,9 @@ interface SharedFormProps {
 }
 
 const INPUT_CLASSNAME =
-  'w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-gray-900';
+  'w-full rounded-2xl border border-black/8 bg-black/[0.02] px-4 py-3.5 text-[15px] text-gray-950 outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 placeholder:text-gray-400 focus:border-black/20 focus:bg-white focus:shadow-[0_0_0_4px_rgba(17,17,17,0.08)]';
 const PRIMARY_BUTTON_CLASSNAME =
-  'w-full rounded-lg bg-gray-900 py-3 font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50';
+  'relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-950 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_22px_48px_-28px_rgba(17,17,17,0.52)] transition-all duration-200 hover:-translate-y-px hover:bg-black disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function AuthForms({
   activeTab,
@@ -123,9 +123,9 @@ function LoginForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChang
 
   return (
     <>
-      <form onSubmit={handleLogin} className="space-y-6">
+      <form onSubmit={handleLogin} className="space-y-5">
         <div>
-          <label htmlFor="auth-login-email" className="mb-2 block text-sm font-medium text-gray-900">
+          <label htmlFor="auth-login-email" className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900">
             邮箱
           </label>
           <input
@@ -140,7 +140,7 @@ function LoginForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChang
         </div>
 
         <div>
-          <label htmlFor="auth-login-password" className="mb-2 block text-sm font-medium text-gray-900">
+          <label htmlFor="auth-login-password" className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900">
             密码
           </label>
           <input
@@ -155,10 +155,13 @@ function LoginForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChang
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 py-2 text-center text-sm text-red-500">{error}</div>
+          <div className="rounded-2xl border border-red-100 bg-red-50/90 px-4 py-3 text-center text-sm text-red-500">
+            {error}
+          </div>
         )}
 
         <button type="submit" disabled={loading} className={PRIMARY_BUTTON_CLASSNAME}>
+          <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-white/35" />
           {loading ? '登录中...' : '登录'}
         </button>
       </form>
@@ -168,7 +171,7 @@ function LoginForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabChang
         <button
           type="button"
           onClick={() => onTabChange('register')}
-          className="font-medium text-gray-900 underline underline-offset-2"
+          className="font-medium text-gray-900 underline underline-offset-4 transition-opacity hover:opacity-70"
         >
           注册
         </button>
@@ -297,9 +300,9 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
 
   return (
     <>
-      <form onSubmit={handleRegister} className="space-y-6">
+      <form onSubmit={handleRegister} className="space-y-5">
         <div>
-          <label htmlFor="auth-register-email" className="mb-2 block text-sm font-medium text-gray-900">
+          <label htmlFor="auth-register-email" className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900">
             邮箱
           </label>
           <input
@@ -314,7 +317,7 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         </div>
 
         <div>
-          <label htmlFor="auth-register-username" className="mb-2 block text-sm font-medium text-gray-900">
+          <label htmlFor="auth-register-username" className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900">
             用户名
           </label>
           <input
@@ -330,7 +333,7 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         </div>
 
         <div>
-          <label htmlFor="auth-register-password" className="mb-2 block text-sm font-medium text-gray-900">
+          <label htmlFor="auth-register-password" className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900">
             密码
           </label>
           <input
@@ -347,7 +350,7 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         <div>
           <label
             htmlFor="auth-register-confirm-password"
-            className="mb-2 block text-sm font-medium text-gray-900"
+            className="mb-2 block text-sm font-medium tracking-[-0.01em] text-gray-900"
           >
             确认密码
           </label>
@@ -363,16 +366,19 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 py-2 text-center text-sm text-red-500">{error}</div>
+          <div className="rounded-2xl border border-red-100 bg-red-50/90 px-4 py-3 text-center text-sm text-red-500">
+            {error}
+          </div>
         )}
 
         {success && (
-          <div className="rounded-lg bg-green-50 py-2 text-center text-sm text-green-500">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/90 px-4 py-3 text-center text-sm text-emerald-600">
             {success}
           </div>
         )}
 
         <button type="submit" disabled={loading} className={PRIMARY_BUTTON_CLASSNAME}>
+          <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-white/35" />
           {loading ? '注册中...' : '注册'}
         </button>
       </form>
@@ -382,7 +388,7 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         <button
           type="button"
           onClick={() => onTabChange('login')}
-          className="font-medium text-gray-900 underline underline-offset-2"
+          className="font-medium text-gray-900 underline underline-offset-4 transition-opacity hover:opacity-70"
         >
           登录
         </button>

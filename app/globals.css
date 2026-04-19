@@ -70,6 +70,53 @@ button { font-family: inherit; cursor: pointer; }
   100% { transform: scale(1); }
 }
 
+@keyframes auth-dialog-overlay-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes auth-dialog-overlay-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes auth-dialog-panel-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes auth-dialog-panel-out {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(14px) scale(0.985); }
+}
+
+@keyframes auth-dialog-form-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.auth-dialog-overlay-enter {
+  animation: auth-dialog-overlay-in 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.auth-dialog-overlay-exit {
+  animation: auth-dialog-overlay-out 180ms ease forwards;
+}
+
+.auth-dialog-panel-enter {
+  animation: auth-dialog-panel-in 280ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.auth-dialog-panel-exit {
+  animation: auth-dialog-panel-out 180ms ease forwards;
+  will-change: transform, opacity;
+}
+
+.auth-dialog-form-enter {
+  animation: auth-dialog-form-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .favorite-button-pop {
   animation: favorite-button-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -80,4 +127,19 @@ button { font-family: inherit; cursor: pointer; }
 
 .favorite-heart-pop {
   animation: favorite-heart-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-dialog-overlay-enter,
+  .auth-dialog-overlay-exit,
+  .auth-dialog-panel-enter,
+  .auth-dialog-panel-exit,
+  .auth-dialog-form-enter,
+  .favorite-button-pop,
+  .favorite-button-burst,
+  .favorite-heart-pop {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
 }
