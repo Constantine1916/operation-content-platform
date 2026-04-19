@@ -109,7 +109,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               alt="AICAVE"
               width={140}
               height={52}
-              className="h-9 w-auto flex-shrink-0 object-contain sm:h-10"
+              className="h-11 w-auto flex-shrink-0 object-contain sm:h-12"
             />
           </Link>
         </div>
