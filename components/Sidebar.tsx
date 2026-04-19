@@ -101,6 +101,15 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
+      title: 'Agent 智能体',
+      href: '/agent',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3.75H7.5A2.25 2.25 0 005.25 6v1.5m0 9V18A2.25 2.25 0 007.5 20.25H9m6-16.5h1.5A2.25 2.25 0 0118.75 6v1.5m0 9V18A2.25 2.25 0 0116.5 20.25H15M8.25 9.75h7.5m-7.5 4.5h4.5" />
+        </svg>
+      ),
+    },
+    {
       title: 'AI 资讯',
       href: '/hotspots',
       icon: (
