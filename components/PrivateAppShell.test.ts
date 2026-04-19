@@ -4,10 +4,9 @@ import test from 'node:test';
 
 const privateShellUrl = new URL('./PrivateAppShell.tsx', import.meta.url);
 
-test('private auth shell redirects guests to the home page and renders MainLayout for signed-in users', async () => {
+test('private auth shell delegates guest blocking to the shared auth layout', async () => {
   const source = await readFile(privateShellUrl, 'utf8');
 
-  assert.match(source, /router\.(replace|push)\('\/'\)/);
-  assert.match(source, /<MainLayout>/);
-  assert.match(source, /supabase\.auth\.getSession/);
+  assert.match(source, /AuthLayout/);
+  assert.doesNotMatch(source, /router\.(replace|push)\('\/'\)/);
 });

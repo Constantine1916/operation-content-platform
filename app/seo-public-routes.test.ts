@@ -15,7 +15,6 @@ test('root layout no longer imports AuthLayout and defines a metadataBase', asyn
 
 test('private pages opt into the local private auth shell', async () => {
   const privatePages = [
-    './overview/page.tsx',
     './generate-img/page.tsx',
     './md2image/page.tsx',
     './profile/page.tsx',
@@ -43,6 +42,19 @@ test('public routes are server entries with route metadata', async () => {
   }
 });
 
+test('overview and agent are public pages that use the shared auth layout', async () => {
+  const publicClientPages = [
+    './overview/page.tsx',
+    './agent/page.tsx',
+  ];
+
+  for (const pagePath of publicClientPages) {
+    const source = await read(pagePath);
+    assert.match(source, /AuthLayout/);
+    assert.doesNotMatch(source, /PrivateAppShell/);
+  }
+});
+
 test('public profile stays a server entry', async () => {
   const source = await read('./profile/[username]/page.tsx');
 
@@ -52,6 +64,8 @@ test('public profile stays a server entry', async () => {
 test('public routes opt into the session-aware auth shell to preserve signed-in chrome', async () => {
   const publicPages = [
     './page.tsx',
+    './overview/page.tsx',
+    './agent/page.tsx',
     './articles/page.tsx',
     './hotspots/page.tsx',
     './ai-video/page.tsx',

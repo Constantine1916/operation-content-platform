@@ -26,3 +26,10 @@ test('overview uses a two-column resource grid on mobile', async () => {
   assert.match(source, /grid-cols-2 gap-3 xl:grid-cols-4/);
   assert.doesNotMatch(source, /grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/);
 });
+
+test('overview is public and uses the shared auth layout', async () => {
+  const source = await readFile(overviewPageUrl, 'utf8');
+
+  assert.match(source, /AuthLayout/);
+  assert.doesNotMatch(source, /PrivateAppShell/);
+});

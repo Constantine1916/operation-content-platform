@@ -3,8 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuthModal } from '@/components/auth/AuthModalProvider'
+import { getAuthTabForPrivateRoute } from '@/lib/route-access'
 
 const PROFILE_KEY = 'xhs_profile'
 
@@ -20,12 +22,14 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
   const router = useRouter()
+  const { openAuthModal } = useAuthModal()
 
   async function handleLogout() {
     await supabase.auth.signOut()
     try { localStorage.removeItem(PROFILE_KEY) } catch {}
-    router.push('/login')
+    router.push('/')
   }
 
   useEffect(() => {
@@ -173,12 +177,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               )}
             </div>
           ) : (
-            <Link
-              href="/login"
+            <button
+              type="button"
+              onClick={() => openAuthModal({ defaultTab: getAuthTabForPrivateRoute(), redirectTo: pathname })}
               className="rounded-lg px-3 py-1.5 text-sm text-gray-900 transition-colors hover:bg-gray-100"
             >
               登录
-            </Link>
+            </button>
           )}
         </div>
       </div>

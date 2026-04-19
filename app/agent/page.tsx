@@ -1,4 +1,4 @@
-import PrivateAppShell from '@/components/PrivateAppShell';
+import AuthLayout from '@/components/AuthLayout';
 
 function AgentPageContent() {
   return (
@@ -44,8 +44,8 @@ function AgentPageContent() {
 
 export default function AgentPage() {
   return (
-    <PrivateAppShell>
+    <AuthLayout>
       <AgentPageContent />
-    </PrivateAppShell>
+    </AuthLayout>
   );
 }

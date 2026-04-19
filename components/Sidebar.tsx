@@ -7,8 +7,11 @@ import { useEffect, useState } from 'react'
 import { Popover } from 'antd'
 import { supabase } from '@/lib/supabase'
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache'
+import { useAuthModal } from '@/components/auth/AuthModalProvider'
+import { getAuthTabForPrivateRoute } from '@/lib/route-access'
 
 interface SidebarProps { className?: string }
+type MenuItemAccess = 'public' | 'private'
 interface TodayStats {
   hotspots: number
   articles: number
@@ -40,8 +43,10 @@ function JoinUsPopoverContent() {
 
 export default function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
+  const { openAuthModal } = useAuthModal()
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasSession, setHasSession] = useState(false)
   const [isSVIP, setIsSVIP] = useState(false)
 
   useEffect(() => {
@@ -75,25 +80,47 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
-      const userId = session.user.id;
-      const token = session.access_token;
+    let mounted = true
 
-      // 先读缓存，立即渲染（无闪烁）
-      const cached = readVipCache(userId);
-      if (cached !== null) setIsSVIP(cached >= 2);
+    async function applySessionState(session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) {
+      if (!mounted) return
 
-      // 异步刷新，写回缓存
-      const fresh = await refreshVipCache(userId, token);
-      if (fresh !== null) setIsSVIP(fresh >= 2);
-    });
+      setHasSession(Boolean(session))
+
+      if (!session) {
+        setIsSVIP(false)
+        return
+      }
+
+      const userId = session.user.id
+      const token = session.access_token
+      const cached = readVipCache(userId)
+      if (cached !== null) setIsSVIP(cached >= 2)
+
+      const fresh = await refreshVipCache(userId, token)
+      if (!mounted || fresh === null) return
+      setIsSVIP(fresh >= 2)
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      void applySessionState(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applySessionState(session)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const menuItems = [
     {
       title: '概览',
       href: '/overview',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -103,6 +130,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'Agent 智能体',
       href: '/agent',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3.75H7.5A2.25 2.25 0 005.25 6v1.5m0 9V18A2.25 2.25 0 007.5 20.25H9m6-16.5h1.5A2.25 2.25 0 0118.75 6v1.5m0 9V18A2.25 2.25 0 0116.5 20.25H15M8.25 9.75h7.5m-7.5 4.5h4.5" />
@@ -112,6 +140,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'AI 资讯',
       href: '/hotspots',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -121,6 +150,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'AI 文章',
       href: '/articles',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -131,6 +161,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'MD转图片',
       href: '/md2image',
+      access: 'private' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -140,6 +171,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'AI 视频',
       href: '/ai-video',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -149,6 +181,7 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'AI 图片',
       href: '/ai-gallery',
+      access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -180,6 +213,24 @@ export default function Sidebar({ className = '' }: SidebarProps) {
 
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
+            const isBlockedGuestItem = !hasSession && item.access === 'private';
+
+            if (isBlockedGuestItem) {
+              return (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={() => openAuthModal({ defaultTab: getAuthTabForPrivateRoute(), redirectTo: item.href })}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-gray-900 transition-all hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <span className="flex-shrink-0 text-gray-900">
+                    {item.icon}
+                  </span>
+                  <span className="text-sm font-medium">{item.title}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

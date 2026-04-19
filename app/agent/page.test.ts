@@ -4,10 +4,11 @@ import test from 'node:test';
 
 const agentPageUrl = new URL('./page.tsx', import.meta.url);
 
-test('agent page stays behind the private app shell', async () => {
+test('agent page is public and uses the shared auth layout', async () => {
   const source = await readFile(agentPageUrl, 'utf8');
 
-  assert.match(source, /PrivateAppShell/);
+  assert.match(source, /AuthLayout/);
+  assert.doesNotMatch(source, /PrivateAppShell/);
 });
 
 test('agent page renders the coming soon placeholder copy', async () => {

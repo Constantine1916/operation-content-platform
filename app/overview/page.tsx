@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import PrivateAppShell from '@/components/PrivateAppShell';
+import AuthLayout from '@/components/AuthLayout';
 import { supabase } from '@/lib/supabase';
 
 interface AllStats {
@@ -172,9 +172,9 @@ function OverviewPageContent() {
 
 export default function OverviewPage() {
   return (
-    <PrivateAppShell>
+    <AuthLayout>
       <OverviewPageContent />
-    </PrivateAppShell>
+    </AuthLayout>
   );
 }
 

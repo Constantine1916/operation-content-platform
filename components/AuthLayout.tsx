@@ -1,77 +1,39 @@
 'use client';
 
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import MainLayout from '@/components/MainLayout';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuthModal } from '@/components/auth/AuthModalProvider';
+import { getAuthTabForPrivateRoute, isPrivateAppPath } from '@/lib/route-access';
 
-const PUBLIC_CONTENT_PATHS = new Set([
-  '/',
-  '/articles',
-  '/hotspots',
-  '/ai-video',
-  '/ai-gallery',
-]);
-
-function PublicProfileLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/88 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center min-w-0">
-            <Image
-              src="/assets/logo.png"
-              alt="AICAVE"
-              width={155}
-              height={60}
-              className="h-14 w-auto flex-shrink-0 object-contain sm:h-[60px]"
-            />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900"
-            >
-              登录
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-            >
-              注册
-            </Link>
-          </div>
-        </div>
-      </header>
-      <main className="px-4 py-6 lg:px-6 lg:py-8">{children}</main>
-    </div>
-  );
-}
-
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+  access = 'public',
+}: {
+  children: React.ReactNode;
+  access?: 'public' | 'private';
+}) {
   const [authResolved, setAuthResolved] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [hasSession, setHasSession] = useState(false);
+  const promptedPathRef = useRef<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const isPublicProfilePath = /^\/profile\/[^/]+$/.test(pathname);
-  const isAuthPath = pathname === '/login' || pathname === '/register';
-  const isPublicContentPath = PUBLIC_CONTENT_PATHS.has(pathname);
-  const isPublicPath = isPublicContentPath || isPublicProfilePath;
+  const { openAuthModal } = useAuthModal();
+  const isPrivateRoute = access === 'private' && isPrivateAppPath(pathname);
 
   useEffect(() => {
     let mounted = true;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      setSession(session);
+      setHasSession(Boolean(session));
       setAuthResolved(true);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-      setSession(session);
+      setHasSession(Boolean(session));
       setAuthResolved(true);
     });
 
@@ -82,56 +44,47 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    if (!authResolved || isAuthPath) return;
-
-    if (session && pathname === '/') {
+    if (!authResolved) return;
+    if (hasSession && pathname === '/') {
       router.replace('/overview');
+    }
+  }, [authResolved, hasSession, pathname, router]);
+
+  useEffect(() => {
+    if (!authResolved || !isPrivateRoute || hasSession) {
+      promptedPathRef.current = null;
       return;
     }
 
-    if (!session && !isPublicPath) {
-      router.replace('/');
-    }
-  }, [authResolved, isAuthPath, isPublicPath, pathname, router, session]);
-
-  if (isAuthPath) {
-    return <>{children}</>;
-  }
-
-  if (!authResolved) {
-    if (isPublicProfilePath) {
-      return <PublicProfileLayout>{children}</PublicProfileLayout>;
+    if (promptedPathRef.current === pathname) {
+      return;
     }
 
-    if (isPublicContentPath) {
-      return <>{children}</>;
-    }
+    promptedPathRef.current = pathname;
+    openAuthModal({
+      defaultTab: getAuthTabForPrivateRoute(),
+      redirectTo: pathname,
+    });
+  }, [authResolved, hasSession, isPrivateRoute, openAuthModal, pathname]);
 
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  const shouldHideRootContent = authResolved && hasSession && pathname === '/';
+  const shouldShowPrivateLoading = access === 'private' && !authResolved;
+  const shouldBlockPrivateContent = access === 'private' && authResolved && !hasSession;
+
+  let content: React.ReactNode = children;
+
+  if (shouldHideRootContent || shouldBlockPrivateContent) {
+    content = null;
+  } else if (shouldShowPrivateLoading) {
+    content = (
+      <div className="flex min-h-[40vh] items-center justify-center">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 w-8 bg-gray-200 rounded-full mb-3"></div>
-          <div className="h-3 w-24 bg-gray-200 rounded"></div>
+          <div className="h-8 w-8 rounded-full bg-gray-200 mb-3" />
+          <div className="h-3 w-24 rounded bg-gray-200" />
         </div>
       </div>
     );
   }
 
-  if (!session) {
-    if (isPublicProfilePath) {
-      return <PublicProfileLayout>{children}</PublicProfileLayout>;
-    }
-
-    if (isPublicContentPath) {
-      return <>{children}</>;
-    }
-
-    return null;
-  }
-
-  if (pathname === '/') {
-    return null;
-  }
-
-  return <MainLayout>{children}</MainLayout>;
+  return <MainLayout>{content}</MainLayout>;
 }

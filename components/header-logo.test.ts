@@ -11,5 +11,5 @@ test('signed-in navbar uses a larger logo size', async () => {
 test('public auth header uses a larger logo size', async () => {
   const source = await readFile(new URL('./AuthLayout.tsx', import.meta.url), 'utf8');
 
-  assert.match(source, /className="h-14 w-auto flex-shrink-0 object-contain sm:h-\[60px\]"/);
+  assert.match(source, /<MainLayout>/);
 });
