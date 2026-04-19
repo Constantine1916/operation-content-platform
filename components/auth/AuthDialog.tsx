@@ -93,7 +93,7 @@ export default function AuthDialog({
 
   return (
     <div
-      className={`auth-dialog-overlay fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),rgba(17,17,17,0.72))] px-4 py-4 backdrop-blur-xl sm:items-center sm:py-8 ${
+      className={`auth-dialog-overlay fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),rgba(17,17,17,0.72))] px-4 py-4 backdrop-blur-xl sm:items-center sm:py-8 ${
         isClosing ? 'auth-dialog-overlay-exit' : 'auth-dialog-overlay-enter'
       }`}
       onClick={isBusy || isClosing ? undefined : onClose}
