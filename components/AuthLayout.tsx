@@ -56,9 +56,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <Image
                 src="/assets/logo.png"
                 alt="AICAVE"
-                width={140}
-                height={52}
-                className="h-11 w-auto flex-shrink-0 object-contain sm:h-12"
+                width={155}
+                height={60}
+                className="h-14 w-auto flex-shrink-0 object-contain sm:h-[60px]"
               />
             </Link>
             <div className="flex items-center gap-2">
