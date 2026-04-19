@@ -14,4 +14,5 @@ tsconfig.tsbuildinfo
 # Superpowers / AI tooling (local only)
 .superpowers/
 docs/superpowers/
+docs
 .worktrees/
