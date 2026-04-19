@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import AuthModalProvider from '@/components/auth/AuthModalProvider'
 import { getSiteUrl } from '@/lib/server/public-content'
 
 const siteUrl = getSiteUrl()
@@ -31,7 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <AuthModalProvider>{children}</AuthModalProvider>
+      </body>
     </html>
   )
 }
