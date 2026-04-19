@@ -34,5 +34,5 @@ export function getAuthTabForPrivateRoute(): AuthModalTab {
 }
 
 export function getAuthTabForAction(kind: AuthActionKind): AuthModalTab {
-  return kind === 'favorite' || kind === 'download' ? 'register' : 'login';
+  return 'register';
 }
