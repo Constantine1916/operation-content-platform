@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import PrivateAppShell from '@/components/PrivateAppShell'
 import { supabase } from '@/lib/supabase'
 import html2canvas from 'html2canvas'
 
@@ -204,7 +205,7 @@ async function capture(html: string, w: number, h: number): Promise<string> {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────
-export default function Md2ImagePage() {
+function Md2ImagePageContent() {
   const [md, setMd] = useState('')
   const [name, setName] = useState('')
   const [date, setDate] = useState(() => {
@@ -428,5 +429,13 @@ export default function Md2ImagePage() {
         </div>
       ))}
     </div>
+  )
+}
+
+export default function Md2ImagePage() {
+  return (
+    <PrivateAppShell>
+      <Md2ImagePageContent />
+    </PrivateAppShell>
   )
 }

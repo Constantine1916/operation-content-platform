@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import PrivateAppShell from '@/components/PrivateAppShell';
 import { supabase } from '@/lib/supabase';
 import MyAssetsPanel from '@/components/profile/MyAssetsPanel';
 import MyFavoritesPanel from '@/components/profile/MyFavoritesPanel';
@@ -20,7 +21,7 @@ interface Profile {
   email: string | null;
 }
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -224,5 +225,13 @@ export default function ProfilePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <PrivateAppShell>
+      <ProfilePageContent />
+    </PrivateAppShell>
   );
 }

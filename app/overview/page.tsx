@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import PrivateAppShell from '@/components/PrivateAppShell';
 import { supabase } from '@/lib/supabase';
 
 interface AllStats {
@@ -26,7 +27,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   reddit: 'Reddit',
 };
 
-export default function Overview() {
+function OverviewPageContent() {
   const [stats, setStats] = useState<AllStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -166,6 +167,14 @@ export default function Overview() {
       </div>
 
     </div>
+  );
+}
+
+export default function OverviewPage() {
+  return (
+    <PrivateAppShell>
+      <OverviewPageContent />
+    </PrivateAppShell>
   );
 }
 

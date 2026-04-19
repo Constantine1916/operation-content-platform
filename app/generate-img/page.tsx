@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import PrivateAppShell from '@/components/PrivateAppShell';
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
 import { App, Tooltip } from 'antd';
 
@@ -872,8 +873,10 @@ function GenerateImgPageInner() {
 
 export default function GenerateImgPage() {
   return (
-    <App>
-      <GenerateImgPageInner />
-    </App>
+    <PrivateAppShell>
+      <App>
+        <GenerateImgPageInner />
+      </App>
+    </PrivateAppShell>
   );
 }
