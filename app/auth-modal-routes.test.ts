@@ -25,6 +25,7 @@ test('/login delegates to AuthRouteLauncher with the login tab', async () => {
   const source = await read('./login/page.tsx');
 
   assert.doesNotMatch(source, /^'use client';?/m);
+  assert.match(source, /Suspense/);
   assert.match(source, /AuthRouteLauncher/);
   assert.match(source, /defaultTab="login"/);
 });
@@ -33,6 +34,7 @@ test('/register delegates to AuthRouteLauncher with the register tab', async () 
   const source = await read('./register/page.tsx');
 
   assert.doesNotMatch(source, /^'use client';?/m);
+  assert.match(source, /Suspense/);
   assert.match(source, /AuthRouteLauncher/);
   assert.match(source, /defaultTab="register"/);
 });
