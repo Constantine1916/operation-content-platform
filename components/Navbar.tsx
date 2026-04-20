@@ -1,5 +1,6 @@
 'use client'
 
+import type { Session } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -18,16 +19,40 @@ interface Profile {
   email: string | null
 }
 
+function buildSessionProfile(session: Session | null): Profile | null {
+  if (!session?.user) return null
+
+  const metadata = session.user.user_metadata ?? {}
+  const username = typeof metadata.username === 'string' ? metadata.username : null
+  const avatar_url =
+    typeof metadata.avatar_url === 'string'
+      ? metadata.avatar_url
+      : typeof metadata.picture === 'string'
+        ? metadata.picture
+        : typeof metadata.avatarUrl === 'string'
+          ? metadata.avatarUrl
+          : null
+
+  return {
+    username,
+    avatar_url,
+    email: session.user.email ?? null,
+  }
+}
+
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [sessionProfile, setSessionProfile] = useState<Profile | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
   const { openAuthModal } = useAuthModal()
+  const displayProfile = profile ?? sessionProfile
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    setSessionProfile(null)
     try { localStorage.removeItem(PROFILE_KEY) } catch {}
     router.push('/')
   }
@@ -43,6 +68,22 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }, [])
 
   useEffect(() => {
+    async function refreshProfile(token: string) {
+      const res = await fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success && data.data) {
+        setProfile(data.data)
+        try {
+          localStorage.setItem(PROFILE_KEY, JSON.stringify({
+            username: data.data.username,
+            avatar_url: data.data.avatar_url,
+          }))
+        } catch {}
+      }
+    }
+
     // 1. Instant: restore from localStorage
     try {
       const cached = localStorage.getItem(PROFILE_KEY)
@@ -54,40 +95,25 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       }
     } catch {}
 
-    // 2. Background: fetch from API to keep localStorage fresh
-    async function loadProfile() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      const token = session.access_token
-      const res = await fetch('/api/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (data.success && data.data) {
-        setProfile(data.data)
-        try { localStorage.setItem(PROFILE_KEY, JSON.stringify({ username: data.data.username, avatar_url: data.data.avatar_url })) } catch {}
-      }
-    }
-    loadProfile()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2. Session first, profile later
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionProfile(buildSessionProfile(session))
       if (!session) {
         setProfile(null)
         try { localStorage.removeItem(PROFILE_KEY) } catch {}
         return
       }
-      supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (!s) return
-        fetch('/api/profile', {
-          headers: { Authorization: `Bearer ${s.access_token}` },
-        }).then(r => r.json()).then(data => {
-          if (data.success && data.data) {
-            setProfile(data.data)
-            try { localStorage.setItem(PROFILE_KEY, JSON.stringify({ username: data.data.username, avatar_url: data.data.avatar_url })) } catch {}
-          }
-        })
-      })
+      void refreshProfile(session.access_token)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionProfile(buildSessionProfile(session))
+      if (!session) {
+        setProfile(null)
+        try { localStorage.removeItem(PROFILE_KEY) } catch {}
+        return
+      }
+      void refreshProfile(session.access_token)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -120,7 +146,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* 右侧：用户信息 */}
         <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-          {profile ? (
+          {displayProfile ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(o => !o)}
@@ -128,22 +154,22 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               >
                 {/* Avatar */}
                 <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {profile.avatar_url ? (
+                  {displayProfile.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={profile.avatar_url}
-                      alt={profile.username || ''}
+                      src={displayProfile.avatar_url}
+                      alt={displayProfile.username || displayProfile.email || ''}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-sm font-medium text-gray-900">
-                      {(profile.username || profile.email || '?').charAt(0).toUpperCase()}
+                      {(displayProfile.username || displayProfile.email || '?').charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
                 {/* Username */}
                 <span className="text-sm font-medium text-gray-900 max-w-24 truncate hidden sm:inline">
-                  {profile.username || profile.email?.split('@')[0] || '未设置用户名'}
+                  {displayProfile.username || displayProfile.email?.split('@')[0] || '未设置用户名'}
                 </span>
                 <svg className="w-3.5 h-3.5 text-gray-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
