@@ -117,6 +117,15 @@ button { font-family: inherit; cursor: pointer; }
   animation: auth-dialog-form-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.auth-dialog-scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.auth-dialog-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 .favorite-button-pop {
   animation: favorite-button-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }

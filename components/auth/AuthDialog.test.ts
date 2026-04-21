@@ -21,12 +21,17 @@ test('auth dialog and forms use dedicated motion hooks for overlay, panel, and c
   assert.match(globalSource, /@keyframes auth-dialog-form-in/);
 });
 
-test('auth dialog constrains small-screen height and scrolls its content region internally', async () => {
+test('auth dialog constrains small-screen height while hiding the internal scrollbar chrome', async () => {
   const source = await readFile(new URL('./AuthDialog.tsx', import.meta.url), 'utf8');
+  const globalSource = await readFile(new URL('../../app/globals.css', import.meta.url), 'utf8');
 
   assert.match(source, /max-h-\[min\(90svh,44rem\)\]/);
   assert.match(source, /overflow-y-auto/);
-  assert.match(source, /overscroll-contain/);
+  assert.match(source, /auth-dialog-scrollbar-hidden/);
+  assert.match(globalSource, /\.auth-dialog-scrollbar-hidden\s*\{/);
+  assert.match(globalSource, /scrollbar-width:\s*none/);
+  assert.match(globalSource, /\.auth-dialog-scrollbar-hidden::-webkit-scrollbar\s*\{/);
+  assert.match(globalSource, /display:\s*none/);
 });
 
 test('auth dialog overlay stays above the image preview lightbox overlay', async () => {

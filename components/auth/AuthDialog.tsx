@@ -181,7 +181,7 @@ export default function AuthDialog({
           </div>
         </div>
 
-        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
+        <div className="auth-dialog-scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
           <div key={activeTab} className="auth-dialog-form-enter">
             <AuthForms
               activeTab={activeTab}
