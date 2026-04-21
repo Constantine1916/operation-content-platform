@@ -4,14 +4,14 @@ import AuthModalButton from '@/components/auth/AuthModalButton';
 
 export default function PublicLandingPage() {
   return (
-    <div className="min-h-screen bg-[#f8f7f4]" style={{ fontFamily: "'Noto Sans SC', -apple-system, sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Noto Sans SC', -apple-system, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
         .font-serif-sc { font-family: 'Noto Serif SC', Georgia, serif; }
         .font-sans-sc { font-family: 'Noto Sans SC', -apple-system, sans-serif; }
       `}</style>
 
-      <nav className="fixed inset-x-0 top-0 z-50 bg-[#f8f7f4]/95 backdrop-blur-md">
+      <nav className="fixed inset-x-0 top-0 z-50 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <span className="font-serif-sc text-[18px] font-bold tracking-wide text-black">AI树洞</span>
           <div className="flex items-center gap-4">
