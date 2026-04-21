@@ -102,7 +102,7 @@ export default function AuthDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"
-        className={`auth-dialog-panel relative flex max-h-[min(90svh,44rem)] w-full max-w-[30rem] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.98))] shadow-[0_50px_140px_-56px_rgba(15,23,42,0.65)] ${
+        className={`auth-dialog-panel relative flex max-h-[calc(100svh-2rem)] w-full max-w-[30rem] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.98))] shadow-[0_50px_140px_-56px_rgba(15,23,42,0.65)] sm:max-h-[calc(100svh-4rem)] ${
           isClosing ? 'auth-dialog-panel-exit' : 'auth-dialog-panel-enter'
         }`}
         onClick={(event) => event.stopPropagation()}
