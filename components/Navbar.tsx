@@ -123,16 +123,18 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
         {/* 左侧：Logo */}
         <div className="flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={onMenuClick}
-            aria-label="打开导航菜单"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900 lg:hidden"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
+          {onMenuClick && (
+            <button
+              type="button"
+              onClick={onMenuClick}
+              aria-label="打开导航菜单"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900 lg:hidden"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+          )}
           <Link href="/overview" className="flex items-center min-w-0">
             <Image
               src="/assets/logo.png"

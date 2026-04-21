@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <AuthLayout>
+    <AuthLayout showSidebar={false}>
       <PublicLandingPage />
     </AuthLayout>
   );

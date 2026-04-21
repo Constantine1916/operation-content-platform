@@ -10,9 +10,11 @@ import { getAuthTabForPrivateRoute, isPrivateAppPath } from '@/lib/route-access'
 export default function AuthLayout({
   children,
   access = 'public',
+  showSidebar = true,
 }: {
   children: React.ReactNode;
   access?: 'public' | 'private';
+  showSidebar?: boolean;
 }) {
   const [authResolved, setAuthResolved] = useState(false);
   const [hasSession, setHasSession] = useState(false);
@@ -86,5 +88,5 @@ export default function AuthLayout({
     );
   }
 
-  return <MainLayout>{content}</MainLayout>;
+  return <MainLayout showSidebar={showSidebar}>{content}</MainLayout>;
 }
