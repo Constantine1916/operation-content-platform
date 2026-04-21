@@ -10,11 +10,12 @@ test('public landing page opens auth modal instead of linking to legacy auth pag
   assert.match(source, /AuthModalButton/);
 });
 
-test('public landing page uses a unified neutral page background instead of a warm tint base', async () => {
+test('public landing page matches the shared gray page background while keeping a brighter header', async () => {
   const source = await readFile(new URL('../components/public/PublicLandingPage.tsx', import.meta.url), 'utf8');
 
-  assert.match(source, /min-h-screen bg-white/);
+  assert.match(source, /min-h-screen bg-gray-50/);
   assert.match(source, /nav className="fixed inset-x-0 top-0 z-50 bg-white\/95/);
+  assert.doesNotMatch(source, /min-h-screen bg-white/);
   assert.doesNotMatch(source, /bg-\[#f8f7f4\]/);
 });
 

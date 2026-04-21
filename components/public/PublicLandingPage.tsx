@@ -4,7 +4,7 @@ import AuthModalButton from '@/components/auth/AuthModalButton';
 
 export default function PublicLandingPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Noto Sans SC', -apple-system, sans-serif" }}>
+    <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Noto Sans SC', -apple-system, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
         .font-serif-sc { font-family: 'Noto Serif SC', Georgia, serif; }
