@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
+import { formatBeijingDateTime } from '@/lib/beijing-time';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import type { PublicArticle } from '@/lib/server/public-content';
 
@@ -99,15 +100,6 @@ export default function PublicArticlesPage({
     await fetchArticles(nextPage, false);
   }, [fetchArticles, page]);
 
-  const formatDate = (value: string) => new Date(value).toLocaleString('zh-CN', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
   const handleCopy = (article: PublicArticle) => {
     const text = `${article.title}\n\n${article.content || ''}`.trim();
     navigator.clipboard.writeText(text).then(() => {
@@ -155,7 +147,7 @@ export default function PublicArticlesPage({
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${platformColors[article.platform] || 'bg-gray-50 text-gray-900 border-gray-200'}`}>
                       {platformNames[article.platform] || article.platform}
                     </span>
-                    <span className="text-[10px] text-gray-500">{formatDate(article.created_at)}</span>
+                    <span className="text-[10px] text-gray-500">{formatBeijingDateTime(article.created_at)}</span>
                   </div>
                   <FavoriteButton
                     isFavorite={getFavoriteButtonState(article.id, favoriteIds, pendingIds).isFavorite}
@@ -225,7 +217,7 @@ export default function PublicArticlesPage({
                     {platformNames[selectedArticle.platform] || selectedArticle.platform}
                   </span>
                   {selectedArticle.author && <span className="text-xs text-gray-900">@{selectedArticle.author}</span>}
-                  <span className="text-xs text-gray-900">{formatDate(selectedArticle.created_at)}</span>
+                  <span className="text-xs text-gray-900">{formatBeijingDateTime(selectedArticle.created_at)}</span>
                 </div>
                 <h2 className="text-base font-semibold text-gray-900 leading-snug">{selectedArticle.title}</h2>
               </div>

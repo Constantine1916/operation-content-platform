@@ -5,6 +5,7 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
+import { formatBeijingDateTime } from '@/lib/beijing-time';
 import type { PublicHotspot } from '@/lib/server/public-content';
 
 type HotspotGroup = { timeKey: string; label: string; items: PublicHotspot[] };
@@ -14,24 +15,19 @@ const PAGE_SIZE = 100;
 const hotspotActionButtonClasses =
   'inline-flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full border border-black/5 bg-white/92 text-gray-400 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-sm transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out hover:-translate-y-px hover:border-gray-300 hover:text-gray-700 hover:shadow-[0_14px_28px_-20px_rgba(15,23,42,0.38)] active:scale-95';
 
-function toBeijingLabel(date: string, time: string) {
-  if (!time) return date;
-  const [hours, minutes] = time.split(':');
-  return `${date.slice(5)} ${hours}:${minutes}`;
-}
-
 function groupByTime(hotspots: PublicHotspot[]): HotspotGroup[] {
   const map = new Map<string, PublicHotspot[]>();
   for (const hotspot of hotspots) {
-    const key = `${hotspot.collected_date}__${hotspot.collected_time}`;
+    const key = formatBeijingDateTime(hotspot.created_at);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(hotspot);
   }
 
-  return Array.from(map.entries()).map(([key, items]) => {
-    const [date, time] = key.split('__');
-    return { timeKey: key, label: toBeijingLabel(date, time), items };
-  });
+  return Array.from(map.entries()).map(([key, items]) => ({
+    timeKey: key,
+    label: key,
+    items,
+  }));
 }
 
 export default function PublicHotspotsPage({

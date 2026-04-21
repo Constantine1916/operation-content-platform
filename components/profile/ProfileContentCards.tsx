@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { formatBeijingDateTime } from '@/lib/beijing-time';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 
@@ -44,6 +45,7 @@ export interface ProfileContentHotspot {
   summary: string;
   url: string;
   热度: string;
+  created_at: string;
   collected_date: string;
   collected_time: string;
 }
@@ -307,7 +309,7 @@ export function ProfileHotspotCard({
             </span>
           )}
           <span className="text-[10px] text-gray-400">
-            {hotspot.collected_date} {hotspot.collected_time?.slice(0, 5)}
+            {formatBeijingDateTime(hotspot.created_at)}
           </span>
         </div>
         <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">{hotspot.title}</h3>
@@ -346,7 +348,7 @@ export function ProfileArticleCard({
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">{article.platform}</div>
-          <div className="mt-1 text-[10px] text-gray-500">{new Date(article.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+          <div className="mt-1 text-[10px] text-gray-500">{formatBeijingDateTime(article.created_at)}</div>
         </div>
         <FavoriteButton
           isFavorite={isFavorite}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getBeijingDateRange } from '@/lib/beijing-date-range';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,15 +48,14 @@ export async function GET(request: NextRequest) {
       query = query.not('source', 'ilike', '%twitter%').not('source', 'ilike', '%@%');
     }
 
-    // 日期筛选
+    // 日期筛选：按 created_at 对应的北京时间自然日过滤
     if (date) {
-      query = query.eq('collected_date', date);
+      const { startIso, endIso } = getBeijingDateRange(date);
+      query = query.gte('created_at', startIso).lt('created_at', endIso);
     }
 
-    // 排序：按日期和时间倒序
-    query = query
-      .order('collected_date', { ascending: false })
-      .order('collected_time', { ascending: false, nullsFirst: false });
+    // 排序：按入库时间倒序
+    query = query.order('created_at', { ascending: false });
 
     // 分页
     const from = (page - 1) * limit;

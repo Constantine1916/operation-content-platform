@@ -48,6 +48,7 @@ export interface PublicHotspot {
   summary: string;
   url: string;
   热度: string;
+  created_at: string;
   collected_date: string;
   collected_time: string;
 }
@@ -184,14 +185,14 @@ export async function getPublicHotspots({
   }
 
   if (date) {
-    query = query.eq('collected_date', date);
+    const { startIso, endIso } = getBeijingDateRange(date);
+    query = query.gte('created_at', startIso).lt('created_at', endIso);
   }
 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   const { data, error, count } = await query
-    .order('collected_date', { ascending: false })
-    .order('collected_time', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
     .range(from, to);
 
   if (error) {

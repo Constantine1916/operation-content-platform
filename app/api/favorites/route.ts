@@ -88,7 +88,7 @@ async function fetchFavoriteItems(
   if (contentType === 'hotspot') {
     const { data, error } = await db
       .from('hotspots')
-      .select('id, title, category, source, summary, url, 热度, collected_date, collected_time')
+      .select('id, title, category, source, summary, url, 热度, created_at, collected_date, collected_time')
       .in('id', contentIds);
 
     if (error) throw error;
