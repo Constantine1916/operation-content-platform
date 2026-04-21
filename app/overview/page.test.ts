@@ -33,3 +33,11 @@ test('overview is public and uses the shared auth layout', async () => {
   assert.match(source, /AuthLayout/);
   assert.doesNotMatch(source, /PrivateAppShell/);
 });
+
+test('overview fetches image totals from the public gallery endpoint without auth gating', async () => {
+  const source = await readFile(overviewPageUrl, 'utf8');
+
+  assert.match(source, /fetch\('\/api\/gallery\?limit=1'\)/);
+  assert.doesNotMatch(source, /token\s*\?\s*fetch\('\/api\/gallery\?limit=1'/);
+  assert.doesNotMatch(source, /Promise\.resolve\(null\)/);
+});

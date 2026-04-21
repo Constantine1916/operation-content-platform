@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import AuthLayout from '@/components/AuthLayout';
-import { supabase } from '@/lib/supabase';
 
 interface AllStats {
   hotspots: number;
@@ -37,23 +36,18 @@ function OverviewPageContent() {
 
   const fetchAllStats = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
       const platforms = ['xiaohongshu', 'zhihu', 'wechat', 'x', 'reddit'] as const;
 
       const [hotspotsRes, videoRes, galleryRes, ...articleRess] = await Promise.all([
         fetch('/api/hotspots?limit=1'),
         fetch('/api/ai-video?limit=1'),
-        token
-          ? fetch('/api/gallery?limit=1', { headers: { Authorization: `Bearer ${token}` } })
-          : Promise.resolve(null),
+        fetch('/api/gallery?limit=1'),
         ...platforms.map(p => fetch(`/api/articles?platform=${p}&limit=1`)),
       ]);
 
       const hotspotsData = await hotspotsRes.json();
       const videoData = await videoRes.json();
-      const galleryData = galleryRes ? await galleryRes.json() : { total: 0 };
+      const galleryData = await galleryRes.json();
 
       const articleCounts: Record<string, number> = {};
       for (let i = 0; i < platforms.length; i++) {
