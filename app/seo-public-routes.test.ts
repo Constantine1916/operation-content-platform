@@ -42,6 +42,20 @@ test('public routes are server entries with route metadata', async () => {
   }
 });
 
+test('data-backed public listing pages opt out of static html caching', async () => {
+  const dataBackedPages = [
+    './articles/page.tsx',
+    './hotspots/page.tsx',
+    './ai-video/page.tsx',
+    './ai-gallery/page.tsx',
+  ];
+
+  for (const pagePath of dataBackedPages) {
+    const source = await read(pagePath);
+    assert.match(source, /export const dynamic = 'force-dynamic'/);
+  }
+});
+
 test('overview and agent are public pages that use the shared auth layout', async () => {
   const publicClientPages = [
     './overview/page.tsx',
