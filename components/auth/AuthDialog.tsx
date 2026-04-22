@@ -101,7 +101,7 @@ export default function AuthDialog({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="auth-dialog-title"
+        aria-label={activeTab === 'register' ? '注册弹窗' : '登录弹窗'}
         className={`auth-dialog-panel relative flex max-h-[calc(100svh-2rem)] w-full max-w-[30rem] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.98))] shadow-[0_50px_140px_-56px_rgba(15,23,42,0.65)] sm:max-h-[calc(100svh-4rem)] ${
           isClosing ? 'auth-dialog-panel-exit' : 'auth-dialog-panel-enter'
         }`}
@@ -125,12 +125,6 @@ export default function AuthDialog({
               </div>
               <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
                 {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
-              </p>
-              <h2 id="auth-dialog-title" className="mt-2 text-[1.95rem] font-semibold tracking-[-0.03em] text-gray-950">
-                {activeTab === 'login' ? '登录后继续浏览' : '注册后开始使用'}
-              </h2>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                继续登录后即可同步收藏、下载与个人中心。
               </p>
             </div>
             <button
@@ -181,7 +175,11 @@ export default function AuthDialog({
           </div>
         </div>
 
-        <div className="auth-dialog-scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
+        <div className={`auth-dialog-scrollbar-hidden relative min-h-0 flex-1 overscroll-contain px-6 sm:px-8 ${
+          activeTab === 'register'
+            ? 'overflow-y-hidden pb-5 pt-4 sm:pb-6 sm:pt-4'
+            : 'overflow-y-auto pb-6 pt-5 sm:pb-8'
+        }`}>
           <div key={activeTab} className="auth-dialog-form-enter">
             <AuthForms
               activeTab={activeTab}
