@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getRegisterUserLookupFailure } from '@/lib/register-auth-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,11 @@ export async function POST(request: NextRequest) {
 
     // Verify the user actually exists in auth.users to prevent spoofing
     const { data: { user }, error: userError } = await db.auth.admin.getUserById(user_id);
-    if (userError || !user) {
+    const lookupFailure = getRegisterUserLookupFailure(userError, user);
+    if (lookupFailure) {
+      return NextResponse.json({ error: lookupFailure.message }, { status: lookupFailure.status });
+    }
+    if (!user) {
       return NextResponse.json({ error: '用户不存在' }, { status: 400 });
     }
 

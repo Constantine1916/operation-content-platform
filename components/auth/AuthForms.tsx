@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import {
+  getFriendlyRegisterErrorMessage,
+  isExistingEmailSignUpResult,
+} from '@/lib/register-auth-errors';
 import type { AuthModalTab } from '@/lib/route-access';
 import type { ResumeAuthAction } from './AuthModalProvider';
 import { completePostAuthSuccess } from './auth-route-launcher-utils';
@@ -238,12 +242,17 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
       }
 
       if (signUpError) {
-        setError(signUpError.message);
+        setError(getFriendlyRegisterErrorMessage(signUpError));
         return;
       }
 
       if (!data.user) {
         setError('注册失败，请重试');
+        return;
+      }
+
+      if (isExistingEmailSignUpResult(data.user, data.session)) {
+        setError('该邮箱已注册，请直接登录，或使用找回密码继续。');
         return;
       }
 
@@ -289,7 +298,7 @@ function RegisterForm({ redirectTo, resumeAction, onClose, onBusyChange, onTabCh
         return;
       }
 
-      setError(err.message || '注册失败');
+      setError(getFriendlyRegisterErrorMessage(err));
     } finally {
       if (requestTokenRef.current === requestToken) {
         setLoading(false);
