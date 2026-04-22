@@ -83,6 +83,13 @@ export interface PublicGalleryImage {
   avatar_url: string | null;
 }
 
+export interface PublicProfileSummary {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  bio: string | null;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   page: number;
@@ -379,4 +386,48 @@ export async function getPublicGalleryImages({
     totalPages: Math.ceil(total / limit),
     hasMore: from + limit < total,
   };
+}
+
+export async function getPublicProfileByUsername(username: string): Promise<PublicProfileSummary | null> {
+  if (usesPlaceholderConfig()) {
+    return null;
+  }
+
+  const db = createPublicContentClient();
+  const { data, error } = await db
+    .from('profiles')
+    .select('id, username, avatar_url, bio')
+    .eq('username', username)
+    .single();
+
+  if (error) {
+    return null;
+  }
+
+  return (data ?? null) as PublicProfileSummary | null;
+}
+
+export async function getPublicProfileUsernames(): Promise<string[]> {
+  if (usesPlaceholderConfig()) {
+    return [];
+  }
+
+  const db = createPublicContentClient();
+  const { data, error } = await db
+    .from('profiles')
+    .select('username')
+    .not('username', 'is', null)
+    .order('username', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return Array.from(
+    new Set(
+      (data ?? [])
+        .map((item: any) => item.username)
+        .filter((username: unknown): username is string => typeof username === 'string' && username.length > 0),
+    ),
+  );
 }

@@ -73,6 +73,8 @@ test('public profile stays a server entry', async () => {
   const source = await read('./profile/[username]/page.tsx');
 
   assert.doesNotMatch(source, /^'use client';?/m);
+  assert.match(source, /generateMetadata/);
+  assert.match(source, /canonical:\s*`?\/profile\//);
 });
 
 test('public routes opt into the session-aware auth shell to preserve signed-in chrome', async () => {
@@ -114,8 +116,12 @@ test('robots and sitemap files define the public crawl surface', async () => {
 
   assert.match(robotsSource, /User-Agent|rules|allow/i);
   assert.match(sitemapSource, /['"]\/['"]/);
+  assert.match(sitemapSource, /['"]\/overview['"]/);
+  assert.match(sitemapSource, /['"]\/agent['"]/);
   assert.match(sitemapSource, /['"]\/articles['"]/);
   assert.match(sitemapSource, /['"]\/hotspots['"]/);
   assert.match(sitemapSource, /['"]\/ai-video['"]/);
   assert.match(sitemapSource, /['"]\/ai-gallery['"]/);
+  assert.match(sitemapSource, /getPublicProfileUsernames/);
+  assert.match(sitemapSource, /\/profile\/\$\{/);
 });

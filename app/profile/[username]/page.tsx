@@ -1,7 +1,9 @@
 // app/profile/[username]/page.tsx
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import AuthLayout from '@/components/AuthLayout';
+import { getPublicProfileByUsername } from '@/lib/server/public-content';
 import { ProfileImage } from './ImageGrid';
 import ProfileTabs from './ProfileTabs';
 
@@ -16,6 +18,36 @@ function serviceClient() {
 
 const PAGE_LIMIT = 20;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: { username: string };
+}): Promise<Metadata> {
+  const profile = await getPublicProfileByUsername(params.username);
+
+  if (!profile) {
+    return {
+      title: '用户不存在',
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = `${profile.username} 的主页`;
+  const description = profile.bio?.trim()
+    || `浏览 ${profile.username} 在 AI树洞发布的公开 AI 图片与视频内容。`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/profile/${profile.username}`,
+    },
+  };
+}
+
 export default async function PublicProfilePage({
   params,
 }: {
@@ -23,15 +55,9 @@ export default async function PublicProfilePage({
 }) {
   const { username } = params;
   const db = serviceClient();
+  const profile = await getPublicProfileByUsername(username);
 
-  // 1. Fetch profile
-  const { data: profile, error: profileError } = await db
-    .from('profiles')
-    .select('id, username, avatar_url, bio')
-    .eq('username', username)
-    .single();
-
-  if (profileError || !profile) return notFound();
+  if (!profile) return notFound();
 
   // 2. Fetch public images and total videos
   const [
