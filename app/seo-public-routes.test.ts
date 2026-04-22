@@ -42,7 +42,7 @@ test('public routes are server entries with route metadata', async () => {
   }
 });
 
-test('data-backed public listing pages opt out of static html caching', async () => {
+test('data-backed public listing pages use short ISR windows instead of fully dynamic rendering', async () => {
   const dataBackedPages = [
     './articles/page.tsx',
     './hotspots/page.tsx',
@@ -52,7 +52,8 @@ test('data-backed public listing pages opt out of static html caching', async ()
 
   for (const pagePath of dataBackedPages) {
     const source = await read(pagePath);
-    assert.match(source, /export const dynamic = 'force-dynamic'/);
+    assert.match(source, /export const revalidate = 60/);
+    assert.doesNotMatch(source, /export const dynamic = 'force-dynamic'/);
   }
 });
 

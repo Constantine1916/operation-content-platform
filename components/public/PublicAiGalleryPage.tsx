@@ -38,8 +38,11 @@ export default function PublicAiGalleryPage({
     setFavoriteIds,
   });
 
-  const fetchPage = useCallback(async (page: number, isFirst = false) => {
-    if (isFirst) setLoading(true); else setLoadingMore(true);
+  const fetchPage = useCallback(async (page: number, isFirst = false, silent = false) => {
+    if (!silent) {
+      setError(null);
+      if (isFirst) setLoading(true); else setLoadingMore(true);
+    }
     try {
       const res = await fetch(`/api/gallery?page=${page}&limit=${PAGE_LIMIT}`);
       const data = await res.json();
@@ -48,13 +51,23 @@ export default function PublicAiGalleryPage({
       setHasMore(Boolean(data.hasMore));
       pageRef.current = page;
     } catch (e: any) {
-      setError(e.message);
-      setHasMore(false);
+      if (silent) {
+        console.error(e);
+      } else {
+        setError(e.message);
+        setHasMore(false);
+      }
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!silent) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    void fetchPage(1, initialImages.length === 0, initialImages.length > 0);
+  }, [fetchPage, initialImages.length]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || loadingMore) return;

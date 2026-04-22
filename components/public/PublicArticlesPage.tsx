@@ -37,8 +37,10 @@ export default function PublicArticlesPage({
     setFavoriteIds,
   });
 
-  const fetchArticles = useCallback(async (pageNum: number, isFirst = false) => {
-    if (isFirst) setLoading(true); else setLoadingMore(true);
+  const fetchArticles = useCallback(async (pageNum: number, isFirst = false, silent = false) => {
+    if (!silent) {
+      if (isFirst) setLoading(true); else setLoadingMore(true);
+    }
     try {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
@@ -57,10 +59,20 @@ export default function PublicArticlesPage({
       console.error(error);
       setHasMore(false);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!silent) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [selectedAuthor, selectedPlatform]);
+
+  useEffect(() => {
+    if (selectedPlatform || selectedAuthor) {
+      return;
+    }
+
+    void fetchArticles(0, initialArticles.length === 0, initialArticles.length > 0);
+  }, [fetchArticles, initialArticles.length, selectedAuthor, selectedPlatform]);
 
   useEffect(() => {
     if (!hasMountedRef.current) {

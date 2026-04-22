@@ -42,8 +42,11 @@ export default function PublicAiVideoPage({
     setFavoriteIds,
   });
 
-  const fetchPage = useCallback(async (page: number, model: string, isFirst = false) => {
-    if (isFirst) setLoading(true); else setLoadingMore(true);
+  const fetchPage = useCallback(async (page: number, model: string, isFirst = false, silent = false) => {
+    if (!silent) {
+      setError(null);
+      if (isFirst) setLoading(true); else setLoadingMore(true);
+    }
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_LIMIT) });
       if (model !== 'all') params.set('model', model);
@@ -54,13 +57,23 @@ export default function PublicAiVideoPage({
       setHasMore((data.pagination?.page ?? 1) < (data.pagination?.totalPages ?? 1));
       pageRef.current = page;
     } catch (e: any) {
-      setError(e.message);
-      setHasMore(false);
+      if (silent) {
+        console.error(e);
+      } else {
+        setError(e.message);
+        setHasMore(false);
+      }
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!silent) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    void fetchPage(1, 'all', initialVideos.length === 0, initialVideos.length > 0);
+  }, [fetchPage, initialVideos.length]);
 
   useEffect(() => {
     if (!hasMountedRef.current) {

@@ -52,8 +52,15 @@ export default function PublicHotspotsPage({
     setFavoriteIds,
   });
 
-  const fetchHotspots = useCallback(async (pageNum: number, isFirst = false, tab: SourceTab = sourceTab) => {
-    if (isFirst) setLoading(true); else setLoadingMore(true);
+  const fetchHotspots = useCallback(async (
+    pageNum: number,
+    isFirst = false,
+    tab: SourceTab = sourceTab,
+    silent = false,
+  ) => {
+    if (!silent) {
+      if (isFirst) setLoading(true); else setLoadingMore(true);
+    }
     try {
       const params = new URLSearchParams({ limit: String(PAGE_SIZE), page: String(pageNum + 1) });
       if (tab !== 'all') params.set('source_type', tab);
@@ -65,10 +72,20 @@ export default function PublicHotspotsPage({
       console.error(error);
       setHasMore(false);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!silent) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [sourceTab]);
+
+  useEffect(() => {
+    if (sourceTab !== 'all') {
+      return;
+    }
+
+    void fetchHotspots(0, initialHotspots.length === 0, 'all', initialHotspots.length > 0);
+  }, [fetchHotspots, initialHotspots.length, sourceTab]);
 
   useEffect(() => {
     if (!hasMountedRef.current) {

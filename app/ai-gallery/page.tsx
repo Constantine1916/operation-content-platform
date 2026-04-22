@@ -3,7 +3,7 @@ import AuthLayout from '@/components/AuthLayout';
 import PublicAiGalleryPage from '@/components/public/PublicAiGalleryPage';
 import { getPublicGalleryImages } from '@/lib/server/public-content';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'AI 图片',
