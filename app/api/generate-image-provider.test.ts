@@ -81,6 +81,17 @@ test('generate image UI preserves provider errors returned by polling', async ()
   assert.match(source, /error:\s*item\.error/);
 });
 
+test('generate image UI uses capped fake progress while tasks are generating', async () => {
+  const source = await readFile(generatePageUrl, 'utf8');
+
+  assert.match(source, /FAKE_PROGRESS_CAP\s*=\s*95/);
+  assert.match(source, /FAKE_PROGRESS_INTERVAL_MS\s*=\s*1000/);
+  assert.match(source, /advanceFakeProgress/);
+  assert.match(source, /mergePolledProgress/);
+  assert.match(source, /latestGroupsRef/);
+  assert.match(source, /Math\.min\(FAKE_PROGRESS_CAP/);
+});
+
 test('environment documentation exposes the new image generation provider variables', async () => {
   const [envExample, readme] = await Promise.all([
     readFile(envExampleUrl, 'utf8'),

@@ -33,6 +33,10 @@ const STATUS_LABEL: Record<number, string> = {
   0: '等待中', 1: '排队中', 2: '生成中', 3: '完成', 4: '失败',
 };
 
+const FAKE_PROGRESS_CAP = 95;
+const FAKE_PROGRESS_INTERVAL_MS = 1000;
+const FAKE_PROGRESS_STEP = 2;
+
 function groupStatus(subtasks: SubTask[]): number {
   if (subtasks.every(t => t.status === 3)) return 3;
   if (subtasks.some(t => t.status === 4 && subtasks.every(t2 => t2.status === 3 || t2.status === 4))) return 4;
@@ -46,6 +50,44 @@ function groupProcess(subtasks: SubTask[]): number {
   return Math.round(subtasks.reduce((s, t) => s + (t.status === 3 ? 100 : t.process), 0) / subtasks.length);
 }
 
+function advanceFakeProgress(groups: PromptGroup[]): PromptGroup[] {
+  let changed = false;
+  const nextGroups = groups.map(group => {
+    let groupChanged = false;
+    const subtasks = group.subtasks.map(subtask => {
+      if (subtask.status !== 2) return subtask;
+      const current = Math.max(subtask.process ?? 0, 1);
+      const process = Math.min(FAKE_PROGRESS_CAP, current + FAKE_PROGRESS_STEP);
+      if (process === subtask.process) return subtask;
+      changed = true;
+      groupChanged = true;
+      return { ...subtask, process };
+    });
+
+    return groupChanged ? { ...group, subtasks } : group;
+  });
+
+  return changed ? nextGroups : groups;
+}
+
+function mergePolledProgress(subtask: SubTask, item: any): number {
+  if (item.status === 3) return 100;
+  if (item.status === 4) return 0;
+  if (item.status === 2) {
+    return Math.min(FAKE_PROGRESS_CAP, Math.max(subtask.process ?? 0, item.process ?? 0, 1));
+  }
+  return item.process ?? 0;
+}
+
+function findSubTaskByTaskId(groups: PromptGroup[], taskId: string | null): SubTask | null {
+  if (!taskId) return null;
+  for (const group of groups) {
+    const found = group.subtasks.find(subtask => subtask.task_id === taskId);
+    if (found) return found;
+  }
+  return null;
+}
+
 function GenerateImgPageInner() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -57,6 +99,8 @@ function GenerateImgPageInner() {
   const [error, setError] = useState('');
   const tokenRef = useRef<string>('');
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fakeProgressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const latestGroupsRef = useRef<PromptGroup[]>([]);
   const currentBatchIds = useRef<Set<string>>(new Set());
 
   // 全局管理模式（跨任务选图）
@@ -122,8 +166,28 @@ function GenerateImgPageInner() {
       setChecking(false);
       loadHistory(token);
     });
-    return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
   }, [handleAuthRequired, router]);
+
+  useEffect(() => {
+    latestGroupsRef.current = groups;
+  }, [groups]);
+
+  useEffect(() => {
+    fakeProgressTimerRef.current = setInterval(() => {
+      setGroups(prev => {
+        const next = advanceFakeProgress(prev);
+        latestGroupsRef.current = next;
+        return next;
+      });
+    }, FAKE_PROGRESS_INTERVAL_MS);
+
+    return () => {
+      if (fakeProgressTimerRef.current) clearInterval(fakeProgressTimerRef.current);
+    };
+  }, []);
 
   function buildGroupsFromHistory(tasks: any[]): PromptGroup[] {
     const map = new Map<string, { subtasks: SubTask[]; latestAt: number }>();
@@ -240,10 +304,11 @@ function GenerateImgPageInner() {
             if (!sub.task_id) return sub;
             const item = data.items?.find((it: any) => it.task_id === sub.task_id);
             if (!item) return sub;
+            const latestSub = findSubTaskByTaskId(latestGroupsRef.current, sub.task_id) ?? sub;
             return {
               ...sub,
               status: item.status,
-              process: item.process,
+              process: mergePolledProgress(latestSub, item),
               error: item.error ?? undefined,
               images: item.images?.length ? item.images : sub.images,
             };
@@ -263,6 +328,7 @@ function GenerateImgPageInner() {
         }
 
         setGroups(updated);
+        latestGroupsRef.current = updated;
         const stillPending = updated.flatMap(g => g.subtasks).filter(t => t.status !== 3 && t.status !== 4);
         if (stillPending.length > 0) {
           pollTimerRef.current = setTimeout(() => doPoll(updated), 3000);
