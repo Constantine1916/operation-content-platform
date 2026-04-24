@@ -19,6 +19,15 @@ test('sidebar marks md2image as a private item while keeping public items naviga
   assert.match(source, /title:\s*'MD转图片'[\s\S]*access:\s*'private'/);
 });
 
+test('sidebar exposes AI image generation to all signed-in users', async () => {
+  const source = await readFile(sidebarUrl, 'utf8');
+
+  assert.match(source, /title:\s*'AI 生图'[\s\S]*href:\s*'\/generate-img'[\s\S]*access:\s*'private'/);
+  assert.doesNotMatch(source, /svipMenuItems/);
+  assert.doesNotMatch(source, /isSVIP/);
+  assert.doesNotMatch(source, /SVIP 专属菜单/);
+});
+
 test('sidebar places the agent menu item after AI 图片', async () => {
   const source = await readFile(sidebarUrl, 'utf8');
 

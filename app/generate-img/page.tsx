@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PrivateAppShell from '@/components/PrivateAppShell';
 import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler';
@@ -109,7 +108,6 @@ function getGeneratedPreviewItems(groups: PromptGroup[]): ImagePreviewItem[] {
 }
 
 function GenerateImgPageInner() {
-  const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [prompts, setPrompts] = useState<string[]>(['']);
   const [counts, setCounts] = useState<number[]>([1]);
@@ -129,6 +127,7 @@ function GenerateImgPageInner() {
   const [actionLoading, setActionLoading] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
+  const [vipLevel, setVipLevel] = useState<number | null>(null);
   const handleAuthRequired = useAuthRequiredHandler({
     defaultTab: getAuthTabForPrivateRoute(),
     redirectTo: '/generate-img',
@@ -173,25 +172,17 @@ function GenerateImgPageInner() {
       tokenRef.current = token;
 
       const cached = readVipCache(userId);
-      if (cached !== null) {
-        if (cached < 2) { router.replace('/overview'); return; }
-        setChecking(false);
-        loadHistory(token);
-        refreshVipCache(userId, token).then(fresh => {
-          if (fresh !== null && fresh < 2) router.replace('/overview');
-        });
-        return;
-      }
-
-      const fresh = await refreshVipCache(userId, token);
-      if (fresh === null || fresh < 2) { router.replace('/overview'); return; }
+      if (cached !== null) setVipLevel(cached);
       setChecking(false);
       loadHistory(token);
+      refreshVipCache(userId, token).then(fresh => {
+        if (fresh !== null) setVipLevel(fresh);
+      });
     });
     return () => {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
-  }, [handleAuthRequired, router]);
+  }, [handleAuthRequired]);
 
   useEffect(() => {
     latestGroupsRef.current = groups;
@@ -540,7 +531,10 @@ function GenerateImgPageInner() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="mb-6 sm:mb-8">
         <h1 className="mb-1 text-xl font-semibold text-gray-900 sm:text-2xl">AI 生图</h1>
-        <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Image Generation · SVIP</p>
+        <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Image Generation</p>
+        <p className="mt-2 text-xs text-gray-500">
+          {vipLevel !== null && vipLevel >= 1 ? 'VIP/SVIP 不限量' : '普通用户每小时 20 个任务，VIP/SVIP 不限量'}
+        </p>
       </div>
 
       {/* Prompt 输入区 */}

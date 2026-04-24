@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const submitRouteUrl = new URL('./generate-image/submit/route.ts', import.meta.url);
 const pollRouteUrl = new URL('./generate-image/poll/route.ts', import.meta.url);
+const historyRouteUrl = new URL('./generate-image/history/route.ts', import.meta.url);
 const generatePageUrl = new URL('../generate-img/page.tsx', import.meta.url);
 const envExampleUrl = new URL('../../.env.example', import.meta.url);
 const readmeUrl = new URL('../../README.md', import.meta.url);
@@ -112,6 +113,40 @@ test('generate image UI opens generated images in the shared image preview light
   assert.match(source, /onClick=\{\(\) => \{/);
   assert.match(source, /setSelectedPreviewIndex\(previewIndex\)/);
   assert.match(source, /selectedIndex=\{selectedPreviewIndex\}/);
+});
+
+test('generate image APIs allow authenticated users instead of SVIP-only access', async () => {
+  const sources = await Promise.all([
+    readFile(submitRouteUrl, 'utf8'),
+    readFile(pollRouteUrl, 'utf8'),
+    readFile(historyRouteUrl, 'utf8'),
+  ]);
+  const joined = sources.join('\n');
+
+  assert.doesNotMatch(joined, /requireSVIP/);
+  assert.doesNotMatch(joined, /需要 SVIP 权限/);
+  assert.match(joined, /requireImageGenerationUser/);
+});
+
+test('normal image generation users are limited to 20 submitted tasks per rolling hour', async () => {
+  const source = await readFile(new URL('../../lib/server/image-generation-access.ts', import.meta.url), 'utf8');
+
+  assert.match(source, /NORMAL_USER_HOURLY_TASK_LIMIT\s*=\s*20/);
+  assert.match(source, /NORMAL_USER_RATE_WINDOW_MS\s*=\s*60\s*\*\s*60\s*\*\s*1000/);
+  assert.match(source, /vipLevel\s*>=\s*1/);
+  assert.match(source, /\.select\('id',\s*\{\s*count:\s*'exact',\s*head:\s*true\s*\}\)/);
+  assert.match(source, /\.gte\('created_at',\s*cutoff\)/);
+  assert.match(source, /status:\s*429/);
+});
+
+test('generate image UI is visible to signed-in non-SVIP users with the normal quota copy', async () => {
+  const source = await readFile(generatePageUrl, 'utf8');
+
+  assert.doesNotMatch(source, /cached\s*<\s*2/);
+  assert.doesNotMatch(source, /fresh\s*!==\s*null\s*&&\s*fresh\s*<\s*2/);
+  assert.doesNotMatch(source, /Image Generation · SVIP/);
+  assert.match(source, /普通用户每小时 20 个任务/);
+  assert.match(source, /VIP\/SVIP 不限量/);
 });
 
 test('environment documentation exposes the new image generation provider variables', async () => {

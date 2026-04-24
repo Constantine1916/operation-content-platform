@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Popover } from 'antd'
 import { supabase } from '@/lib/supabase'
-import { readVipCache, refreshVipCache } from '@/lib/vip-cache'
 import { useAuthModal } from '@/components/auth/AuthModalProvider'
 import { getAuthTabForPrivateRoute } from '@/lib/route-access'
 
@@ -47,7 +46,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [hasSession, setHasSession] = useState(false)
-  const [isSVIP, setIsSVIP] = useState(false)
 
   useEffect(() => {
     // 用北京时间（UTC+8）计算今日日期，避免 UTC 与本地日期不一致
@@ -77,32 +75,18 @@ export default function Sidebar({ className = '' }: SidebarProps) {
   useEffect(() => {
     let mounted = true
 
-    async function applySessionState(session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) {
+    function applySessionState(session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) {
       if (!mounted) return
 
       setHasSession(Boolean(session))
-
-      if (!session) {
-        setIsSVIP(false)
-        return
-      }
-
-      const userId = session.user.id
-      const token = session.access_token
-      const cached = readVipCache(userId)
-      if (cached !== null) setIsSVIP(cached >= 2)
-
-      const fresh = await refreshVipCache(userId, token)
-      if (!mounted || fresh === null) return
-      setIsSVIP(fresh >= 2)
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      void applySessionState(session)
+      applySessionState(session)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applySessionState(session)
+      applySessionState(session)
     })
 
     return () => {
@@ -174,24 +158,22 @@ export default function Sidebar({ className = '' }: SidebarProps) {
       ),
     },
     {
+      title: 'AI 生图',
+      href: '/generate-img',
+      access: 'private' as const,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      ),
+    },
+    {
       title: 'Agent 智能体',
       href: '/agent',
       access: 'public' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3.75H7.5A2.25 2.25 0 005.25 6v1.5m0 9V18A2.25 2.25 0 007.5 20.25H9m6-16.5h1.5A2.25 2.25 0 0118.75 6v1.5m0 9V18A2.25 2.25 0 0116.5 20.25H15M8.25 9.75h7.5m-7.5 4.5h4.5" />
-        </svg>
-      ),
-    },
-  ]
-
-  const svipMenuItems = [
-    {
-      title: 'AI 生图',
-      href: '/generate-img',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
       ),
     },
@@ -244,34 +226,6 @@ export default function Sidebar({ className = '' }: SidebarProps) {
             );
           })}
 
-          {/* SVIP 专属菜单 */}
-          {isSVIP && (
-            <>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-widest mt-5 mb-3 px-3 flex items-center gap-2">
-                SVIP
-                <span className="text-[9px] bg-gray-900 text-white px-1.5 py-0.5 rounded-full tracking-normal normal-case font-medium">专属</span>
-              </div>
-              {svipMenuItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                      isActive
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-900 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-900'}`}>
-                      {item.icon}
-                    </span>
-                    <span className="text-sm font-medium">{item.title}</span>
-                  </Link>
-                );
-              })}
-            </>
-          )}
         </nav>
 
         {/* 底部统计 */}

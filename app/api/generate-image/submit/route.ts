@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { authRequiredResponse } from '@/lib/server/auth-required-response';
+import {
+  enforceImageGenerationSubmitLimit,
+  requireImageGenerationUser,
+  type ImageGenerationUser,
+} from '@/lib/server/image-generation-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,22 +16,6 @@ function serviceClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
-}
-
-async function requireSVIP(token: string): Promise<string> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) throw Object.assign(new Error('AUTH_REQUIRED'), { status: 401 });
-
-  const { data: profile } = await supabase
-    .from('profiles').select('vip_level').eq('id', user.id).single();
-  if (!profile || profile.vip_level < 2)
-    throw Object.assign(new Error('需要 SVIP 权限'), { status: 403 });
-  return user.id;
 }
 
 function normalizePrompts(input: unknown): string[] {
@@ -46,11 +35,11 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) return authRequiredResponse();
 
-    let userId: string;
-    try { userId = await requireSVIP(token); }
+    let user: ImageGenerationUser;
+    try { user = await requireImageGenerationUser(token); }
     catch (e: any) {
       if (e?.status === 401) return authRequiredResponse();
-      return NextResponse.json({ error: e.message }, { status: e.status ?? 403 });
+      return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
     }
 
     const body = await request.json();
@@ -63,8 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     const db = serviceClient();
+    await enforceImageGenerationSubmitLimit(db, user, prompts.length);
+
     const rows = prompts.map(prompt => ({
-      user_id: userId,
+      user_id: user.userId,
       prompt,
       task_id: crypto.randomUUID(),
       status: 1,
