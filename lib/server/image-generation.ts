@@ -2,7 +2,7 @@ const IMAGE_MODEL = 'gpt-image-2';
 const IMAGE_SIZE = '1024x1024';
 const IMAGE_QUALITY = 'medium';
 const IMAGE_FORMAT = 'png';
-const DEFAULT_IMAGE_GENERATION_TIMEOUT_MS = 240_000;
+const DEFAULT_IMAGE_GENERATION_TIMEOUT_MS = 285_000;
 
 export type GeneratedImage = {
   url: string;

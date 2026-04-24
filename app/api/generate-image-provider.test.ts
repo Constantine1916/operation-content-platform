@@ -68,6 +68,16 @@ test('image generation provider has a timeout shorter than the Vercel function d
   assert.match(source, /signal:/);
 });
 
+test('image generation default timeout covers observed slow provider responses with Vercel margin', async () => {
+  const source = await readFile(new URL('../../lib/server/image-generation.ts', import.meta.url), 'utf8');
+  const match = source.match(/DEFAULT_IMAGE_GENERATION_TIMEOUT_MS\s*=\s*([\d_]+)/);
+  assert.ok(match, 'DEFAULT_IMAGE_GENERATION_TIMEOUT_MS must be defined');
+
+  const timeoutMs = Number(match[1].replace(/_/g, ''));
+  assert.ok(timeoutMs >= 270_000, 'default timeout must cover 245s provider responses plus margin');
+  assert.ok(timeoutMs <= 285_000, 'default timeout must leave time for DB writes before Vercel maxDuration');
+});
+
 test('generate image UI describes the new one-image-per-run provider', async () => {
   const source = await readFile(generatePageUrl, 'utf8');
 
