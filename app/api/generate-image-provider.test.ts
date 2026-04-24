@@ -137,16 +137,20 @@ test('normal image generation users are limited to 20 submitted tasks per rollin
   assert.match(source, /\.select\('id',\s*\{\s*count:\s*'exact',\s*head:\s*true\s*\}\)/);
   assert.match(source, /\.gte\('created_at',\s*cutoff\)/);
   assert.match(source, /status:\s*429/);
+  assert.match(source, /由于资源有限，每个用户每小时最多生成/);
   assert.doesNotMatch(source, /VIP\/SVIP 不限量/);
+  assert.doesNotMatch(source, /普通用户每小时最多生成/);
 });
 
-test('generate image UI is visible to signed-in non-SVIP users with the normal quota copy', async () => {
+test('generate image UI shows the resource quota copy without commercial tier wording', async () => {
   const source = await readFile(generatePageUrl, 'utf8');
 
   assert.doesNotMatch(source, /cached\s*<\s*2/);
   assert.doesNotMatch(source, /fresh\s*!==\s*null\s*&&\s*fresh\s*<\s*2/);
   assert.doesNotMatch(source, /Image Generation · SVIP/);
-  assert.match(source, /普通用户每小时 20 个任务/);
+  assert.match(source, /由于资源有限，每个用户每小时最多生成20个任务。/);
+  assert.doesNotMatch(source, /普通用户每小时 20 个任务/);
+  assert.doesNotMatch(source, /\(vipLevel === null \|\| vipLevel < 1\) &&/);
   assert.doesNotMatch(source, /VIP\/SVIP 不限量/);
 });
 
