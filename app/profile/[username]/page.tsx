@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import AuthLayout from '@/components/AuthLayout';
 import { getPublicProfileByUsername } from '@/lib/server/public-content';
+import { maskModeratedMedia } from '@/lib/moderation';
 import { ProfileImage } from './ImageGrid';
 import ProfileTabs from './ProfileTabs';
 
@@ -66,15 +67,18 @@ export default async function PublicProfilePage({
   ] = await Promise.all([
     db
       .from('ai_images')
-      .select('id, task_id, prompt, url, width, height, index, created_at, user_id', { count: 'exact' })
+      .select('id, task_id, prompt, url, width, height, index, moderation_status, created_at, user_id', { count: 'exact' })
       .eq('user_id', profile.id)
       .eq('is_public', true)
+      .in('moderation_status', ['active', 'nsfw'])
       .order('created_at', { ascending: false })
       .range(0, PAGE_LIMIT - 1),
     db
       .from('ai_videos')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', profile.id),
+      .eq('user_id', profile.id)
+      .eq('is_public', true)
+      .in('moderation_status', ['active', 'nsfw']),
   ]);
 
   if (imagesError) throw imagesError;
@@ -82,7 +86,7 @@ export default async function PublicProfilePage({
 
   const totalImages = imageCount ?? 0;
   const totalVideos = videoCount ?? 0;
-  const initialImages: ProfileImage[] = (images ?? []).map((img: any) => ({
+  const initialImages: ProfileImage[] = (images ?? []).map((img: any) => maskModeratedMedia({
     id: img.id,
     task_id: img.task_id,
     prompt: img.prompt,
@@ -90,11 +94,12 @@ export default async function PublicProfilePage({
     width: img.width,
     height: img.height,
     index: img.index,
+    moderation_status: img.moderation_status ?? 'active',
     created_at: img.created_at,
     user_id: img.user_id,
     username: profile.username,
     avatar_url: profile.avatar_url,
-  }));
+  }, 'url'));
 
   const hasMore = totalImages > PAGE_LIMIT;
   const displayName = profile.username ?? profile.id;

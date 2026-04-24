@@ -1,5 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { getBeijingDateRange } from '@/lib/beijing-date-range';
+import {
+  getPublicModerationStatuses,
+  maskModeratedMedia,
+  type ModerationFilter,
+  type ModerationStatus,
+} from '@/lib/moderation';
 
 const PLACEHOLDER_URL = 'https://placeholder.supabase.co';
 const PLACEHOLDER_KEY = 'placeholder-key';
@@ -61,8 +67,10 @@ export interface PublicVideo {
   author_url?: string;
   platform: string;
   model?: string;
-  video_url?: string;
+  video_url?: string | null;
   source_url?: string;
+  is_public?: boolean;
+  moderation_status?: ModerationStatus;
   created_at: string;
   user_id?: string;
   username?: string | null;
@@ -73,10 +81,12 @@ export interface PublicGalleryImage {
   id: string;
   task_id: string;
   prompt: string;
-  url: string;
+  url: string | null;
   width: number;
   height: number;
   index: number;
+  is_public?: boolean;
+  moderation_status?: ModerationStatus;
   created_at: string;
   user_id: string;
   username: string | null;
@@ -226,6 +236,7 @@ export async function getPublicVideos({
   sort = 'latest',
   date,
   userId,
+  moderation,
 }: {
   page?: number;
   limit?: number;
@@ -234,6 +245,7 @@ export async function getPublicVideos({
   sort?: 'latest' | 'oldest';
   date?: string | null;
   userId?: string | null;
+  moderation?: ModerationFilter | null;
 } = {}): Promise<PaginatedResult<PublicVideo>> {
   if (usesPlaceholderConfig()) {
     return {
@@ -249,7 +261,9 @@ export async function getPublicVideos({
   const db = createPublicContentClient();
   let query = db
     .from('ai_videos')
-    .select('*, profiles(username, avatar_url)', { count: 'exact' });
+    .select('*, profiles(username, avatar_url)', { count: 'exact' })
+    .eq('is_public', true)
+    .in('moderation_status', getPublicModerationStatuses(moderation ?? null));
 
   if (userId) {
     query = query.eq('user_id', userId);
@@ -281,12 +295,16 @@ export async function getPublicVideos({
   const total = count || 0;
 
   return {
-    items: (data || []).map((item: any) => ({
-      ...item,
-      username: item.profiles?.username ?? null,
-      avatar_url: item.profiles?.avatar_url ?? null,
-      profiles: undefined,
-    })) as PublicVideo[],
+    items: (data || []).map((item: any) => {
+      const flattened = {
+        ...item,
+        moderation_status: item.moderation_status ?? 'active',
+        username: item.profiles?.username ?? null,
+        avatar_url: item.profiles?.avatar_url ?? null,
+        profiles: undefined,
+      };
+      return maskModeratedMedia(flattened, 'video_url');
+    }) as PublicVideo[],
     page,
     limit,
     total,
@@ -318,11 +336,13 @@ export async function getPublicGalleryImages({
   limit = 50,
   userId,
   date,
+  moderation,
 }: {
   page?: number;
   limit?: number;
   userId?: string | null;
   date?: string | null;
+  moderation?: ModerationFilter | null;
 } = {}): Promise<PaginatedResult<PublicGalleryImage>> {
   if (usesPlaceholderConfig()) {
     return {
@@ -339,10 +359,11 @@ export async function getPublicGalleryImages({
   let query = db
     .from('ai_images')
     .select(
-      'id, url, prompt, width, height, "index", is_public, task_id, user_id, created_at, profiles(username, avatar_url)',
+      'id, url, prompt, width, height, "index", is_public, moderation_status, task_id, user_id, created_at, profiles(username, avatar_url)',
       { count: 'exact' },
     )
     .eq('is_public', true)
+    .in('moderation_status', getPublicModerationStatuses(moderation ?? null))
     .order('created_at', { ascending: false });
 
   if (userId) {
@@ -362,7 +383,7 @@ export async function getPublicGalleryImages({
     throw new Error(error.message);
   }
 
-  const items = (data || []).map((img: any) => ({
+  const items = (data || []).map((img: any) => maskModeratedMedia({
     id: img.id,
     task_id: img.task_id,
     prompt: img.prompt,
@@ -370,11 +391,13 @@ export async function getPublicGalleryImages({
     width: img.width,
     height: img.height,
     index: img.index,
+    is_public: img.is_public,
+    moderation_status: img.moderation_status ?? 'active',
     created_at: img.created_at,
     user_id: img.user_id,
     username: img.profiles?.username ?? null,
     avatar_url: img.profiles?.avatar_url ?? null,
-  })) as PublicGalleryImage[];
+  }, 'url')) as PublicGalleryImage[];
 
   const total = count || 0;
 

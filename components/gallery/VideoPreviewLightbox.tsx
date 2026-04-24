@@ -1,6 +1,7 @@
 'use client';
 
 import MediaPreviewShell, { formatPreviewTimestamp } from './MediaPreviewShell';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
 import type { PublicVideo } from '@/lib/server/public-content';
 
 export interface VideoPreviewLightboxProps {
@@ -11,6 +12,7 @@ export interface VideoPreviewLightboxProps {
   beforeDownload?: () => Promise<boolean> | boolean;
   getFavoriteState?: (item: PublicVideo) => { isFavorite: boolean; isPending: boolean };
   onToggleFavorite?: (item: PublicVideo) => void;
+  renderAdminActions?: (item: PublicVideo) => React.ReactNode;
 }
 
 export default function VideoPreviewLightbox({
@@ -21,6 +23,7 @@ export default function VideoPreviewLightbox({
   beforeDownload,
   getFavoriteState,
   onToggleFavorite,
+  renderAdminActions,
 }: VideoPreviewLightboxProps) {
   const shellItems = items.map(item => ({
     ...item,
@@ -40,7 +43,9 @@ export default function VideoPreviewLightbox({
       onToggleFavorite={onToggleFavorite ? (item) => onToggleFavorite(item) : undefined}
       defaultDownloadExtension="mp4"
       renderStage={({ item }) => (
-        item.mediaUrl ? (
+        item.moderation_status === 'nsfw' ? (
+          <NsfwPlaceholder className="min-w-[min(720px,80vw)] rounded-[28px] shadow-[0_40px_90px_-42px_rgba(15,23,42,0.55)]" />
+        ) : item.mediaUrl ? (
           <video
             key={item.id}
             src={item.mediaUrl}
@@ -62,6 +67,7 @@ export default function VideoPreviewLightbox({
         { label: '时间', value: formatPreviewTimestamp(item.created_at) ?? '未知' },
         { label: '编号', value: (currentIndex + 1).toString().padStart(2, '0') },
       ]}
+      renderQuickActions={renderAdminActions ? (item) => renderAdminActions(item) : undefined}
     />
   );
 }

@@ -1,86 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getBeijingDateRange } from '@/lib/beijing-date-range';
+import { parseModerationFilter } from '@/lib/moderation';
+import { authRequiredResponse } from '@/lib/server/auth-required-response';
+import { requireAdminUser } from '@/lib/server/admin-auth';
+import { getPublicVideoModels, getPublicVideos } from '@/lib/server/public-content';
 
 export const dynamic = 'force-dynamic';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const moderation = parseModerationFilter(searchParams.get('moderation'));
 
-    // Special: return distinct model list
+    if (moderation) {
+      const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+      if (!token) return authRequiredResponse();
+      await requireAdminUser(token);
+    }
+
     if (searchParams.get('models') === 'true') {
-      const { data, error } = await supabase
-        .from('ai_videos')
-        .select('model')
-        .not('model', 'is', null);
-      if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-      const models = Array.from(new Set((data || []).map((v: any) => v.model).filter(Boolean))).sort();
+      const models = await getPublicVideoModels();
       return NextResponse.json({ success: true, models });
     }
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const platform = searchParams.get('platform');
-    const model = searchParams.get('model');
-    const sort = searchParams.get('sort') || 'latest';
-    const date = searchParams.get('date');
     const userIdRaw = searchParams.get('user_id');
-    const userId = userIdRaw && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userIdRaw) ? userIdRaw : null;
+    const userId = userIdRaw && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userIdRaw) ? userIdRaw : null;
+    const dateRaw = searchParams.get('date');
+    const date = dateRaw && /^\d{4}-\d{2}-\d{2}$/.test(dateRaw) ? dateRaw : null;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
-    let query = supabase
-      .from('ai_videos')
-      .select('*, profiles(username, avatar_url)', { count: 'exact' });
-
-    if (userId) query = query.eq('user_id', userId);
-    if (platform) query = query.eq('platform', platform);
-    if (model) query = query.eq('model', model);
-    if (date) {
-      const { startIso, endIso } = getBeijingDateRange(date);
-      query = query
-        .gte('created_at', startIso)
-        .lt('created_at', endIso);
-    }
-
-    if (sort === 'oldest') {
-      query = query.order('created_at', { ascending: true });
-    } else {
-      query = query.order('created_at', { ascending: false });
-    }
-
-    const from = (page - 1) * limit;
-    query = query.range(from, from + limit - 1);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-
-    // Flatten profile fields into each video
-    const items = (data || []).map((v: any) => ({
-      ...v,
-      username: v.profiles?.username ?? null,
-      avatar_url: v.profiles?.avatar_url ?? null,
-      profiles: undefined,
-    }));
+    const result = await getPublicVideos({
+      page,
+      limit,
+      platform: searchParams.get('platform'),
+      model: searchParams.get('model'),
+      sort: searchParams.get('sort') === 'oldest' ? 'oldest' : 'latest',
+      date,
+      userId,
+      moderation,
+    });
 
     return NextResponse.json({
       success: true,
-      data: items,
+      data: result.items,
       pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages,
       },
     });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error?.status === 401) return authRequiredResponse();
+    return NextResponse.json({ success: false, error: error.message }, { status: error.status ?? 500 });
   }
 }

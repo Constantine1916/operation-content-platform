@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
 import { formatBeijingDateTime } from '@/lib/beijing-time';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
@@ -11,10 +12,11 @@ export interface ProfileContentImage {
   id: string;
   task_id: string;
   prompt: string;
-  url: string;
+  url: string | null;
   width: number;
   height: number;
   index: number;
+  moderation_status?: string;
   created_at: string;
   user_id: string;
   username: string | null;
@@ -29,8 +31,9 @@ export interface ProfileContentVideo {
   author_url?: string;
   platform?: string;
   model?: string;
-  video_url?: string;
+  video_url?: string | null;
   source_url?: string;
+  moderation_status?: string;
   created_at: string;
   user_id?: string;
   username?: string | null;
@@ -59,6 +62,18 @@ export interface ProfileContentArticle {
   created_at: string;
 }
 
+function ModerationBadge({ status }: { status?: string }) {
+  if (status === 'hidden') {
+    return <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-800">已隐藏</span>;
+  }
+
+  if (status === 'nsfw') {
+    return <span className="rounded-full bg-red-100 px-2 py-1 text-[10px] font-semibold text-red-700">NSFW</span>;
+  }
+
+  return null;
+}
+
 export function ProfileImageCard({
   image,
   isFavorite,
@@ -73,6 +88,7 @@ export function ProfileImageCard({
   const [copied, setCopied] = useState(false);
   const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const isNsfw = image.moderation_status === 'nsfw';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -94,15 +110,24 @@ export function ProfileImageCard({
           />
         </div>
       )}
+      <div className="absolute left-3 top-3 z-10">
+        <ModerationBadge status={image.moderation_status} />
+      </div>
 
       <div style={imageFrameStyles.frame}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image.url}
-          alt={image.prompt}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
+        {isNsfw ? (
+          <NsfwPlaceholder className="h-full min-h-0 rounded-none" />
+        ) : (
+          <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image.url ?? ''}
+            alt={image.prompt}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          </>
+        )}
       </div>
 
       {!touchFirst && (
@@ -146,6 +171,7 @@ export function ProfileVideoCard({
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { touchFirst } = useMobileViewportState();
+  const isNsfw = video.moderation_status === 'nsfw';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -199,8 +225,13 @@ export function ProfileVideoCard({
             />
           </div>
         )}
+        <div className="absolute left-3 top-3 z-10">
+          <ModerationBadge status={video.moderation_status} />
+        </div>
 
-        {video.video_url ? (
+        {isNsfw ? (
+          <NsfwPlaceholder className="rounded-none" />
+        ) : video.video_url ? (
           <video
             ref={videoRef}
             src={video.video_url}
@@ -219,7 +250,7 @@ export function ProfileVideoCard({
           </div>
         )}
 
-        {video.video_url && !playing && (
+        {video.video_url && !playing && !isNsfw && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 backdrop-blur-sm">
               <svg className="ml-0.5 h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">

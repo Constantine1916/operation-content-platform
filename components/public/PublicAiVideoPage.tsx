@@ -7,9 +7,13 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
+import AdminModerationActions from '@/components/moderation/AdminModerationActions';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
+import { useAdminModeration } from '@/components/moderation/useAdminModeration';
 import VideoPreviewLightbox from '@/components/gallery/VideoPreviewLightbox';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
+import type { ModerationFilter, ModerationStatus } from '@/lib/moderation';
 import type { PublicVideo } from '@/lib/server/public-content';
 
 const PAGE_LIMIT = 20;
@@ -31,18 +35,26 @@ export default function PublicAiVideoPage({
   const [error, setError] = useState<string | null>(null);
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const [modelFilter, setModelFilter] = useState('all');
+  const [moderationFilter, setModerationFilter] = useState<ModerationFilter | null>(null);
   const [allModels] = useState<string[]>(initialModels);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
   const hasMountedRef = useRef(false);
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('video', videos.map(video => video.id));
   const requireAuthForAction = useAuthActionGate();
+  const { isAdmin, token, pendingId, moderate } = useAdminModeration();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'video',
     setFavoriteIds,
   });
 
-  const fetchPage = useCallback(async (page: number, model: string, isFirst = false, silent = false) => {
+  const fetchPage = useCallback(async (
+    page: number,
+    model: string,
+    filter: ModerationFilter | null = moderationFilter,
+    isFirst = false,
+    silent = false,
+  ) => {
     if (!silent) {
       setError(null);
       if (isFirst) setLoading(true); else setLoadingMore(true);
@@ -50,7 +62,10 @@ export default function PublicAiVideoPage({
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_LIMIT) });
       if (model !== 'all') params.set('model', model);
-      const res = await fetch(`/api/ai-video?${params}`);
+      if (isAdmin && filter) params.set('moderation', filter);
+      const res = await fetch(`/api/ai-video?${params}`, {
+        headers: isAdmin && token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setVideos(prev => page === 1 ? data.data : [...prev, ...data.data]);
@@ -69,10 +84,10 @@ export default function PublicAiVideoPage({
         setLoadingMore(false);
       }
     }
-  }, []);
+  }, [isAdmin, moderationFilter, token]);
 
   useEffect(() => {
-    void fetchPage(1, 'all', initialVideos.length === 0, initialVideos.length > 0);
+    void fetchPage(1, 'all', moderationFilter, initialVideos.length === 0, initialVideos.length > 0);
   }, [fetchPage, initialVideos.length]);
 
   useEffect(() => {
@@ -82,16 +97,28 @@ export default function PublicAiVideoPage({
     }
 
     pageRef.current = 1;
-    void fetchPage(1, modelFilter, true);
-  }, [fetchPage, modelFilter]);
+    void fetchPage(1, modelFilter, moderationFilter, true);
+  }, [fetchPage, modelFilter, moderationFilter]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || loadingMoreRef.current) return;
     loadingMoreRef.current = true;
-    void fetchPage(pageRef.current + 1, modelFilter).finally(() => {
+    void fetchPage(pageRef.current + 1, modelFilter, moderationFilter).finally(() => {
       loadingMoreRef.current = false;
     });
-  }, [fetchPage, hasMore, modelFilter]);
+  }, [fetchPage, hasMore, modelFilter, moderationFilter]);
+
+  const shouldKeepAfterModeration = useCallback((status: ModerationStatus) => {
+    if (!moderationFilter) return status !== 'hidden';
+    if (moderationFilter === 'all') return true;
+    return status === moderationFilter;
+  }, [moderationFilter]);
+
+  const applyModerationStatus = useCallback((contentId: string, status: ModerationStatus) => {
+    setVideos(current => current
+      .map(video => video.id === contentId ? { ...video, moderation_status: status } : video)
+      .filter(video => shouldKeepAfterModeration((video.moderation_status ?? 'active') as ModerationStatus)));
+  }, [shouldKeepAfterModeration]);
 
   if (loading) return <VideoSkeleton />;
   if (error) return <div className="text-center py-20 text-red-500 text-sm">{error}</div>;
@@ -102,6 +129,15 @@ export default function PublicAiVideoPage({
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">AI 视频</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">AI Video</p>
       </div>
+      <AdminModerationFilter
+        isAdmin={isAdmin}
+        moderationFilter={moderationFilter}
+        onChange={(nextFilter) => {
+          setModerationFilter(nextFilter);
+          pageRef.current = 1;
+          void fetchPage(1, modelFilter, nextFilter, true);
+        }}
+      />
 
       {allModels.length > 1 && (
         <div className="mb-6 overflow-x-auto pb-1">
@@ -148,10 +184,60 @@ export default function PublicAiVideoPage({
               beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
               getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
               onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
+              renderAdminActions={isAdmin ? (item) => (
+                <AdminModerationActions
+                  contentType="video"
+                  contentId={item.id}
+                  status={(item.moderation_status ?? 'active') as ModerationStatus}
+                  pending={pendingId === item.id}
+                  onModerate={async (input) => {
+                    const status = await moderate(input);
+                    if (!status) return;
+                    applyModerationStatus(item.id, status);
+                  }}
+                />
+              ) : undefined}
             />
           <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={videos.length} />
         </>
       )}
+    </div>
+  );
+}
+
+function AdminModerationFilter({
+  isAdmin,
+  moderationFilter,
+  onChange,
+}: {
+  isAdmin: boolean;
+  moderationFilter: ModerationFilter | null;
+  onChange: (filter: ModerationFilter | null) => void;
+}) {
+  if (!isAdmin) return null;
+
+  const items: Array<{ key: ModerationFilter | null; label: string }> = [
+    { key: null, label: '正常视图' },
+    { key: 'active', label: '正常' },
+    { key: 'nsfw', label: 'NSFW' },
+    { key: 'hidden', label: '已隐藏' },
+    { key: 'all', label: '全部' },
+  ];
+
+  return (
+    <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3">
+      {items.map(item => (
+        <button
+          key={item.key ?? 'public'}
+          type="button"
+          onClick={() => onChange(item.key)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            moderationFilter === item.key ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 hover:bg-amber-100'
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -173,6 +259,7 @@ function VideoCard({
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { touchFirst } = useMobileViewportState();
+  const isNsfw = video.moderation_status === 'nsfw';
 
   const copy = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -228,7 +315,9 @@ function VideoCard({
           />
         </div>
 
-        {video.video_url ? (
+        {isNsfw ? (
+          <NsfwPlaceholder className="rounded-none" />
+        ) : video.video_url ? (
           <video
             ref={videoRef}
             src={video.video_url}
@@ -241,7 +330,7 @@ function VideoCard({
           <div className="w-full aspect-[9/16] flex items-center justify-center text-gray-300 text-xs">无视频</div>
         )}
 
-        {video.video_url && !playing && (
+        {video.video_url && !playing && !isNsfw && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
               <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">

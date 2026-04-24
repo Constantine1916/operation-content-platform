@@ -18,3 +18,10 @@ test('public ai video page gates preview downloads through the auth action hook'
   assert.match(source, /beforeDownload=\{\(\) => requireAuthForAction\(\{ kind: 'download' \}\)\.then\(Boolean\)\}/);
 });
 
+test('public ai video exposes admin moderation filters and NSFW rendering', async () => {
+  const source = await readFile(new URL('./PublicAiVideoPage.tsx', import.meta.url), 'utf8');
+  assert.match(source, /useAdminModeration/);
+  assert.match(source, /moderationFilter/);
+  assert.match(source, /AdminModerationActions/);
+  assert.match(source, /NsfwPlaceholder/);
+});

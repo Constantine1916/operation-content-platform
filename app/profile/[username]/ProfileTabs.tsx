@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Masonry from 'react-masonry-css';
 import ImageGrid, { ProfileImage } from './ImageGrid';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
@@ -17,7 +18,8 @@ interface VideoItem {
   title: string;
   prompt: string;
   model?: string;
-  video_url?: string;
+  video_url?: string | null;
+  moderation_status?: string;
   created_at: string;
   user_id?: string;
   username?: string | null;
@@ -178,6 +180,7 @@ function VideoCard({
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { touchFirst } = useMobileViewportState();
+  const isNsfw = video.moderation_status === 'nsfw';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -224,7 +227,9 @@ function VideoCard({
           />
         </div>
 
-        {video.video_url ? (
+        {isNsfw ? (
+          <NsfwPlaceholder className="rounded-none" />
+        ) : video.video_url ? (
           <video
             ref={videoRef}
             src={video.video_url}
@@ -237,7 +242,7 @@ function VideoCard({
           <div className="w-full aspect-[9/16] flex items-center justify-center text-gray-300 text-xs">无视频</div>
         )}
 
-        {video.video_url && !playing && (
+        {video.video_url && !playing && !isNsfw && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
               <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">

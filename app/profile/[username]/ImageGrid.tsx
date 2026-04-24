@@ -8,6 +8,7 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
 import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
@@ -17,10 +18,11 @@ export interface ProfileImage {
   id: string;
   task_id: string;
   prompt: string;
-  url: string;
+  url: string | null;
   width: number;
   height: number;
   index: number;
+  moderation_status?: string;
   created_at: string;
   user_id: string;
   username: string | null;
@@ -135,6 +137,7 @@ function ProfileImageCard({
   const [copied, setCopied] = useState(false);
   const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const isNsfw = image.moderation_status === 'nsfw';
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -158,17 +161,21 @@ function ProfileImageCard({
         />
       </div>
       <div style={imageFrameStyles.frame}>
-        <Image
-          src={image.url}
-          alt={image.prompt}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          styles={{
-            root: imageFrameStyles.root,
-            image: imageFrameStyles.image,
-          }}
-          preview={false}
-          loading="lazy"
-        />
+        {isNsfw ? (
+          <NsfwPlaceholder className="h-full min-h-0 rounded-none" />
+        ) : (
+          <Image
+            src={image.url ?? ''}
+            alt={image.prompt}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            styles={{
+              root: imageFrameStyles.root,
+              image: imageFrameStyles.image,
+            }}
+            preview={false}
+            loading="lazy"
+          />
+        )}
       </div>
 
       {!touchFirst && (

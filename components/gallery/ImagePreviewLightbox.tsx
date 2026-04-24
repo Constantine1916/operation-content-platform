@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import MediaPreviewShell, { formatPreviewTimestamp } from './MediaPreviewShell';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
 
 export interface ImagePreviewItem {
   id: string;
-  url: string;
+  url: string | null;
   prompt: string;
   width: number;
   height: number;
+  moderation_status?: string;
   created_at?: string;
   username?: string | null;
   avatar_url?: string | null;
@@ -23,6 +25,7 @@ interface ImagePreviewLightboxProps {
   beforeDownload?: () => Promise<boolean> | boolean;
   getFavoriteState?: (item: ImagePreviewItem) => { isFavorite: boolean; isPending: boolean };
   onToggleFavorite?: (item: ImagePreviewItem) => void;
+  renderAdminActions?: (item: ImagePreviewItem) => React.ReactNode;
 }
 
 function formatAspectRatio(width: number, height: number) {
@@ -64,6 +67,7 @@ export default function ImagePreviewLightbox({
   beforeDownload,
   getFavoriteState,
   onToggleFavorite,
+  renderAdminActions,
 }: ImagePreviewLightboxProps) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -91,7 +95,7 @@ export default function ImagePreviewLightbox({
   const transform = `scale(${scale * (flipX ? -1 : 1)}, ${scale * (flipY ? -1 : 1)}) rotate(${rotation}deg)`;
   const shellItems = items.map(item => ({
     ...item,
-    mediaUrl: item.url,
+    mediaUrl: item.url ?? '',
     authorName: null,
   }));
 
@@ -107,15 +111,19 @@ export default function ImagePreviewLightbox({
       onToggleFavorite={onToggleFavorite ? (item) => onToggleFavorite(item) : undefined}
       defaultDownloadExtension="jpg"
       renderStage={({ item }) => (
-        <>
+        item.moderation_status === 'nsfw' ? (
+          <NsfwPlaceholder className="min-w-[min(720px,80vw)] rounded-[28px] shadow-[0_40px_90px_-42px_rgba(15,23,42,0.55)]" />
+        ) : (
+          <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={item.url}
+            src={item.url ?? undefined}
             alt={item.prompt}
             className="max-h-[calc(100vh-132px)] w-auto rounded-[28px] border border-black/5 object-contain shadow-[0_40px_90px_-42px_rgba(15,23,42,0.55)]"
             style={{ transform, transition: 'transform 220ms ease-out' }}
           />
-        </>
+          </>
+        )
       )}
       getMetaItems={(item, currentIndex) => [
         { label: '尺寸', value: item.width && item.height ? `${item.width} × ${item.height}` : '未知' },
@@ -123,7 +131,7 @@ export default function ImagePreviewLightbox({
         { label: '时间', value: formatPreviewTimestamp(item.created_at) ?? '未知' },
         { label: '编号', value: (currentIndex + 1).toString().padStart(2, '0') },
       ]}
-      renderQuickActions={() => (
+      renderQuickActions={(item) => (
         <div className="grid grid-cols-2 gap-2.5">
           <TransformAction
             label="放大"
@@ -194,6 +202,9 @@ export default function ImagePreviewLightbox({
               </svg>
             )}
           />
+          {renderAdminActions ? (
+            <div className="col-span-2 mt-2">{renderAdminActions(item)}</div>
+          ) : null}
         </div>
       )}
     />

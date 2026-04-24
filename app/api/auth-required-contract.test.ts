@@ -4,10 +4,12 @@ import path from 'node:path';
 import test from 'node:test';
 
 const ROUTE_FILES = [
+  'app/api/admin/content/moderate/route.ts',
   'app/api/favorites/route.ts',
   'app/api/favorites/status/route.ts',
   'app/api/profile/route.ts',
   'app/api/profile/avatar/route.ts',
+  'app/api/profile/assets/route.ts',
   'app/api/profile/images/upload/route.ts',
   'app/api/generate-image/submit/route.ts',
   'app/api/generate-image/poll/route.ts',

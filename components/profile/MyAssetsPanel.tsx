@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Masonry from 'react-masonry-css';
+import { supabase } from '@/lib/supabase';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import {
@@ -65,7 +66,12 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
     else setImagesLoadingMore(true);
 
     try {
-      const res = await fetch(`/api/gallery?user_id=${encodeURIComponent(userId)}&page=${page}&limit=${PAGE_LIMIT}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('请先登录');
+
+      const res = await fetch(`/api/profile/assets?type=image&page=${page}&limit=${PAGE_LIMIT}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error ?? '加载图片失败');
       setImages(prev => page === 1 ? data.items : [...prev, ...data.items]);
@@ -83,17 +89,17 @@ export default function MyAssetsPanel({ userId }: { userId: string }) {
     else setVideosLoadingMore(true);
 
     try {
-      const params = new URLSearchParams({
-        user_id: userId,
-        page: String(page),
-        limit: String(PAGE_LIMIT),
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('请先登录');
+
+      const res = await fetch(`/api/profile/assets?type=video&page=${page}&limit=${PAGE_LIMIT}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const res = await fetch(`/api/ai-video?${params}`);
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error ?? '加载视频失败');
-      setVideos(prev => page === 1 ? data.data : [...prev, ...data.data]);
-      setVideosHasMore(data.pagination.page < data.pagination.totalPages);
-      setTotalVideos(data.pagination.total ?? 0);
+      setVideos(prev => page === 1 ? data.items : [...prev, ...data.items]);
+      setVideosHasMore(Boolean(data.hasMore));
+      setTotalVideos(data.total ?? 0);
       videoPageRef.current = page;
     } finally {
       setVideosLoading(false);

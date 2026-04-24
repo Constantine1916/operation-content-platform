@@ -8,10 +8,14 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { useFavoriteStatuses } from '@/components/favorites/useFavoriteStatuses';
 import { useFavoriteToggle } from '@/components/favorites/useFavoriteToggle';
 import { useAuthActionGate } from '@/components/auth/useAuthActionGate';
+import AdminModerationActions from '@/components/moderation/AdminModerationActions';
+import NsfwPlaceholder from '@/components/moderation/NsfwPlaceholder';
+import { useAdminModeration } from '@/components/moderation/useAdminModeration';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
 import ImagePreviewLightbox from '@/components/gallery/ImagePreviewLightbox';
 import { getStableImageFrameStyles } from '@/lib/image-aspect-ratio';
+import type { ModerationFilter, ModerationStatus } from '@/lib/moderation';
 import type { PublicGalleryImage } from '@/lib/server/public-content';
 
 const PAGE_LIMIT = 50;
@@ -30,21 +34,32 @@ export default function PublicAiGalleryPage({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [error, setError] = useState<string | null>(null);
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
+  const [moderationFilter, setModerationFilter] = useState<ModerationFilter | null>(null);
   const pageRef = useRef(1);
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('image', images.map(image => image.id));
   const requireAuthForAction = useAuthActionGate();
+  const { isAdmin, token, pendingId, moderate } = useAdminModeration();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'image',
     setFavoriteIds,
   });
 
-  const fetchPage = useCallback(async (page: number, isFirst = false, silent = false) => {
+  const fetchPage = useCallback(async (
+    page: number,
+    filter: ModerationFilter | null = moderationFilter,
+    isFirst = false,
+    silent = false,
+  ) => {
     if (!silent) {
       setError(null);
       if (isFirst) setLoading(true); else setLoadingMore(true);
     }
     try {
-      const res = await fetch(`/api/gallery?page=${page}&limit=${PAGE_LIMIT}`);
+      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_LIMIT) });
+      if (isAdmin && filter) params.set('moderation', filter);
+      const res = await fetch(`/api/gallery?${params}`, {
+        headers: isAdmin && token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setImages(prev => page === 1 ? data.items : [...prev, ...data.items]);
@@ -63,46 +78,63 @@ export default function PublicAiGalleryPage({
         setLoadingMore(false);
       }
     }
-  }, []);
+  }, [isAdmin, moderationFilter, token]);
 
   useEffect(() => {
-    void fetchPage(1, initialImages.length === 0, initialImages.length > 0);
+    void fetchPage(1, moderationFilter, initialImages.length === 0, initialImages.length > 0);
   }, [fetchPage, initialImages.length]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || loadingMore) return;
-    void fetchPage(pageRef.current + 1);
-  }, [fetchPage, hasMore, loadingMore]);
+    void fetchPage(pageRef.current + 1, moderationFilter);
+  }, [fetchPage, hasMore, loadingMore, moderationFilter]);
+
+  const shouldKeepAfterModeration = useCallback((status: ModerationStatus) => {
+    if (!moderationFilter) return status !== 'hidden';
+    if (moderationFilter === 'all') return true;
+    return status === moderationFilter;
+  }, [moderationFilter]);
+
+  const applyModerationStatus = useCallback((contentId: string, status: ModerationStatus) => {
+    setImages(current => current
+      .map(image => image.id === contentId ? { ...image, moderation_status: status } : image)
+      .filter(image => shouldKeepAfterModeration((image.moderation_status ?? 'active') as ModerationStatus)));
+  }, [shouldKeepAfterModeration]);
 
   if (loading) return <GallerySkeleton />;
   if (error) return <div className="text-center py-20 text-red-500 text-sm">{error}</div>;
-  if (images.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <PageHeader />
-        <div className="text-center py-20 text-gray-400 text-sm">暂无图片</div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto">
       <PageHeader />
-      <Masonry
-        breakpointCols={BREAKPOINTS}
-        className="flex gap-3 sm:gap-4"
-        columnClassName="flex flex-col gap-3 sm:gap-4"
-      >
-        {images.map((img, i) => (
-          <ImageCard
-            key={`${img.id}-${i}`}
-            image={img}
-            onOpenPreview={() => setSelectedPreviewIndex(i)}
-            {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
-            onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
-          />
-        ))}
-      </Masonry>
+      <AdminModerationFilter
+        isAdmin={isAdmin}
+        moderationFilter={moderationFilter}
+        onChange={(nextFilter) => {
+          setModerationFilter(nextFilter);
+          pageRef.current = 1;
+          void fetchPage(1, nextFilter, true);
+        }}
+      />
+      {images.length === 0 ? (
+        <div className="text-center py-20 text-gray-400 text-sm">暂无图片</div>
+      ) : (
+        <Masonry
+          breakpointCols={BREAKPOINTS}
+          className="flex gap-3 sm:gap-4"
+          columnClassName="flex flex-col gap-3 sm:gap-4"
+        >
+          {images.map((img, i) => (
+            <ImageCard
+              key={`${img.id}-${i}`}
+              image={img}
+              onOpenPreview={() => setSelectedPreviewIndex(i)}
+              {...getFavoriteButtonState(img.id, favoriteIds, pendingIds)}
+              onToggleFavorite={() => toggleFavorite(img.id, !favoriteIds.has(img.id))}
+            />
+          ))}
+        </Masonry>
+      )}
       <ImagePreviewLightbox
         items={images}
         selectedIndex={selectedPreviewIndex}
@@ -111,8 +143,58 @@ export default function PublicAiGalleryPage({
         beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
         getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
         onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
+        renderAdminActions={isAdmin ? (item) => (
+          <AdminModerationActions
+            contentType="image"
+            contentId={item.id}
+            status={(item.moderation_status ?? 'active') as ModerationStatus}
+            pending={pendingId === item.id}
+            onModerate={async (input) => {
+              const status = await moderate(input);
+              if (!status) return;
+              applyModerationStatus(item.id, status);
+            }}
+          />
+        ) : undefined}
       />
       <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={images.length} />
+    </div>
+  );
+}
+
+function AdminModerationFilter({
+  isAdmin,
+  moderationFilter,
+  onChange,
+}: {
+  isAdmin: boolean;
+  moderationFilter: ModerationFilter | null;
+  onChange: (filter: ModerationFilter | null) => void;
+}) {
+  if (!isAdmin) return null;
+
+  const items: Array<{ key: ModerationFilter | null; label: string }> = [
+    { key: null, label: '正常视图' },
+    { key: 'active', label: '正常' },
+    { key: 'nsfw', label: 'NSFW' },
+    { key: 'hidden', label: '已隐藏' },
+    { key: 'all', label: '全部' },
+  ];
+
+  return (
+    <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3">
+      {items.map(item => (
+        <button
+          key={item.key ?? 'public'}
+          type="button"
+          onClick={() => onChange(item.key)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            moderationFilter === item.key ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 hover:bg-amber-100'
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -199,6 +281,7 @@ function ImageCard({
   const [copied, setCopied] = useState(false);
   const { touchFirst } = useMobileViewportState();
   const imageFrameStyles = getStableImageFrameStyles(image.width, image.height);
+  const isNsfw = image.moderation_status === 'nsfw';
 
   const copy = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -222,17 +305,21 @@ function ImageCard({
         />
       </div>
       <div style={imageFrameStyles.frame}>
-        <Image
-          src={image.url}
-          alt={image.prompt}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          styles={{
-            root: imageFrameStyles.root,
-            image: imageFrameStyles.image,
-          }}
-          preview={false}
-          loading="lazy"
-        />
+        {isNsfw ? (
+          <NsfwPlaceholder className="h-full min-h-0 rounded-none" />
+        ) : (
+          <Image
+            src={image.url ?? ''}
+            alt={image.prompt}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            styles={{
+              root: imageFrameStyles.root,
+              image: imageFrameStyles.image,
+            }}
+            preview={false}
+            loading="lazy"
+          />
+        )}
       </div>
 
       {!touchFirst && (

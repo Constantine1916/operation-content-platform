@@ -9,6 +9,7 @@ export interface MediaPreviewShellItem {
   id: string;
   prompt: string;
   mediaUrl: string;
+  moderation_status?: string;
   created_at?: string;
   username?: string | null;
   avatar_url?: string | null;
@@ -141,6 +142,7 @@ export default function MediaPreviewShell<T extends MediaPreviewShellItem>({
 
   const item = currentIndex === null ? null : items[currentIndex];
   const favoriteState = item && getFavoriteState ? getFavoriteState(item) : null;
+  const isNsfw = item?.moderation_status === 'nsfw';
   const hasPrev = currentIndex !== null && currentIndex > 0;
   const hasNext = currentIndex !== null && currentIndex < items.length - 1;
 
@@ -176,6 +178,7 @@ export default function MediaPreviewShell<T extends MediaPreviewShellItem>({
   const isStackedPreview = previewPanelMode === 'stacked';
 
   const handleDownload = async () => {
+    if (isNsfw) return;
     if (!item.mediaUrl) return;
     if (beforeDownload && !(await beforeDownload(item))) return;
 
@@ -271,7 +274,7 @@ export default function MediaPreviewShell<T extends MediaPreviewShellItem>({
               <button
                 type="button"
                 onClick={() => { void handleDownload(); }}
-                disabled={!item.mediaUrl}
+                disabled={!item.mediaUrl || isNsfw}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-px hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
