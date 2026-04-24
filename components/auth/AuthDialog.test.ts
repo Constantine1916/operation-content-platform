@@ -25,19 +25,17 @@ test('auth dialog and forms use dedicated motion hooks for overlay, panel, and c
   assert.match(globalSource, /@keyframes auth-dialog-form-in/);
 });
 
-test('auth dialog lets register mode avoid the internal scroll container', async () => {
+test('auth dialog lets register mode scroll when the viewport is short', async () => {
   const source = await readFile(new URL('./AuthDialog.tsx', import.meta.url), 'utf8');
   const globalSource = await readFile(new URL('../../app/globals.css', import.meta.url), 'utf8');
 
   assert.match(source, /max-h-\[calc\(100svh-2rem\)\]/);
   assert.match(source, /sm:max-h-\[calc\(100svh-4rem\)\]/);
   assert.doesNotMatch(source, /max-h-\[min\(90svh,44rem\)\]/);
-  assert.match(source, /activeTab === 'register'[\s\S]*overflow-y-hidden[\s\S]*overflow-y-auto/);
-  assert.match(source, /auth-dialog-scrollbar-hidden/);
-  assert.match(globalSource, /\.auth-dialog-scrollbar-hidden\s*\{/);
-  assert.match(globalSource, /scrollbar-width:\s*none/);
-  assert.match(globalSource, /\.auth-dialog-scrollbar-hidden::-webkit-scrollbar\s*\{/);
-  assert.match(globalSource, /display:\s*none/);
+  assert.doesNotMatch(source, /activeTab === 'register'[\s\S]*\?\s*'[^']*overflow-y-hidden/);
+  assert.match(source, /activeTab === 'register'[\s\S]*\?\s*'[^']*overflow-y-auto/);
+  assert.doesNotMatch(source, /auth-dialog-scrollbar-hidden/);
+  assert.doesNotMatch(globalSource, /auth-dialog-scrollbar-hidden/);
 });
 
 test('auth dialog overlay stays above the image preview lightbox overlay', async () => {

@@ -175,9 +175,9 @@ export default function AuthDialog({
           </div>
         </div>
 
-        <div className={`auth-dialog-scrollbar-hidden relative min-h-0 flex-1 overscroll-contain px-6 sm:px-8 ${
+        <div className={`relative min-h-0 flex-1 overscroll-contain px-6 sm:px-8 ${
           activeTab === 'register'
-            ? 'overflow-y-hidden pb-5 pt-4 sm:pb-6 sm:pt-4'
+            ? 'overflow-y-auto pb-5 pt-4 sm:pb-6 sm:pt-4'
             : 'overflow-y-auto pb-6 pt-5 sm:pb-8'
         }`}>
           <div key={activeTab} className="auth-dialog-form-enter">
