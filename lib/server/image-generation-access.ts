@@ -55,7 +55,7 @@ export async function enforceImageGenerationSubmitLimit(
   const remaining = Math.max(0, NORMAL_USER_HOURLY_TASK_LIMIT - used);
   if (taskCount > remaining) {
     throw Object.assign(
-      new Error(`普通用户每小时最多生成 ${NORMAL_USER_HOURLY_TASK_LIMIT} 个任务，当前剩余额度 ${remaining} 个。VIP/SVIP 不限量。`),
+      new Error(`普通用户每小时最多生成 ${NORMAL_USER_HOURLY_TASK_LIMIT} 个任务，当前剩余额度 ${remaining} 个。`),
       { status: 429 }
     );
   }

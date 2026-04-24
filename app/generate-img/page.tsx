@@ -535,9 +535,9 @@ function GenerateImgPageInner() {
       <div className="mb-6 sm:mb-8">
         <h1 className="mb-1 text-xl font-semibold text-gray-900 sm:text-2xl">AI 生图</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">Image Generation</p>
-        <p className="mt-2 text-xs text-gray-500">
-          {vipLevel !== null && vipLevel >= 1 ? 'VIP/SVIP 不限量' : '普通用户每小时 20 个任务，VIP/SVIP 不限量'}
-        </p>
+        {(vipLevel === null || vipLevel < 1) && (
+          <p className="mt-2 text-xs text-gray-500">普通用户每小时 20 个任务</p>
+        )}
       </div>
 
       {/* Prompt 输入区 */}
