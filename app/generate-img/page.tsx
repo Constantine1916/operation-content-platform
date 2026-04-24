@@ -240,7 +240,13 @@ function GenerateImgPageInner() {
             if (!sub.task_id) return sub;
             const item = data.items?.find((it: any) => it.task_id === sub.task_id);
             if (!item) return sub;
-            return { ...sub, status: item.status, process: item.process, images: item.images?.length ? item.images : sub.images };
+            return {
+              ...sub,
+              status: item.status,
+              process: item.process,
+              error: item.error ?? undefined,
+              images: item.images?.length ? item.images : sub.images,
+            };
           }),
         }));
 

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { authRequiredResponse } from '@/lib/server/auth-required-response';
+import { generateImage } from '@/lib/server/image-generation';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
+const STALE_GENERATING_MS = 2 * 60 * 1000;
 
 function serviceClient() {
   return createClient(
@@ -27,11 +31,139 @@ async function requireSVIP(token: string): Promise<string> {
   return user.id;
 }
 
+async function resetStaleGeneratingTasks(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]) {
+  const cutoff = new Date(Date.now() - STALE_GENERATING_MS).toISOString();
+  const { error } = await db
+    .from('generate_tasks')
+    .update({ status: 1, process: 0, error: null, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .in('task_id', taskIds)
+    .eq('status', 2)
+    .lt('updated_at', cutoff);
+
+  if (error) throw new Error(error.message);
+}
+
+async function advanceOneQueuedTask(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]) {
+  await resetStaleGeneratingTasks(db, userId, taskIds);
+
+  const { data: queuedRows, error: queuedError } = await db
+    .from('generate_tasks')
+    .select('task_id, prompt')
+    .eq('user_id', userId)
+    .in('task_id', taskIds)
+    .eq('status', 1)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  if (queuedError) throw new Error(queuedError.message);
+
+  const queued = queuedRows?.[0];
+  if (!queued) return;
+
+  const { data: lockedRows, error: lockError } = await db
+    .from('generate_tasks')
+    .update({ status: 2, process: 1, error: null, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('task_id', queued.task_id)
+    .eq('status', 1)
+    .select('task_id, prompt')
+    .limit(1);
+
+  if (lockError) throw new Error(lockError.message);
+
+  const locked = lockedRows?.[0];
+  if (!locked) return;
+
+  try {
+    const image = await generateImage(locked.prompt);
+    const images = [{ ...image, is_public: true }];
+
+    const { error: imageError } = await db.from('ai_images').upsert(
+      images.map(img => ({
+        url: img.url,
+        prompt: locked.prompt,
+        width: img.width,
+        height: img.height,
+        index: img.index,
+        is_public: img.is_public,
+        source: 'generate',
+        task_id: locked.task_id,
+        user_id: userId,
+      })),
+      { onConflict: 'task_id,index' }
+    );
+    if (imageError) throw new Error(imageError.message);
+
+    const { error: taskError } = await db
+      .from('generate_tasks')
+      .update({
+        status: 3,
+        process: 100,
+        images,
+        error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('task_id', locked.task_id)
+      .eq('user_id', userId);
+    if (taskError) throw new Error(taskError.message);
+  } catch (e: any) {
+    await db
+      .from('generate_tasks')
+      .update({
+        status: 4,
+        process: 0,
+        images: [],
+        error: e?.message ?? 'generate failed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('task_id', locked.task_id)
+      .eq('user_id', userId);
+  }
+}
+
+async function loadTaskItems(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]) {
+  const { data: tasks, error: tasksError } = await db
+    .from('generate_tasks')
+    .select('task_id, status, process, error')
+    .eq('user_id', userId)
+    .in('task_id', taskIds);
+
+  if (tasksError) throw new Error(tasksError.message);
+
+  const { data: imageRows, error: imagesError } = await db
+    .from('ai_images')
+    .select('task_id, url, width, height, index, is_public')
+    .eq('user_id', userId)
+    .in('task_id', taskIds);
+
+  if (imagesError) throw new Error(imagesError.message);
+
+  const imageMap = new Map<string, any[]>();
+  for (const img of imageRows ?? []) {
+    if (!imageMap.has(img.task_id)) imageMap.set(img.task_id, []);
+    imageMap.get(img.task_id)!.push({
+      url: img.url,
+      width: img.width,
+      height: img.height,
+      index: img.index,
+      is_public: img.is_public,
+    });
+  }
+
+  return (tasks ?? []).map((task: any) => ({
+    task_id: task.task_id,
+    status: task.status,
+    process: task.process,
+    error: task.error,
+    images: (imageMap.get(task.task_id) ?? []).sort((a, b) => a.index - b.index),
+  }));
+}
+
 /**
  * POST /api/generate-image/poll
  * Body: { task_ids: string[] }
- * Compatibility endpoint for existing clients/history. New image generation
- * completes during submit, so polling only reads persisted task/image rows.
+ * Advances at most one queued task through the synchronous image provider.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -57,40 +189,8 @@ export async function POST(request: NextRequest) {
     }
 
     const db = serviceClient();
-    const { data: tasks, error: tasksError } = await db
-      .from('generate_tasks')
-      .select('task_id, status, process')
-      .eq('user_id', userId)
-      .in('task_id', ids);
-
-    if (tasksError) throw new Error(tasksError.message);
-
-    const { data: imageRows, error: imagesError } = await db
-      .from('ai_images')
-      .select('task_id, url, width, height, index, is_public')
-      .eq('user_id', userId)
-      .in('task_id', ids);
-
-    if (imagesError) throw new Error(imagesError.message);
-
-    const imageMap = new Map<string, any[]>();
-    for (const img of imageRows ?? []) {
-      if (!imageMap.has(img.task_id)) imageMap.set(img.task_id, []);
-      imageMap.get(img.task_id)!.push({
-        url: img.url,
-        width: img.width,
-        height: img.height,
-        index: img.index,
-        is_public: img.is_public,
-      });
-    }
-
-    const items = (tasks ?? []).map((task: any) => ({
-      task_id: task.task_id,
-      status: task.status,
-      process: task.process,
-      images: (imageMap.get(task.task_id) ?? []).sort((a, b) => a.index - b.index),
-    }));
+    await advanceOneQueuedTask(db, userId, ids);
+    const items = await loadTaskItems(db, userId, ids);
 
     return NextResponse.json({ success: true, items, promoted: [] });
   } catch (error: any) {
