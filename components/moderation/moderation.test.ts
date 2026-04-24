@@ -8,12 +8,16 @@ test('NSFW placeholder renders an explicit NSFW label', async () => {
   assert.match(source, /不适宜公开展示/);
 });
 
-test('admin moderation actions expose restore hide and nsfw controls', async () => {
+test('admin moderation actions open an Ant Design management modal with hide and delete controls', async () => {
   const source = await readFile(new URL('./AdminModerationActions.tsx', import.meta.url), 'utf8');
-  assert.match(source, /恢复/);
+
+  assert.match(source, /Modal/);
+  assert.match(source, /管理/);
   assert.match(source, /隐藏/);
-  assert.match(source, /标记 NSFW/);
-  assert.match(source, /window.confirm/);
+  assert.match(source, /删除/);
+  assert.match(source, /action: 'nsfw'/);
+  assert.doesNotMatch(source, /恢复/);
+  assert.doesNotMatch(source, /window\.confirm/);
 });
 
 test('preview shell disables download for NSFW media', async () => {

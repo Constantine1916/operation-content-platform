@@ -13,7 +13,7 @@ import { useAdminModeration } from '@/components/moderation/useAdminModeration';
 import VideoPreviewLightbox from '@/components/gallery/VideoPreviewLightbox';
 import { getFavoriteButtonState } from '@/lib/favorite-view-model';
 import { useMobileViewportState } from '@/lib/use-mobile-viewport';
-import type { ModerationFilter, ModerationStatus } from '@/lib/moderation';
+import type { ModerationStatus } from '@/lib/moderation';
 import type { PublicVideo } from '@/lib/server/public-content';
 
 const PAGE_LIMIT = 20;
@@ -35,14 +35,13 @@ export default function PublicAiVideoPage({
   const [error, setError] = useState<string | null>(null);
   const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const [modelFilter, setModelFilter] = useState('all');
-  const [moderationFilter, setModerationFilter] = useState<ModerationFilter | null>(null);
   const [allModels] = useState<string[]>(initialModels);
   const pageRef = useRef(1);
   const loadingMoreRef = useRef(false);
   const hasMountedRef = useRef(false);
   const { favoriteIds, setFavoriteIds } = useFavoriteStatuses('video', videos.map(video => video.id));
   const requireAuthForAction = useAuthActionGate();
-  const { isAdmin, token, pendingId, moderate } = useAdminModeration();
+  const { isAdmin, pendingId, moderate } = useAdminModeration();
   const { pendingIds, toggleFavorite } = useFavoriteToggle({
     contentType: 'video',
     setFavoriteIds,
@@ -51,7 +50,6 @@ export default function PublicAiVideoPage({
   const fetchPage = useCallback(async (
     page: number,
     model: string,
-    filter: ModerationFilter | null = moderationFilter,
     isFirst = false,
     silent = false,
   ) => {
@@ -62,10 +60,7 @@ export default function PublicAiVideoPage({
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_LIMIT) });
       if (model !== 'all') params.set('model', model);
-      if (isAdmin && filter) params.set('moderation', filter);
-      const res = await fetch(`/api/ai-video?${params}`, {
-        headers: isAdmin && token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      const res = await fetch(`/api/ai-video?${params}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setVideos(prev => page === 1 ? data.data : [...prev, ...data.data]);
@@ -84,10 +79,10 @@ export default function PublicAiVideoPage({
         setLoadingMore(false);
       }
     }
-  }, [isAdmin, moderationFilter, token]);
+  }, []);
 
   useEffect(() => {
-    void fetchPage(1, 'all', moderationFilter, initialVideos.length === 0, initialVideos.length > 0);
+    void fetchPage(1, 'all', initialVideos.length === 0, initialVideos.length > 0);
   }, [fetchPage, initialVideos.length]);
 
   useEffect(() => {
@@ -97,28 +92,22 @@ export default function PublicAiVideoPage({
     }
 
     pageRef.current = 1;
-    void fetchPage(1, modelFilter, moderationFilter, true);
-  }, [fetchPage, modelFilter, moderationFilter]);
+    void fetchPage(1, modelFilter, true);
+  }, [fetchPage, modelFilter]);
 
   const loadMore = useCallback(() => {
     if (!hasMore || loadingMoreRef.current) return;
     loadingMoreRef.current = true;
-    void fetchPage(pageRef.current + 1, modelFilter, moderationFilter).finally(() => {
+    void fetchPage(pageRef.current + 1, modelFilter).finally(() => {
       loadingMoreRef.current = false;
     });
-  }, [fetchPage, hasMore, modelFilter, moderationFilter]);
-
-  const shouldKeepAfterModeration = useCallback((status: ModerationStatus) => {
-    if (!moderationFilter) return status !== 'hidden';
-    if (moderationFilter === 'all') return true;
-    return status === moderationFilter;
-  }, [moderationFilter]);
+  }, [fetchPage, hasMore, modelFilter]);
 
   const applyModerationStatus = useCallback((contentId: string, status: ModerationStatus) => {
     setVideos(current => current
       .map(video => video.id === contentId ? { ...video, moderation_status: status } : video)
-      .filter(video => shouldKeepAfterModeration((video.moderation_status ?? 'active') as ModerationStatus)));
-  }, [shouldKeepAfterModeration]);
+      .filter(video => video.moderation_status !== 'hidden'));
+  }, []);
 
   if (loading) return <VideoSkeleton />;
   if (error) return <div className="text-center py-20 text-red-500 text-sm">{error}</div>;
@@ -129,15 +118,6 @@ export default function PublicAiVideoPage({
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">AI 视频</h1>
         <p className="text-xs text-gray-500 tracking-[0.15em] uppercase">AI Video</p>
       </div>
-      <AdminModerationFilter
-        isAdmin={isAdmin}
-        moderationFilter={moderationFilter}
-        onChange={(nextFilter) => {
-          setModerationFilter(nextFilter);
-          pageRef.current = 1;
-          void fetchPage(1, modelFilter, nextFilter, true);
-        }}
-      />
 
       {allModels.length > 1 && (
         <div className="mb-6 overflow-x-auto pb-1">
@@ -167,77 +147,41 @@ export default function PublicAiVideoPage({
             columnClassName="flex flex-col gap-3 sm:gap-4"
           >
             {videos.map((video, index) => (
-                <VideoCard
-                  key={`${video.id}-${index}`}
-                  video={video}
-                  onOpenPreview={() => setSelectedPreviewIndex(index)}
-                  {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
-                  onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
-                />
-              ))}
-            </Masonry>
-            <VideoPreviewLightbox
-              items={videos}
-              selectedIndex={selectedPreviewIndex}
-              onClose={() => setSelectedPreviewIndex(null)}
-              onSelect={setSelectedPreviewIndex}
-              beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
-              getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
-              onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
-              renderAdminActions={isAdmin ? (item) => (
-                <AdminModerationActions
-                  contentType="video"
-                  contentId={item.id}
-                  status={(item.moderation_status ?? 'active') as ModerationStatus}
-                  pending={pendingId === item.id}
-                  onModerate={async (input) => {
-                    const status = await moderate(input);
-                    if (!status) return;
-                    applyModerationStatus(item.id, status);
-                  }}
-                />
-              ) : undefined}
-            />
+              <VideoCard
+                key={`${video.id}-${index}`}
+                video={video}
+                onOpenPreview={() => setSelectedPreviewIndex(index)}
+                {...getFavoriteButtonState(video.id, favoriteIds, pendingIds)}
+                onToggleFavorite={() => toggleFavorite(video.id, !favoriteIds.has(video.id))}
+                adminModerationAction={isAdmin ? (
+                  <AdminModerationActions
+                    contentType="video"
+                    contentId={video.id}
+                    status={(video.moderation_status ?? 'active') as ModerationStatus}
+                    pending={pendingId === video.id}
+                    onModerate={async (input) => {
+                      const status = await moderate(input);
+                      if (!status) return false;
+                      applyModerationStatus(video.id, status);
+                      return true;
+                    }}
+                  />
+                ) : undefined}
+              />
+            ))}
+          </Masonry>
+          <VideoPreviewLightbox
+            items={videos}
+            selectedIndex={selectedPreviewIndex}
+            onClose={() => setSelectedPreviewIndex(null)}
+            onSelect={setSelectedPreviewIndex}
+            beforeDownload={() => requireAuthForAction({ kind: 'download' }).then(Boolean)}
+            getFavoriteState={(item) => getFavoriteButtonState(item.id, favoriteIds, pendingIds)}
+            onToggleFavorite={(item) => toggleFavorite(item.id, !favoriteIds.has(item.id))}
+          />
           <LoadMoreTrigger onVisible={loadMore} hasMore={hasMore} loadingMore={loadingMore} total={videos.length} />
         </>
       )}
-    </div>
-  );
-}
-
-function AdminModerationFilter({
-  isAdmin,
-  moderationFilter,
-  onChange,
-}: {
-  isAdmin: boolean;
-  moderationFilter: ModerationFilter | null;
-  onChange: (filter: ModerationFilter | null) => void;
-}) {
-  if (!isAdmin) return null;
-
-  const items: Array<{ key: ModerationFilter | null; label: string }> = [
-    { key: null, label: '正常视图' },
-    { key: 'active', label: '正常' },
-    { key: 'nsfw', label: 'NSFW' },
-    { key: 'hidden', label: '已隐藏' },
-    { key: 'all', label: '全部' },
-  ];
-
-  return (
-    <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3">
-      {items.map(item => (
-        <button
-          key={item.key ?? 'public'}
-          type="button"
-          onClick={() => onChange(item.key)}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            moderationFilter === item.key ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 hover:bg-amber-100'
-          }`}
-        >
-          {item.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -248,12 +192,14 @@ function VideoCard({
   isFavorite,
   isPending,
   onToggleFavorite,
+  adminModerationAction,
 }: {
   video: PublicVideo;
   onOpenPreview: () => void;
   isFavorite: boolean;
   isPending: boolean;
   onToggleFavorite: () => void;
+  adminModerationAction?: React.ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -314,6 +260,14 @@ function VideoCard({
             onToggle={onToggleFavorite}
           />
         </div>
+        {adminModerationAction && (
+          <div
+            className="absolute left-3 top-3 z-10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            onClick={event => event.stopPropagation()}
+          >
+            {adminModerationAction}
+          </div>
+        )}
 
         {isNsfw ? (
           <NsfwPlaceholder className="rounded-none" />
