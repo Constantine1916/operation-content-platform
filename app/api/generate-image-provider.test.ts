@@ -149,6 +149,14 @@ test('generate image UI is visible to signed-in non-SVIP users with the normal q
   assert.match(source, /VIP\/SVIP 不限量/);
 });
 
+test('generate image CSV import is only available to SVIP users', async () => {
+  const source = await readFile(generatePageUrl, 'utf8');
+
+  assert.match(source, /const isSvipUser = vipLevel !== null && vipLevel >= 2/);
+  assert.match(source, /if \(!isSvipUser\) return/);
+  assert.match(source, /\{isSvipUser && \(\s*<>[\s\S]*导入 CSV[\s\S]*<\/>\s*\)\}/);
+});
+
 test('environment documentation exposes the new image generation provider variables', async () => {
   const [envExample, readme] = await Promise.all([
     readFile(envExampleUrl, 'utf8'),

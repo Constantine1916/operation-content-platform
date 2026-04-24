@@ -144,6 +144,7 @@ function GenerateImgPageInner() {
   // 所有有图片的任务数量
   const totalImagesCount = groups.flatMap(g => g.subtasks).flatMap(s => s.images).length;
   const generatedPreviewItems = getGeneratedPreviewItems(groups);
+  const isSvipUser = vipLevel !== null && vipLevel >= 2;
 
   async function loadHistory(token: string) {
     const histRes = await fetch('/api/generate-image/history', {
@@ -241,6 +242,8 @@ function GenerateImgPageInner() {
   const csvInputRef = useRef<HTMLInputElement>(null);
   const promptSectionRef = useRef<HTMLDivElement>(null);
   const handleCsvUpload = (file: File) => {
+    if (!isSvipUser) return;
+
     const reader = new FileReader();
     reader.onload = e => {
       const text = e.target?.result as string;
@@ -542,23 +545,27 @@ function GenerateImgPageInner() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-medium text-gray-900">Prompt 列表</span>
           <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-            <input
-              ref={csvInputRef}
-              type="file"
-              accept=".csv,.tsv,.txt"
-              className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleCsvUpload(f); e.target.value = ''; }}
-            />
-            <button
-              onClick={() => csvInputRef.current?.click()}
-              disabled={submitting || polling}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-40 transition-all"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              导入 CSV
-            </button>
+            {isSvipUser && (
+              <>
+                <input
+                  ref={csvInputRef}
+                  type="file"
+                  accept=".csv,.tsv,.txt"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleCsvUpload(f); e.target.value = ''; }}
+                />
+                <button
+                  onClick={() => csvInputRef.current?.click()}
+                  disabled={submitting || polling}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-40 transition-all"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  导入 CSV
+                </button>
+              </>
+            )}
             <button
               onClick={addPrompt}
               disabled={submitting || polling}
