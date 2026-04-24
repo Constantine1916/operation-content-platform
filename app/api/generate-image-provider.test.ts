@@ -102,6 +102,18 @@ test('generate image UI uses capped fake progress while tasks are generating', a
   assert.match(source, /Math\.min\(FAKE_PROGRESS_CAP/);
 });
 
+test('generate image UI opens generated images in the shared image preview lightbox', async () => {
+  const source = await readFile(generatePageUrl, 'utf8');
+
+  assert.match(source, /ImagePreviewLightbox/);
+  assert.match(source, /selectedPreviewIndex/);
+  assert.match(source, /setSelectedPreviewIndex/);
+  assert.match(source, /getGeneratedPreviewItems/);
+  assert.match(source, /onClick=\{\(\) => \{/);
+  assert.match(source, /setSelectedPreviewIndex\(previewIndex\)/);
+  assert.match(source, /selectedIndex=\{selectedPreviewIndex\}/);
+});
+
 test('environment documentation exposes the new image generation provider variables', async () => {
   const [envExample, readme] = await Promise.all([
     readFile(envExampleUrl, 'utf8'),

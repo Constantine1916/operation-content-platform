@@ -8,6 +8,7 @@ import { useAuthRequiredHandler } from '@/components/auth/useAuthRequiredHandler
 import { getAuthTabForPrivateRoute } from '@/lib/route-access';
 import { readVipCache, refreshVipCache } from '@/lib/vip-cache';
 import { App, Tooltip } from 'antd';
+import ImagePreviewLightbox, { type ImagePreviewItem } from '@/components/gallery/ImagePreviewLightbox';
 
 interface ImageResult { url: string; width: number; height: number; index: number; is_public?: boolean }
 
@@ -88,6 +89,25 @@ function findSubTaskByTaskId(groups: PromptGroup[], taskId: string | null): SubT
   return null;
 }
 
+function getGeneratedPreviewId(taskId: string | null, groupIndex: number, subtaskIndex: number, imageIndex: number) {
+  return `${taskId ?? `group-${groupIndex}-subtask-${subtaskIndex}`}::${imageIndex}`;
+}
+
+function getGeneratedPreviewItems(groups: PromptGroup[]): ImagePreviewItem[] {
+  return groups.flatMap((group, groupIndex) =>
+    group.subtasks.flatMap((subtask, subtaskIndex) =>
+      subtask.images.map(image => ({
+        id: getGeneratedPreviewId(subtask.task_id, groupIndex, subtaskIndex, image.index),
+        url: image.url,
+        prompt: group.prompt,
+        width: image.width,
+        height: image.height,
+        created_at: group.latestAt ? new Date(group.latestAt).toISOString() : undefined,
+      }))
+    )
+  );
+}
+
 function GenerateImgPageInner() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -108,6 +128,7 @@ function GenerateImgPageInner() {
   const [selected, setSelected] = useState<Set<SelectedKey>>(new Set());
   const [actionLoading, setActionLoading] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState<number | null>(null);
   const handleAuthRequired = useAuthRequiredHandler({
     defaultTab: getAuthTabForPrivateRoute(),
     redirectTo: '/generate-img',
@@ -123,6 +144,7 @@ function GenerateImgPageInner() {
 
   // 所有有图片的任务数量
   const totalImagesCount = groups.flatMap(g => g.subtasks).flatMap(s => s.images).length;
+  const generatedPreviewItems = getGeneratedPreviewItems(groups);
 
   async function loadHistory(token: string) {
     const histRes = await fetch('/api/generate-image/history', {
@@ -174,6 +196,12 @@ function GenerateImgPageInner() {
   useEffect(() => {
     latestGroupsRef.current = groups;
   }, [groups]);
+
+  useEffect(() => {
+    if (selectedPreviewIndex !== null && selectedPreviewIndex >= generatedPreviewItems.length) {
+      setSelectedPreviewIndex(null);
+    }
+  }, [generatedPreviewItems.length, selectedPreviewIndex]);
 
   useEffect(() => {
     fakeProgressTimerRef.current = setInterval(() => {
@@ -804,11 +832,17 @@ function GenerateImgPageInner() {
                                       ? isSelected
                                         ? 'border-gray-900 ring-2 ring-gray-900 cursor-pointer'
                                         : 'border-gray-200 cursor-pointer hover:border-gray-400'
-                                      : 'border-gray-100 hover:border-gray-300'
+                                      : 'border-gray-100 cursor-zoom-in hover:border-gray-300'
                                   }`}
                                   style={{ aspectRatio: img.width && img.height ? `${img.width} / ${img.height}` : '1 / 1' }}
                                   onClick={() => {
-                                    if (isManaging && sub.task_id) toggleSelect(selKey);
+                                    if (isManaging) {
+                                      if (sub.task_id) toggleSelect(selKey);
+                                      return;
+                                    }
+                                    const previewId = getGeneratedPreviewId(sub.task_id, gi, si, img.index);
+                                    const previewIndex = generatedPreviewItems.findIndex(item => item.id === previewId);
+                                    if (previewIndex >= 0) setSelectedPreviewIndex(previewIndex);
                                   }}
                                 >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -890,8 +924,15 @@ function GenerateImgPageInner() {
               );
             })}
           </div>
-        </>
-      )}
+            </>
+          )}
+
+      <ImagePreviewLightbox
+        items={generatedPreviewItems}
+        selectedIndex={selectedPreviewIndex}
+        onClose={() => setSelectedPreviewIndex(null)}
+        onSelect={setSelectedPreviewIndex}
+      />
 
       {/* 管理模式底部浮动操作栏 */}
       {isManaging && (
