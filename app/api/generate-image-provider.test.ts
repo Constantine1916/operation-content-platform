@@ -35,6 +35,8 @@ test('submit only enqueues image generation tasks without calling the provider',
 test('poll advances at most one queued image task through the provider', async () => {
   const source = await readFile(pollRouteUrl, 'utf8');
 
+  assert.match(source, /waitUntil\(/);
+  assert.match(source, /maxDuration\s*=\s*300/);
   assert.match(source, /generateImage\(/);
   assert.match(source, /status:\s*2/);
   assert.match(source, /status:\s*3/);
@@ -48,6 +50,22 @@ test('poll can retry stale in-progress image tasks', async () => {
   assert.match(source, /\.eq\('status',\s*2\)/);
   assert.match(source, /\.lt\('updated_at'/);
   assert.match(source, /status:\s*1/);
+});
+
+test('poll quickly recovers legacy interrupted image tasks', async () => {
+  const source = await readFile(pollRouteUrl, 'utf8');
+
+  assert.match(source, /STALE_LEGACY_GENERATING_MS/);
+  assert.match(source, /\.lte\('process',\s*1\)/);
+  assert.match(source, /process:\s*5/);
+});
+
+test('image generation provider has a timeout shorter than the Vercel function duration', async () => {
+  const source = await readFile(new URL('../../lib/server/image-generation.ts', import.meta.url), 'utf8');
+
+  assert.match(source, /IMAGE_GENERATION_TIMEOUT_MS/);
+  assert.match(source, /AbortSignal\.timeout/);
+  assert.match(source, /signal:/);
 });
 
 test('generate image UI describes the new one-image-per-run provider', async () => {

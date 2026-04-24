@@ -2,6 +2,7 @@ const IMAGE_MODEL = 'gpt-image-2';
 const IMAGE_SIZE = '1024x1024';
 const IMAGE_QUALITY = 'medium';
 const IMAGE_FORMAT = 'png';
+const DEFAULT_IMAGE_GENERATION_TIMEOUT_MS = 240_000;
 
 export type GeneratedImage = {
   url: string;
@@ -22,6 +23,12 @@ function getProviderConfig() {
   return { baseUrl, apiKey };
 }
 
+function getProviderTimeoutMs() {
+  const raw = Number(process.env.IMAGE_GENERATION_TIMEOUT_MS);
+  if (Number.isFinite(raw) && raw > 0) return raw;
+  return DEFAULT_IMAGE_GENERATION_TIMEOUT_MS;
+}
+
 function getImageDimensions(size: string) {
   const [widthRaw, heightRaw] = size.split('x');
   const width = Number(widthRaw);
@@ -36,8 +43,10 @@ function getImageDimensions(size: string) {
 
 export async function generateImage(prompt: string): Promise<GeneratedImage> {
   const { baseUrl, apiKey } = getProviderConfig();
+  const timeoutMs = getProviderTimeoutMs();
   const res = await fetch(`${baseUrl}/images/generations`, {
     method: 'POST',
+    signal: AbortSignal.timeout(timeoutMs),
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',

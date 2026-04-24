@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { waitUntil } from '@vercel/functions';
 import { authRequiredResponse } from '@/lib/server/auth-required-response';
 import { generateImage } from '@/lib/server/image-generation';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
-const STALE_GENERATING_MS = 2 * 60 * 1000;
+const STALE_GENERATING_MS = 5 * 60 * 1000;
+const STALE_LEGACY_GENERATING_MS = 75 * 1000;
+
+type LockedTask = {
+  task_id: string;
+  prompt: string;
+};
 
 function serviceClient() {
   return createClient(
@@ -32,6 +39,18 @@ async function requireSVIP(token: string): Promise<string> {
 }
 
 async function resetStaleGeneratingTasks(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]) {
+  const legacyCutoff = new Date(Date.now() - STALE_LEGACY_GENERATING_MS).toISOString();
+  const { error: legacyError } = await db
+    .from('generate_tasks')
+    .update({ status: 1, process: 0, error: null, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .in('task_id', taskIds)
+    .eq('status', 2)
+    .lte('process', 1)
+    .lt('updated_at', legacyCutoff);
+
+  if (legacyError) throw new Error(legacyError.message);
+
   const cutoff = new Date(Date.now() - STALE_GENERATING_MS).toISOString();
   const { error } = await db
     .from('generate_tasks')
@@ -44,7 +63,7 @@ async function resetStaleGeneratingTasks(db: ReturnType<typeof serviceClient>, u
   if (error) throw new Error(error.message);
 }
 
-async function advanceOneQueuedTask(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]) {
+async function claimOneQueuedTask(db: ReturnType<typeof serviceClient>, userId: string, taskIds: string[]): Promise<LockedTask | null> {
   await resetStaleGeneratingTasks(db, userId, taskIds);
 
   const { data: queuedRows, error: queuedError } = await db
@@ -59,11 +78,11 @@ async function advanceOneQueuedTask(db: ReturnType<typeof serviceClient>, userId
   if (queuedError) throw new Error(queuedError.message);
 
   const queued = queuedRows?.[0];
-  if (!queued) return;
+  if (!queued) return null;
 
   const { data: lockedRows, error: lockError } = await db
     .from('generate_tasks')
-    .update({ status: 2, process: 1, error: null, updated_at: new Date().toISOString() })
+    .update({ status: 2, process: 5, error: null, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
     .eq('task_id', queued.task_id)
     .eq('status', 1)
@@ -73,8 +92,11 @@ async function advanceOneQueuedTask(db: ReturnType<typeof serviceClient>, userId
   if (lockError) throw new Error(lockError.message);
 
   const locked = lockedRows?.[0];
-  if (!locked) return;
+  return locked ?? null;
+}
 
+async function completeLockedTask(userId: string, locked: LockedTask) {
+  const db = serviceClient();
   try {
     const image = await generateImage(locked.prompt);
     const images = [{ ...image, is_public: true }];
@@ -108,17 +130,21 @@ async function advanceOneQueuedTask(db: ReturnType<typeof serviceClient>, userId
       .eq('user_id', userId);
     if (taskError) throw new Error(taskError.message);
   } catch (e: any) {
-    await db
-      .from('generate_tasks')
-      .update({
-        status: 4,
-        process: 0,
-        images: [],
-        error: e?.message ?? 'generate failed',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('task_id', locked.task_id)
-      .eq('user_id', userId);
+    try {
+      await db
+        .from('generate_tasks')
+        .update({
+          status: 4,
+          process: 0,
+          images: [],
+          error: e?.message ?? 'generate failed',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('task_id', locked.task_id)
+        .eq('user_id', userId);
+    } catch (updateError) {
+      console.error('failed to persist image generation error', updateError);
+    }
   }
 }
 
@@ -163,7 +189,7 @@ async function loadTaskItems(db: ReturnType<typeof serviceClient>, userId: strin
 /**
  * POST /api/generate-image/poll
  * Body: { task_ids: string[] }
- * Advances at most one queued task through the synchronous image provider.
+ * Starts at most one queued task in the background and returns current status.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -189,7 +215,11 @@ export async function POST(request: NextRequest) {
     }
 
     const db = serviceClient();
-    await advanceOneQueuedTask(db, userId, ids);
+    const locked = await claimOneQueuedTask(db, userId, ids);
+    if (locked) {
+      waitUntil(completeLockedTask(userId, locked));
+    }
+
     const items = await loadTaskItems(db, userId, ids);
 
     return NextResponse.json({ success: true, items, promoted: [] });
