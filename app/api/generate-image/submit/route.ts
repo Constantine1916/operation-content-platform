@@ -4,6 +4,20 @@ import { authRequiredResponse } from '@/lib/server/auth-required-response';
 
 export const dynamic = 'force-dynamic';
 
+const IMAGE_MODEL = 'gpt-image-2';
+const IMAGE_SIZE = '1024x1024';
+const IMAGE_QUALITY = 'medium';
+const IMAGE_FORMAT = 'png';
+const MAX_PROMPTS_PER_REQUEST = 100;
+
+type GeneratedImage = {
+  url: string;
+  width: number;
+  height: number;
+  index: number;
+  is_public?: boolean;
+};
+
 function serviceClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,37 +25,28 @@ function serviceClient() {
   );
 }
 
-const HAIYI_BASE = 'https://www.haiyi.art/api/v1';
-const CF_PROXY = 'https://haiyi-proxy.constantine1916.workers.dev';
-const COOKIE = process.env.HAIYI_COOKIE!;
+function getProviderConfig() {
+  const baseUrl = process.env.IMAGE_GENERATION_BASE_URL?.replace(/\/+$/, '');
+  const apiKey = process.env.IMAGE_GENERATION_API_KEY;
 
-function proxyUrl(path: string): string {
-  return `${CF_PROXY}?target=${encodeURIComponent(`${HAIYI_BASE}${path}`)}`;
+  if (!baseUrl || !apiKey) {
+    throw Object.assign(new Error('Image generation provider is not configured'), { status: 500 });
+  }
+
+  return { baseUrl, apiKey };
 }
 
-const COMMON_HEADERS = {
-  'accept': 'application/json, text/plain, */*',
-  'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-  'accept-encoding': 'identity',
-  'content-type': 'application/json',
-  'origin': 'https://www.haiyi.art',
-  'referer': 'https://www.haiyi.art/models/detail/d34fe800504g5d28bbhaiyiycanimeimg',
-  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-  'sec-ch-ua': '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"macOS"',
-  'sec-fetch-dest': 'empty',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-site': 'same-origin',
-  'priority': 'u=1, i',
-  'x-app-id': 'web_global_seaart',
-  'x-browser-id': process.env.HAIYI_BROWSER_ID ?? crypto.randomUUID(),
-  'x-device-id': process.env.HAIYI_DEVICE_ID ?? crypto.randomUUID(),
-  'x-page-id': crypto.randomUUID(),
-  'x-platform': 'web',
-  'x-timezone': 'Asia/Shanghai',
-  'Cookie': COOKIE,
-};
+function getImageDimensions(size: string) {
+  const [widthRaw, heightRaw] = size.split('x');
+  const width = Number(widthRaw);
+  const height = Number(heightRaw);
+
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    return { width: 1024, height: 1024 };
+  }
+
+  return { width, height };
+}
 
 async function requireSVIP(token: string): Promise<string> {
   const supabase = createClient(
@@ -59,55 +64,53 @@ async function requireSVIP(token: string): Promise<string> {
   return user.id;
 }
 
-async function submitTask(prompt: string): Promise<string> {
-  const body = {
-    model_no: 'd34fe800504g5d28bbhaiyiycanimeimg',
-    model_ver_no: 'e45g335365865c5aa2haiyiycanimeimg',
-    meta: {
-      n_iter: 4, lora_models: null, embeddings: null,
-      original_translated_meta_prompt: '', extra_prompt: '',
-      prompt, local_prompt: '', width: 828, height: 1472,
-      steps: 0, init_images: null, seed: 0, hi_res_arg: null,
-      smart_edit: null, guidance_scale: 0, left_margin: 0, up_margin: 0,
-      image: '', images: null, vae: 'None', refiner_mode: 0, lcm_mode: 0,
-      generate: { anime_enhance: 2, mode: 0, prompt_magic_mode: 2, gen_mode: 0 },
+async function generateImage(prompt: string): Promise<GeneratedImage> {
+  const { baseUrl, apiKey } = getProviderConfig();
+  const res = await fetch(`${baseUrl}/images/generations`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     },
-    ss: 52,
-  };
+    body: JSON.stringify({
+      model: IMAGE_MODEL,
+      prompt,
+      size: IMAGE_SIZE,
+      quality: IMAGE_QUALITY,
+      output_format: IMAGE_FORMAT,
+      response_format: 'url',
+    }),
+  });
 
-  // 最多重试 4 次，指数退避：2s → 4s → 8s → 16s
-  for (let attempt = 0; attempt < 4; attempt++) {
-    if (attempt > 0) await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
-
-    const res = await fetch(proxyUrl('/task/v2/text-to-img'), {
-      method: 'POST',
-      headers: { ...COMMON_HEADERS, 'x-request-id': crypto.randomUUID() },
-      body: JSON.stringify(body),
-    });
-
-    if (res.status === 403) {
-      if (attempt < 3) continue; // 退避后重试
-      const errText = await res.text();
-      throw new Error(`submitTask HTTP 403: ${errText.substring(0, 200)}`);
-    }
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`submitTask HTTP ${res.status}: ${errText.substring(0, 200)}`);
-    }
-
-    const json = await res.json();
-    if (json.status?.code !== 10000) throw new Error(`submitTask error: ${json.status?.msg}`);
-    return json.data.id as string;
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`generateImage HTTP ${res.status}: ${errText.substring(0, 200)}`);
   }
 
-  throw new Error('submitTask: max retries exceeded');
+  const json = await res.json();
+  const url = json?.data?.[0]?.url;
+  if (typeof url !== 'string' || url.length === 0) {
+    throw new Error('generateImage response missing data[0].url');
+  }
+
+  return {
+    url,
+    ...getImageDimensions(IMAGE_SIZE),
+    index: 0,
+  };
+}
+
+function normalizePrompts(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map(item => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean);
 }
 
 /**
  * POST /api/generate-image/submit
  * Body: { prompts: string[] }
- * Response: { success: true, tasks: [{ prompt, task_id, error? }] }
+ * Response: { success: true, tasks: [{ prompt, task_id, status, images, error? }] }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -122,54 +125,84 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const prompts: string[] = body.prompts;
-    if (!Array.isArray(prompts) || prompts.length === 0)
+    const prompts = normalizePrompts(body.prompts);
+    if (prompts.length === 0) {
       return NextResponse.json({ error: 'prompts must be a non-empty array' }, { status: 400 });
+    }
+    if (prompts.length > MAX_PROMPTS_PER_REQUEST) {
+      return NextResponse.json({ error: `prompts cannot exceed ${MAX_PROMPTS_PER_REQUEST} items` }, { status: 400 });
+    }
 
     const db = serviceClient();
+    const tasks: {
+      prompt: string;
+      task_id: string;
+      status: number;
+      process: number;
+      images: GeneratedImage[];
+      error?: string;
+    }[] = [];
 
-    // 查当前用户进行中的任务数（status 1=排队 2=生成中）
-    const { count: activeCount } = await db
-      .from('generate_tasks')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .in('status', [1, 2]);
-    let slots = Math.max(0, 10 - (activeCount ?? 0));
-
-    const tasks: { prompt: string; task_id: string | null; queued?: boolean; error?: string }[] = [];
-
-    for (let i = 0; i < prompts.length; i++) {
-      const prompt = prompts[i]!;
-
-      if (slots <= 0) {
-        // 超出配额：存为 status=0（待提交），不调海艺接口
-        await db.from('generate_tasks').insert({
-          user_id: userId, prompt, task_id: null, status: 0, process: 0, images: [],
-        });
-        tasks.push({ prompt, task_id: null, queued: true });
-        continue;
-      }
+    for (const prompt of prompts) {
+      const task_id = crypto.randomUUID();
+      let taskRowInserted = false;
 
       try {
-        const task_id = await submitTask(prompt);
-        await db.from('generate_tasks').insert({
-          user_id: userId, prompt, task_id, status: 1, process: 0, images: [],
+        const image = await generateImage(prompt);
+        const images = [{ ...image, is_public: true }];
+
+        const { error: taskError } = await db.from('generate_tasks').insert({
+          user_id: userId,
+          prompt,
+          task_id,
+          status: 3,
+          process: 100,
+          images,
         });
-        tasks.push({ prompt, task_id });
-        slots--;
+        if (taskError) throw new Error(taskError.message);
+        taskRowInserted = true;
+
+        const { error: imageError } = await db.from('ai_images').upsert(
+          images.map(img => ({
+            url: img.url,
+            prompt,
+            width: img.width,
+            height: img.height,
+            index: img.index,
+            is_public: img.is_public,
+            source: 'generate',
+            task_id,
+            user_id: userId,
+          })),
+          { onConflict: 'task_id,index' }
+        );
+        if (imageError) throw new Error(imageError.message);
+
+        tasks.push({ prompt, task_id, status: 3, process: 100, images });
       } catch (e: any) {
         const errorMsg = e?.message ?? 'submit failed';
-        await db.from('generate_tasks').insert({
-          user_id: userId, prompt, task_id: null, status: 4, process: 0, images: [], error: errorMsg,
-        });
-        tasks.push({ prompt, task_id: null, error: errorMsg });
+        if (taskRowInserted) {
+          await db.from('generate_tasks')
+            .update({ status: 4, process: 0, images: [], error: errorMsg, updated_at: new Date().toISOString() })
+            .eq('task_id', task_id)
+            .eq('user_id', userId);
+        } else {
+          await db.from('generate_tasks').insert({
+            user_id: userId,
+            prompt,
+            task_id,
+            status: 4,
+            process: 0,
+            images: [],
+            error: errorMsg,
+          });
+        }
+        tasks.push({ prompt, task_id, status: 4, process: 0, images: [], error: errorMsg });
       }
-      // 串行提交间隔 800ms，减少触发平台限流的概率
-      if (i < prompts.length - 1 && slots > 0) await new Promise(r => setTimeout(r, 800));
     }
 
     return NextResponse.json({ success: true, tasks });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message ?? 'Internal server error' }, { status: error?.status ?? 500 });
   }
 }

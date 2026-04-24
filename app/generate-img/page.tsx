@@ -306,9 +306,9 @@ function GenerateImgPageInner() {
         if (!newGroupMap.has(t.prompt)) newGroupMap.set(t.prompt, []);
         newGroupMap.get(t.prompt)!.push({
           task_id: t.task_id,
-          status: t.queued ? 0 : t.error ? 4 : 1,
-          process: 0,
-          images: [],
+          status: t.status ?? (t.queued ? 0 : t.error ? 4 : 1),
+          process: t.process ?? 0,
+          images: t.images ?? [],
           error: t.error,
         });
       }
@@ -525,7 +525,7 @@ function GenerateImgPageInner() {
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-xs text-gray-400">共 {totalRuns} 次任务，每次生成 4 张图</span>
+          <span className="text-xs text-gray-400">共 {totalRuns} 次任务，每次生成 1 张图</span>
           <button
             onClick={handleSubmit}
             disabled={submitting || polling}
@@ -727,13 +727,14 @@ function GenerateImgPageInner() {
                               return (
                                 <div
                                   key={j}
-                                  className={`group relative aspect-[9/16] rounded-xl overflow-hidden border transition-all ${
+                                  className={`group relative rounded-xl overflow-hidden border transition-all ${
                                     isManaging
                                       ? isSelected
                                         ? 'border-gray-900 ring-2 ring-gray-900 cursor-pointer'
                                         : 'border-gray-200 cursor-pointer hover:border-gray-400'
                                       : 'border-gray-100 hover:border-gray-300'
                                   }`}
+                                  style={{ aspectRatio: img.width && img.height ? `${img.width} / ${img.height}` : '1 / 1' }}
                                   onClick={() => {
                                     if (isManaging && sub.task_id) toggleSelect(selKey);
                                   }}
@@ -803,8 +804,8 @@ function GenerateImgPageInner() {
                           </div>
                         ) : sub.status === 1 || sub.status === 2 ? (
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                            {[1, 2, 3, 4].map(j => (
-                              <div key={j} className="aspect-[9/16] rounded-xl bg-gray-100 animate-pulse" />
+                            {[1].map(j => (
+                              <div key={j} className="aspect-square rounded-xl bg-gray-100 animate-pulse" />
                             ))}
                           </div>
                         ) : sub.error ? (

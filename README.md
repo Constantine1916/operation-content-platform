@@ -48,6 +48,8 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名密钥 |
 | `SUPABASE_SERVICE_ROLE_KEY` | 服务端操作密钥（API Routes 使用） |
+| `IMAGE_GENERATION_BASE_URL` | AI 图片生成服务地址，例如 `http://101.32.243.232:8080/v1` |
+| `IMAGE_GENERATION_API_KEY` | AI 图片生成服务 Bearer Token |
 | `API_SECRET_TOKEN` | 保护内部 POST 端点的令牌 |
 
 ## 数据库
