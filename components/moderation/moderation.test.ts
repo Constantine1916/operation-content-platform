@@ -12,9 +12,13 @@ test('admin moderation actions open an Ant Design management modal with hide and
   const source = await readFile(new URL('./AdminModerationActions.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /Modal/);
+  assert.match(source, /width=\{420\}/);
   assert.match(source, /管理/);
   assert.match(source, /隐藏/);
   assert.match(source, /删除/);
+  assert.match(source, /从社区隐藏/);
+  assert.match(source, /作者资产仍可见/);
+  assert.match(source, /NSFW 占位/);
   assert.match(source, /action: 'nsfw'/);
   assert.doesNotMatch(source, /恢复/);
   assert.doesNotMatch(source, /window\.confirm/);
