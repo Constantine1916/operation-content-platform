@@ -20,3 +20,8 @@ test('media preview shell keeps shared keyboard navigation and creator card chro
   assert.match(source, /创作者/);
 });
 
+test('media preview shell does not render an AiCave watermark over previews', async () => {
+  const source = await readFile(new URL('./MediaPreviewShell.tsx', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(source, />\s*AiCave\s*</);
+});

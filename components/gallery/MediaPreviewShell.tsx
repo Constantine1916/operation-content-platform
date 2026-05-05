@@ -258,9 +258,6 @@ export default function MediaPreviewShell<T extends MediaPreviewShellItem>({
 
           <div className="relative z-10 flex max-h-full max-w-[min(980px,100%-24px)] items-center justify-center">
             {renderStage({ item })}
-            <div className="pointer-events-none absolute bottom-4 right-4 rounded-full bg-black/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/82 backdrop-blur-sm">
-              AiCave
-            </div>
           </div>
         </div>
 
