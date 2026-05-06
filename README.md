@@ -33,7 +33,7 @@ npm install
 
 # 配置环境变量
 cp .env.example .env.local
-# 编辑 .env.local 填入 Supabase 配置
+# 编辑 .env.local 填入 Supabase、图片生成服务等真实配置
 
 # 启动开发服务器
 npm run dev
@@ -48,9 +48,12 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名密钥 |
 | `SUPABASE_SERVICE_ROLE_KEY` | 服务端操作密钥（API Routes 使用） |
-| `IMAGE_GENERATION_BASE_URL` | AI 图片生成服务地址，例如 `http://101.32.243.232:8080/v1` |
+| `IMAGE_GENERATION_BASE_URL` | AI 图片生成服务地址，例如 `https://image-provider.example.com/v1` |
 | `IMAGE_GENERATION_API_KEY` | AI 图片生成服务 Bearer Token |
+| `IMAGE_GENERATION_TIMEOUT_MS` | 可选，图片生成请求超时时间，默认 `285000` |
 | `API_SECRET_TOKEN` | 保护内部 POST 端点的令牌 |
+
+不要把真实服务器 IP、内网地址、Service Role Key、Bearer Token 或其他生产密钥写进 README、`.env.example`、测试用例或提交历史。真实值只配置在本地 `.env.local`、Vercel Environment Variables 或服务器进程环境变量中。
 
 ## 数据库
 

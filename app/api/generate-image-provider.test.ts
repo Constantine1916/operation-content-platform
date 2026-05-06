@@ -162,11 +162,12 @@ test('generate image CSV import is only available to SVIP users', async () => {
   assert.match(source, /\{isSvipUser && \(\s*<>[\s\S]*导入 CSV[\s\S]*<\/>\s*\)\}/);
 });
 
-test('environment documentation exposes the new image generation provider variables', async () => {
+test('environment documentation lists provider variables without real provider details', async () => {
   const [envExample, readme] = await Promise.all([
     readFile(envExampleUrl, 'utf8'),
     readFile(readmeUrl, 'utf8'),
   ]);
+  const environmentDocs = `${envExample}\n${readme}`;
 
   assert.match(envExample, /IMAGE_GENERATION_BASE_URL/);
   assert.match(envExample, /IMAGE_GENERATION_API_KEY/);
@@ -174,4 +175,6 @@ test('environment documentation exposes the new image generation provider variab
   assert.match(readme, /IMAGE_GENERATION_API_KEY/);
   assert.doesNotMatch(envExample, /HAIYI/);
   assert.doesNotMatch(readme, /HAIYI/);
+  assert.doesNotMatch(environmentDocs, /101\.32\.243\.232/);
+  assert.doesNotMatch(environmentDocs, /IMAGE_GENERATION_BASE_URL=https?:\/\/\d{1,3}(?:\.\d{1,3}){3}/);
 });
